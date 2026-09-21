@@ -4,10 +4,11 @@ import QtQuick.Layouts
 
 import "../../Theme"
 import "Parts/Controller"
-import "Parts/ViewPort"
-import "Parts/ViewPort/Properties"
-import "Parts/ViewPort/Tree"
-import "Parts/ViewPort/WorkPage"
+import "Parts/Topbar"
+import "Parts/Project"
+import "Parts/Project/Properties"
+import "Parts/Project/Tree"
+import "Parts/Project/Pages"
 
 Item {
     id: root
@@ -52,12 +53,21 @@ Item {
 
                 Rectangle {
                     id: topMenu
-                    Layout.fillWidth: true;
+                    Layout.fillWidth:  true
                     Layout.fillHeight: true
 
                     color: "transparent"
 
-                    // ===== To be done =====
+                    //FunctionBlocks {
+                    //    anchors.fill: parent
+
+                    //    onBlockRequested: (category, type, title) => {
+                    //        console.info("Add block:", category, "/", type, "(" + title + ")")
+                    //    }
+                    //}
+                    TopToolBar {
+                        anchors.fill: parent
+                    }
                 }
             }
         }
@@ -76,7 +86,7 @@ Item {
                 SplitView.preferredWidth: 200
             }
 
-            ViewPort {
+            Project {
                 SplitView.fillWidth: true
                 SplitView.fillHeight: true
             }

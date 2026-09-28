@@ -7,11 +7,17 @@
 #include <QObject>
 
 #include "application.h"
+#include "src/Components/ProjectManager/projectmanager.h"
 #include "src/Components/BlockManager/blockmanager.h"
+#include "src/Components/Logger/logger.h"
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+
+    app.setOrganizationName(QStringLiteral("SmartTechInnovation"));
+    app.setApplicationName("HomeAutomation");
+    app.setApplicationVersion(QStringLiteral(PROJECT_VERSION_STR));
 
     Application_class AppRuntime;
 
@@ -19,11 +25,11 @@ int main(int argc, char *argv[])
 
     QQuickStyle::setStyle("Basic");
 
-    app.setOrganizationName(QStringLiteral("Smart Tech Innovation"));
-    app.setApplicationName("STI Home Automation");
+    qmlRegisterSingletonInstance("STI.ProjectManager", 1, 0, "ProjectManager", &S_ProjectManager);
+    qmlRegisterSingletonInstance("STI.Logger",         1, 0, "Logger",         &S_Logger);
+    qmlRegisterUncreatableMetaObject(Log::staticMetaObject, "STI.Logger", 1, 0, "Log", "Log is an enum namespace");
+    qmlRegisterSingletonInstance("STI.BlockManager",   1, 0, "BlockManager",   &S_BlockManager);
 
-    /* BlockManager disponibil in QML: import STI.Blocks -> BlockManager */
-    qmlRegisterSingletonInstance("STI.BlockManager", 1, 0, "BlockManager", &S_BlockManager);
 
     QQmlApplicationEngine engine;
 

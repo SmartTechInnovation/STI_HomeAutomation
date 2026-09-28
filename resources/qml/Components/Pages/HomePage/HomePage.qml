@@ -8,27 +8,16 @@ import "Parts"
 Item {
     id: root
 
-    signal sig_New_Project()
-    signal sig_Open_Project()
+    signal newProject ()
+    signal openProject(url projPath)
+    signal openFolder()
+    signal openMyControllers()
+    signal searchLocalNetwork()
+    signal connect()
+    signal firmwareManager()
+    signal flashHardware()
 
-    readonly property var projectColumns: [
-        { key: "name",         title: "Project Name",  width: 160 },
-        { key: "location",     title: "        ",      width: 240 },
-        { key: "workspace",    title: "Workspace",     width: 120 },
-        { key: "lastModified", title: "Last Modified", width: 0, fill: true }
-    ]
-
-    function colWidth(key) {
-        for (var i = 0; i < projectColumns.length; i++)
-            if (projectColumns[i].key === key) return projectColumns[i].width
-        return 0
-    }
-
-    function colFill(key) {
-        for (var i = 0; i < projectColumns.length; i++)
-            if (projectColumns[i].key === key) return projectColumns[i].fill === true
-        return false
-    }
+    required property var ref_RecentProjects
 
     component SectionLabel: Label {
         color:          Theme.white
@@ -61,17 +50,6 @@ Item {
         }
     }
 
-    component Cell: Label {
-        property string col: ""
-
-        color:             Theme.white
-        elide:             Text.ElideRight
-        verticalAlignment: Text.AlignVCenter
-
-        Layout.fillWidth:      root.colFill(col)
-        Layout.preferredWidth: root.colFill(col) ? 0 : root.colWidth(col)
-    }
-
     // ===== Background =====
     Rectangle {
         anchors.fill: parent
@@ -96,32 +74,42 @@ Item {
             color:                 "transparent"
 
             Column {
-                Repeater {
-                    model: [
-                        { title: "PROJECT",       items: ["My Projects", "New  Project", "Open Project"] },
-                        { title: "CONTROLLER",    items: ["My Controllers", "Search Local Network", "Connect..."] },
-                        { title: "TOOLS",         items: ["Firmware Manager", "Flash Hardware"] }
-                    ]
-
-                    Column {
-                        required property string title
-                        required property var    items
-                        required property int    index
-
-                        SectionLabel {
-                            text:       parent.title
-                            topPadding: parent.index === 0 ? 0 : 3
-                        }
-
-                        Repeater {
-                            model: parent.items
-
-                            MenuButton {
-                                required property string modelData
-                                text: modelData
-                            }
-                        }
-                    }
+                SectionLabel {
+                    text:       qsTr("PROJECT")
+                }
+                MenuButton {
+                    text: qsTr("My Projects")
+                }
+                MenuButton {
+                    text: qsTr("New Projects")
+                    onClicked: newProject()
+                }
+                MenuButton {
+                    text: qsTr("Open Project")
+                    onClicked: openFolder()
+                }
+                SectionLabel {
+                    text:       qsTr("CONTROLLER")
+                    topPadding: 3
+                }
+                MenuButton {
+                    text: qsTr("My Controllers")
+                }
+                MenuButton {
+                    text: qsTr("Search Local Network")
+                }
+                MenuButton {
+                    text: qsTr("Connect...")
+                }
+                SectionLabel {
+                    text:       qsTr("TOOLS")
+                    topPadding: 3
+                }
+                MenuButton {
+                    text: qsTr("Firmware Manager")
+                }
+                MenuButton {
+                    text: qsTr("Flash Hardware")
                 }
             }
         }
@@ -162,7 +150,7 @@ Item {
                         Layout.preferredWidth:  200
                         Layout.preferredHeight: 34
 
-                        model: [ "Workspace", "Local", "Cloude" ]
+                        model: [ "Workspace", "Local", "Cloud" ]
 
                         background: Rectangle {
                             radius: 5
@@ -190,20 +178,28 @@ Item {
                     RowLayout {
                         anchors.fill:        parent
                         anchors.leftMargin:  14
-                        anchors.rightMargin: 8
                         spacing:             8
 
-                        Repeater {
-                            model: root.projectColumns
-
-                            Cell {
-                                required property var modelData
-                                col:            modelData.key
-                                text:           modelData.title
-                                color:          Theme.white
+                        Repeater{
+                            id: header_Titles
+                            model: [
+                                { name: "Title"         },
+                                { name: "Location"      },
+                                { name: "Workspace"     },
+                                { name: "Last modified" },
+                            ]
+                            delegate: Text {
+                                Layout.preferredWidth: 180
+                                Layout.fillHeight: true
+                                color: Theme.white
+                                elide: Text.ElideRight
+                                verticalAlignment: Text.AlignLeft
+                                text: modelData.name
                                 font.pixelSize: 20
+                                font.bold:      true
                             }
                         }
+                        Item { Layout.fillWidth: true }
                     }
                 }
 
@@ -216,78 +212,73 @@ Item {
 
                 // ===== Rows =====
                 ListView {
-                    id: listView_Projects
+                    id: listView_RecentProjects
                     Layout.fillWidth:  true
                     Layout.fillHeight: true
                     clip:              true
 
-                    model: [
-                        {name: "Duplex R", location: "Stauceni..dsadsad.", workspace: "Trustera", lastModified: "9/4/2026 3:00 PM"},
-                        {name: "Duplex L", location: "Staucenfsdfi...", workspace: "Trustera", lastModified: "9/4/2026 4:00 PM"},
-                        {name: "Casa 1  ", location: "Staucenfsdffdsffdsfi...", workspace: "Trustera", lastModified: "9/4/2026 5:00 PM"},
-                        {name: "Casa 2  ", location: "Staucenfsdfsdfdsfi...", workspace: "Trustera", lastModified: "9/4/2026 6:00 PM"},
-                    ]
-
+                    model: root.ref_RecentProjects
                     ScrollBar.vertical: ScrollBar {}
 
                     delegate: Rectangle {
-                        id: project_Row
-                        required property string name
-                        required property string location
-                        required property string workspace
-                        required property string lastModified
+                        id: rowProject
+                        required property var modelData
 
                         width:  ListView.view.width
                         height: 50
+                        color:  rowHover.hovered ? Theme.bgHover : "transparent"
 
-                        color: project_MouseArea.containsMouse ? Theme.bgHover : "transparent"
+                        HoverHandler {
+                            id: rowHover
+                            cursorShape: Qt.PointingHandCursor
+                        }
 
-                        MouseArea {
-                            id: project_MouseArea
-                            anchors.fill: parent
-                            hoverEnabled: true
-
-                            onClicked: console.info("Open Project: " + project_Row.name)
-
-                            HoverHandler { cursorShape: Qt.PointingHandCursor }
+                        TapHandler {
+                            onTapped: root.openProject(rowProject.modelData.path)
                         }
 
                         RowLayout {
-                            anchors.fill:        parent
-                            anchors.leftMargin:  14
-                            anchors.rightMargin: 8
-                            spacing:             8
+                            anchors.fill:       parent
+                            anchors.leftMargin: 14
+                            spacing:            8
 
-                            Cell {
-                                col:            "name"
-                                text:           project_Row.name
-                                font.bold:      true
-                                font.pixelSize: 18
-                            }
-
-                            Cell {
-                                col:   "location"
-                                text:  project_Row.location
-                                font.pixelSize: 14
-                                color: Theme.gray
-                            }
-
-                            Cell {
-                                col:  "workspace"
-                                font.bold: true
-                                font.pixelSize: 18
-                                text: project_Row.workspace
-                            }
-
-                            Cell {
-                                col:            "lastModified"
-                                text:           project_Row.lastModified
+                            Text {
+                                Layout.preferredWidth: 180
                                 color:          Theme.white
+                                elide:          Text.ElideRight
+                                text:           rowProject.modelData.title
+                                font.pixelSize: 16
+                                font.bold:      true
+                            }
+                            Text {
+                                Layout.preferredWidth: 180
+                                color:          Theme.white
+                                elide:          Text.ElideRight
+                                text:           rowProject.modelData.location
                                 font.pixelSize: 14
                             }
+                            Text {
+                                Layout.preferredWidth: 180
+                                color:          Theme.white
+                                elide:          Text.ElideRight
+                                text:           rowProject.modelData.workspace === "" ? "local" : rowProject.modelData.workspace
+                                font.pixelSize: 16
+                                font.bold:      true
+                            }
+                            Text {
+                                Layout.preferredWidth: 180
+                                color:          Theme.white
+                                elide:          Text.ElideRight
+                                text:           rowProject.modelData.mDate
+                                font.pixelSize: 14
+                            }
+
+                            Item { Layout.fillWidth: true }
                         }
                     }
                 }
+
+                Item { Layout.fillHeight: true }
             }
         }
     }

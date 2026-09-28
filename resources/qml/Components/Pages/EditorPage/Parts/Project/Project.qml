@@ -8,6 +8,8 @@ import "Pages"
 Item {
     id: root
 
+    property var projectPages
+
     StackLayout {
         width: parent.width
         height: parent.height
@@ -20,6 +22,8 @@ Item {
             Layout.fillWidth: true
             color: "green"
         }
+
+
         Page {
             id: page1
             Layout.fillHeight: true

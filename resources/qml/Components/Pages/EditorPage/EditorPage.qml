@@ -10,8 +10,13 @@ import "Parts/Project/Properties"
 import "Parts/Project/Tree"
 import "Parts/Project/Pages"
 
+import STI.ProjectManager
+
 Item {
     id: root
+
+    property var projectTreeRef: []
+    property var projectPages:   []
 
     // ===== Background =====
     Rectangle {
@@ -58,13 +63,6 @@ Item {
 
                     color: "transparent"
 
-                    //FunctionBlocks {
-                    //    anchors.fill: parent
-
-                    //    onBlockRequested: (category, type, title) => {
-                    //        console.info("Add block:", category, "/", type, "(" + title + ")")
-                    //    }
-                    //}
                     TopToolBar {
                         anchors.fill: parent
                     }
@@ -89,6 +87,8 @@ Item {
             Project {
                 SplitView.fillWidth: true
                 SplitView.fillHeight: true
+
+                projectPages: root.projectPages
             }
 
             Properties {

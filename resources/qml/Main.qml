@@ -1,3 +1,4 @@
+import QtCore
 import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
@@ -8,6 +9,9 @@ import "Components/Theme"
 import "Components/Tab"
 import "Components/Pages/HomePage"
 import "Components/Pages/EditorPage"
+import "Components/Logger"
+
+import STI.ProjectManager
 
 ApplicationWindow {
     id: mainApp
@@ -18,9 +22,17 @@ ApplicationWindow {
     visible: true
     title: qsTr("Home Automation Config")
 
-    property int prop_rw_CurrentTab: 0
+    property var recentProjects: ProjectManager.recentProjects
+    property var openedTabs:     ProjectManager.openedTabs
+
 
     readonly property bool prop_ro_Maximized: mainApp.visibility === Window.Maximized
+
+    Shortcut { sequences: [StandardKey.New];  onActivated: ProjectManager.newProject()  }
+    Shortcut { sequences: [StandardKey.Open]; onActivated: folder_OpenProject.open()    }
+    Shortcut { sequences: [StandardKey.Save]; onActivated: ProjectManager.saveProject() }
+    Shortcut { sequences: [StandardKey.Undo]; onActivated: ProjectManager.undoProject() }
+    Shortcut { sequences: [StandardKey.Redo]; onActivated: ProjectManager.redoProject() }
 
     // ========= Window Content ==========
     ColumnLayout { //Vertical layout
@@ -66,16 +78,16 @@ ApplicationWindow {
 
                 Repeater {
                     model: [
-                        { icon_src: "qrc:/icons/page/page-text.svg"  , id_name: "btn_NewProject"  },
-                        { icon_src: "qrc:/icons/file/folder-open.svg", id_name: "btn_OpenProject" },
-                        { icon_src: "qrc:/icons/action/save.svg"     , id_name: "btn_SaveProject" },
+                        { icon_src: "qrc:/icons/page/page-text.svg"  , id_name: "btn_NP"  },
+                        { icon_src: "qrc:/icons/file/folder-open.svg", id_name: "btn_OP" },
+                        { icon_src: "qrc:/icons/action/save.svg"     , id_name: "btn_SP" },
                         { icon_src: "qrc:/icons/action/undo.svg"     , id_name: "btn_Undo"        },
                         { icon_src: "qrc:/icons/action/redo.svg"     , id_name: "btn_Redo"        },
                     ]
                     Button {
                         required property string icon_src
-                        required property var    id_name
-                        id: id_name
+                        required property string id_name
+                        id: id_topBtn
                         Layout.fillHeight: true
                         Layout.preferredWidth: 25
                         padding: 2
@@ -86,25 +98,64 @@ ApplicationWindow {
                         HoverHandler { cursorShape: Qt.PointingHandCursor }
 
                         background: Rectangle {
-                            color: id_name.down  ? Qt.darker(Theme.bgChrome, 1.35)  : id_name.hovered ? Qt.darker(Theme.bgChrome, 1.18): "transparent"
+                            color: id_topBtn.down  ? Qt.darker(Theme.bgChrome, 1.35)  : id_topBtn.hovered ? Qt.darker(Theme.bgChrome, 1.18): "transparent"
+                        }
+
+                        onClicked: () =>{
+                            if     (id_name === "btn_NP")   ProjectManager.newProject()
+                            else if(id_name === "btn_OP")   folder_OpenProject.open()
+                            else if(id_name === "btn_SP")   ProjectManager.saveProject()
+                            else if(id_name === "btn_Undo") ProjectManager.undoProject()
+                            else if(id_name === "btn_Redo") ProjectManager.redoProject()
                         }
                     }
+                }
+
+                FolderDialog {
+                    id: folder_OpenProject
+                    currentFolder: StandardPaths.standardLocations(StandardPaths.DocumentsLocation)[0]
+                    onAccepted: ProjectManager.openProject(selectedFolder)
                 }
 
                 Item { Layout.preferredWidth: 100 }
 
                 Tab { // ==== Home Tab ====
-                    active: true
+                    active: ProjectManager.activeTabIndex === -1
                     closable: false
                     icon_src: "qrc:/icons/navigation/home.svg"
+
+                    onSig_activate: {
+                        ProjectManager.setActiveTab(-1)
+                    }
                 }
 
                 // ====== Projects Tabs =====
+                ListView {
+                    id: list_OpenedProjects
+                    Layout.fillWidth:  true
+                    Layout.fillHeight: true
+                    orientation: ListView.Horizontal
+                    clip:        true
+                    spacing:     2
+                    boundsBehavior: Flickable.StopAtBounds
+                    model:       mainApp.openedTabs
 
+                    ScrollBar.horizontal: ScrollBar {
+                        policy: list_OpenedProjects.contentWidth > list_OpenedProjects.width ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
+                    }
 
+                    delegate: Tab {
+                        id: tab_Project
+                        active:   ProjectManager.activeTabIndex === index
+                        icon_src: "qrc:/icons/file/file-html.svg"
 
-                // ====== Fill space =====
-                Item { Layout.fillWidth: true }
+                        label: modelData.title
+                        onSig_activate: {
+                            ProjectManager.setActiveTab(index)
+                        }
+                        onSig_closeTab: ProjectManager.closeProject(index)
+                    }
+                }
             }
         }
 
@@ -116,15 +167,22 @@ ApplicationWindow {
 
             HomePage {
                 anchors.fill: parent
-                visible:      false
+                ref_RecentProjects: mainApp.recentProjects
+                visible:      ProjectManager.activeTabIndex === -1
+
+                onNewProject:  ProjectManager.newProject()
+                onOpenFolder: folder_OpenProject.open()
+                onOpenProject: (path) => ProjectManager.openProject(path)
             }
 
             EditorPage {
                 anchors.fill: parent
-                visible:      true
+                visible:      ProjectManager.activeTabIndex >= 0
             }
         }
-
+    }
+    LogTab {
+        id: log_Window
     }
 
 }

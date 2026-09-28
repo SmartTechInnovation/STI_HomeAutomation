@@ -14,6 +14,7 @@ void Port_class::operator=(const Port_class &port){
     this->m_ptr_LiveDataRef  = port.m_ptr_LiveDataRef;
     this->m_Position         = port.m_Position;
     this->m_bool_CustomColor = port.m_bool_CustomColor;
+    this->m_str_Docs         = port.m_str_Docs;
 }
 
 
@@ -25,6 +26,8 @@ QString    Port_class::toString(PortType_e PortType){
         case PortType_Int:    str_DataType = "Int";    break;
         case PortType_Float:  str_DataType = "Float";  break;
         case PortType_String: str_DataType = "String"; break;
+        case PortType_Enum:   str_DataType = "Enum";   break;
+        case PortType_Date:   str_DataType = "Date";   break;
         case PortType_Custom: str_DataType = "Custom"; break;
         default:              str_DataType = "Custom";
     }
@@ -37,6 +40,8 @@ Port_class::PortType_e Port_class::fromString(QString PortType){
     if(PortType == "Int")    return PortType_Int;
     if(PortType == "Float")  return PortType_Float;
     if(PortType == "String") return PortType_String;
+    if(PortType == "Enum")   return PortType_Enum;
+    if(PortType == "Date")   return PortType_Date;
     if(PortType == "Custom") return PortType_Custom;
 
     return PortType_Custom;

@@ -10,6 +10,7 @@ QtObject {
     readonly property color gray:  "#7D8491"
     readonly property color blue:  "#3D5ADD"
     readonly property color orange:"#FF8400"
+    readonly property color yellow:"#E8C547"
 
     // ======== Surfaces =========
     readonly property color red:   "#DD3D5A"

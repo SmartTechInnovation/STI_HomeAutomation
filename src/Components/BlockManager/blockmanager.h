@@ -21,37 +21,32 @@ private: /* Typedefs and enums */
     typedef QVector<BlockBase_class *> BlockList;
 
     struct Category_s{
-        QString   name;
+        QString   title;
         QString   iconPath;
         bool      visible = false;
-        int       order   = 0;
         BlockList blockList;
+        int       order;
     };
 
-public:  /* Variables */
-private: /* Variables */
-    QMap<QString, Category_s> m_map_LegacyCategories; // Categories
-
-    BlockBase_class          *m_new_BlockBase  = nullptr;
-    int                       m_int_NextOrder  = 0;
+public:  /* Members */
+private: /* Members */
+    QMap<QString, Category_s> m_map_LegacyCategories; // Key: Name, Data: Categories
 
 private: /* Functions */
-    QVariantList        _categoriesToVariant(bool onlyVisible) const;
-    static QVariantList _blocksToVariant    (const BlockList &blockList);
 
 public:  /* Functions */
     BlockManager_class(QObject *parent = nullptr);
+
+    /* ==== QML API ==== */
+    QVariantList categories()         const;
+    QVariantList shortcutCategories() const;
 
     void begin();
     bool loadLegacyBook      (const QString &folderPath);
     bool loadLegacyCategories(const QString &descriptorPath);
     bool loadBlockDescriptor (const QString &descriptorPath);
 
-    /* ==== QML API ==== */
-    QVariantList categories()         const;
-    QVariantList shortcutCategories() const;
-
-    Q_INVOKABLE QVariantList blocksOfCategory(const QString &categoryName) const;
+    BlockBase_class *getInstance(QUuid &Uuid);
 
 signals:
     void categoriesChanged();

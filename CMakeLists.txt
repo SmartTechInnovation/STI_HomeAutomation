@@ -17,6 +17,10 @@ endif()
 
 qt_add_executable(appSTI_HomeAutomation)
 
+target_compile_definitions(appSTI_HomeAutomation PRIVATE
+    PROJECT_VERSION_STR="${PROJECT_VERSION}"
+)
+
 target_include_directories(appSTI_HomeAutomation PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
@@ -48,10 +52,19 @@ qt_add_qml_module(appSTI_HomeAutomation
         src/App/application.cpp
         src/Components/Project/project.h
         src/Components/Project/project.cpp
+        src/Components/Project/project_tokens.h
+        src/Components/Project/Room/room.h
+        src/Components/Project/Room/room.cpp
+        src/Components/Project/Category/category.h
+        src/Components/Project/Category/category.cpp
+        src/Components/Project/User/user.h
+        src/Components/Project/User/user.cpp
+        src/Components/Project/Variable/variable.h
+        src/Components/Project/Variable/variable.cpp
+        src/Components/Project/Controller/controller.h
+        src/Components/Project/Controller/controller.cpp
         src/Components/Project/Page/page.h
         src/Components/Project/Page/page.cpp
-        src/Components/Project/Page/BlockListModel/blocklistmodel.h
-        src/Components/Project/Page/BlockListModel/blocklistmodel.cpp
         src/Components/ProjectManager/projectmanager.h
         src/Components/ProjectManager/projectmanager.cpp
         src/Components/BlockManager/blockmanager.h
@@ -60,14 +73,17 @@ qt_add_qml_module(appSTI_HomeAutomation
         src/Components/BlockManager/Block/blockbase.cpp
         src/Components/BlockManager/Block/Ports/port.h
         src/Components/BlockManager/Block/Ports/port.cpp
+        src/Components/Logger/logger.h
+        src/Components/Logger/logger.cpp
+
+
     RESOURCES
         resources/qml/Components/Theme/qmldir
-        QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Topbar/FunctionBlocks.qml
-        QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Topbar/BlocksPanel.qml
-        QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Topbar/ThemeIcon.qml
         QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Topbar/TopToolBar.qml
         QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Topbar/ToolBtn.qml
         QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Topbar/BlocksMenu.qml
+        QML_FILES resources/qml/Components/Logger/LogTab.qml
+
 )
 
 # Theme.qml e singleton — calea trebuie sa fie EXACT ca in QML_FILES de mai sus

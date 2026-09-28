@@ -19,7 +19,14 @@ public:  /* Typedefs and enums */
         PortType_Int    = 2,
         PortType_Float  = 3,
         PortType_String = 4,
+        PortType_Enum   = 5,
+        PortType_Date   = 6,
         PortType_Custom,
+    };
+
+    struct PortVariant_s{
+        QString Data;
+        QString Text;
     };
 
 private: /* Members */
@@ -30,6 +37,9 @@ private: /* Members */
     bool    m_b_Connected;  // Port Connected
     int     m_int_PortType; // Port Type
     QPointF m_Position;     // Port Position
+    QString m_str_Docs;     // Port Documentation
+    QString m_str_DefaultValue; // PortDefaultValue
+    QString m_str_Unit;     // Port Unit
 
     bool m_bool_CustomColor = false;
 
@@ -37,6 +47,8 @@ private: /* Members */
 
     QVector<Port_class *> m_vec_ToPorts;
     QVector<Port_class *> m_vec_FromPorts;
+
+    QVector<PortVariant_s> m_vec_Variant;
 
     QObject    *m_ptr_Parent        = nullptr;
 
@@ -56,7 +68,11 @@ public:
     void setColor(const QColor &color)                             { m_color        = color;   m_bool_CustomColor = true;};
     void setVisible(bool value)                                    { m_b_Visible    = value;                             };
     void setPortType(int type)                                     { m_int_PortType = type;                              };
+    void setDocumentation(const QString &Docs)                     { m_str_Docs     = Docs;                              };
+    void setDefaultValue(const QString &Value)                     { m_str_DefaultValue = Value;                         };
+    void setUnit(const QString &Unit)                              { m_str_Unit     = Unit;                              };
     void setLiveValue(void *PtrToValue)                            { m_ptr_LiveDataRef = PtrToValue;                     };
+    void addVariant(const PortVariant_s &Variant)                  { m_vec_Variant.push_back(Variant);                   };
 
     inline QString getName()      const { return m_str_Name;        };
     inline QString getExtName()   const { return m_str_ExtName;     };

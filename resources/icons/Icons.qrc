@@ -7,12 +7,14 @@
         <file>action/close-single.svg</file>
         <file>action/close-small.svg</file>
         <file>action/close.svg</file>
+        <file>action/collapse.svg</file>
         <file>action/copy.svg</file>
         <file>action/crop.svg</file>
         <file>action/download.svg</file>
         <file>action/duplicate.svg</file>
         <file>action/erase.svg</file>
         <file>action/eraser.svg</file>
+        <file>action/expand.svg</file>
         <file>action/export.svg</file>
         <file>action/external-link.svg</file>
         <file>action/eye.svg</file>

@@ -33,11 +33,11 @@ class Project_class : public QObject
     Q_PROPERTY(QString      undoText   READ undoText    NOTIFY undoStateChanged)
     Q_PROPERTY(QString      redoText   READ redoText    NOTIFY undoStateChanged)
     Q_PROPERTY(QString      pageFormat READ pageFormat  NOTIFY infoChanged     )
+    Q_PROPERTY(QVariantList pageList   READ pageList    NOTIFY pagesChanged    )
     Q_PROPERTY(QSize        pageSize   READ pageSize    NOTIFY infoChanged     )
     Q_PROPERTY(int          pageCount  READ pageCount   NOTIFY pagesChanged    )
     Q_PROPERTY(int          pageActv   READ pageActv    NOTIFY pageActvChanged WRITE setPageActv)
-    Q_PROPERTY(QVariantMap  info       READ info        NOTIFY infoChanged     )
-    Q_PROPERTY(QVariantList pages      READ pages       NOTIFY pagesChanged    )
+    Q_PROPERTY(QVariantMap  infoMap    READ infoMap     NOTIFY infoChanged     )
     Q_PROPERTY(QObject     *tree       READ tree        NOTIFY treeChanged     )
 
 
@@ -145,8 +145,8 @@ private: /* Members */
 
 
 private: /* Functions */
-    QString       _getPath()       const;
-    int           _getActivePage() const;
+    QString              _getPath()       const;
+    int                  _getActivePage() const;
     static QString       _paperToString(PaperFormat_e format);
     static PaperFormat_e _paperFromString(const QString &Format);
     static QSize         _paperToSize(PaperFormat_e format);
@@ -178,8 +178,8 @@ public:
     QSize        pageSize()         const { return _paperToSize(m_MetaData.paperFormat);  }
     int          pageCount()        const { return m_vec_Pages.size();                    }
     int          pageActv()         const { return _getActivePage();                      }
-    QVariantMap  info()             const;
-    QVariantList pages()            const;
+    QVariantMap  infoMap()          const;
+    QVariantList pageList()         const;
     QObject     *tree()             const { return m_ptr_Tree;                            }
 
     void         setPageActv(int index);

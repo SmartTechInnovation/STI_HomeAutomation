@@ -2,21 +2,51 @@
 
 Port_class::Port_class(QObject *parent) : QObject(parent) {
     m_ptr_Parent = parent;
+    m_Uuid       = QUuid();
 }
 
 void Port_class::operator=(const Port_class &port){
-    this->m_str_Name         = port.m_str_Name;
-    this->m_str_ExtName      = port.m_str_ExtName;
-    this->m_color            = port.m_color;
-    this->m_b_Visible        = port.m_b_Visible;
-    this->m_b_Connected      = port.m_b_Connected;
-    this->m_int_PortType     = port.m_int_PortType;
-    this->m_ptr_LiveDataRef  = port.m_ptr_LiveDataRef;
-    this->m_Position         = port.m_Position;
-    this->m_bool_CustomColor = port.m_bool_CustomColor;
-    this->m_str_Docs         = port.m_str_Docs;
+    m_Uuid             = port.m_Uuid;
+    m_str_Name         = port.m_str_Name;
+    m_str_ExtName      = port.m_str_ExtName;
+    m_color            = port.m_color;
+    m_b_Visible        = port.m_b_Visible;
+    m_b_Connected      = port.m_b_Connected;
+    m_int_PortType     = port.m_int_PortType;
+    m_ptr_LiveDataRef  = port.m_ptr_LiveDataRef;
+    m_Position         = port.m_Position;
+    m_bool_CustomColor = port.m_bool_CustomColor;
+    m_str_Docs         = port.m_str_Docs;
+    m_str_DefaultValue = port.m_str_DefaultValue;
+    m_str_Unit         = port.m_str_Unit;
+    m_vec_Variant      = port.m_vec_Variant;
+    m_Uuid             = port.m_Uuid;
+    m_vec_Sources      = port.m_vec_Sources;
 }
 
+bool Port_class::addSource(const QUuid &Source){
+    if(Source.isNull() || m_vec_Sources.contains(Source)) return false;
+    m_vec_Sources.push_back(Source);
+    return true;
+}
+
+bool Port_class::removeSource(const QUuid &Source){
+    return m_vec_Sources.removeAll(Source) > 0;
+}
+
+QVariantMap Port_class::getQVariantMap(){
+    QVariantMap portMap;
+    portMap["uuid"]      = m_Uuid.toString(QUuid::WithoutBraces);
+    portMap["name"]      = m_str_Name;
+    portMap["extName"]   = m_str_ExtName;
+    portMap["color"]     = getColor();
+    portMap["visible"]   = m_b_Visible;
+    portMap["connected"] = m_b_Connected;
+    portMap["type"]      = toString((PortType_e)m_int_PortType);
+    portMap["typeId"]    = m_int_PortType;
+    portMap["unit"]      = m_str_Unit;
+    return portMap;
+}
 
 QString    Port_class::toString(PortType_e PortType){
     QString str_DataType = "Custom";

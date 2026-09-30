@@ -40,7 +40,7 @@ void Project_class::setPath(const QString &path){
     m_str_RootPath = path;
 }
 
-QVariantMap Project_class::info() const{
+QVariantMap Project_class::infoMap() const{
     auto resolveUrl = [this](const QString &path) -> QString {
         if(path.isEmpty()) return QString();
         if(path.startsWith("qrc:") || path.startsWith("file:") || path.startsWith("http")) return path;
@@ -82,7 +82,7 @@ QVariantMap Project_class::info() const{
     return Result;
 }
 
-QVariantList Project_class::pages() const{
+QVariantList Project_class::pageList() const{
     QVariantList Result;
     for(int i = 0; i < m_vec_Pages.size(); i++){
         QVariantMap pageMap;
@@ -90,7 +90,7 @@ QVariantList Project_class::pages() const{
         pageMap["mDate"]  = m_vec_Pages[i]->ModifiedDate;
         pageMap["index"]  = i;
         pageMap["number"] = i + 2;            // page 1 = title page (Home)
-        pageMap["page"]   = QVariant::fromValue<QObject *>(m_vec_Pages[i]);
+        pageMap["pageRef"]   = QVariant::fromValue<QObject *>(m_vec_Pages[i]);
         Result.push_back(pageMap);
     }
     return Result;
@@ -264,9 +264,11 @@ bool Project_class::load(const QString &projectPath, QString *error){
             }else if(tokenName == TOKEN_PAGE){
                 if(m_ptr_Page == nullptr){
                     m_ptr_Page = new Page_class(this);
+                    m_vec_Pages.push_back(m_ptr_Page);
                 }
                 if(m_ptr_Page){
                     m_ptr_Page->Title               = projectXml.attributes().value(ATTR_TITLE).toString();
+                    m_ptr_Page->ModifiedDate        = projectXml.attributes().value(ATTR_MODIFIED_DATE).toString();
                 }
             }else if(tokenName == TOKEN_SIGNAL_IN){
 
@@ -275,15 +277,17 @@ bool Project_class::load(const QString &projectPath, QString *error){
             }else if(tokenName == TOKEN_BLOCK){
                 QString BlockTitle                  = projectXml.attributes().value(ATTR_TITLE).toString();
                 QUuid   BlockUuid                   = QUuid(projectXml.attributes().value(ATTR_UUID).toString());
+                QUuid   BlockInstanceUuid           = QUuid(projectXml.attributes().value(ATTR_IUUID).toString());
                 m_ptr_BlockInstance = S_BlockManager.getInstance(BlockUuid);
                 if(m_ptr_BlockInstance != nullptr){
-                    m_ptr_BlockInstance->Title     = BlockTitle;
-                    m_ptr_BlockInstance->Position.setX(projectXml.attributes().value(ATTR_PX).toFloat());
-                    m_ptr_BlockInstance->Position.setY(projectXml.attributes().value(ATTR_PY).toFloat());
-                    m_ptr_BlockInstance->Width     = projectXml.attributes().value(ATTR_WIDTH).toFloat();
-                    m_ptr_BlockInstance->Color     = projectXml.attributes().value(ATTR_COLOR).toString();
-                    m_ptr_BlockInstance->Room      = projectXml.attributes().value(ATTR_ROOM).toString();
-                    m_ptr_BlockInstance->Category  = projectXml.attributes().value(ATTR_CATEGORY).toString();
+                    m_ptr_BlockInstance->IUuid        = BlockInstanceUuid;
+                    m_ptr_BlockInstance->Title        = BlockTitle;
+                    m_ptr_BlockInstance->Position.setX( projectXml.attributes().value(ATTR_PX).toFloat());
+                    m_ptr_BlockInstance->Position.setY( projectXml.attributes().value(ATTR_PY).toFloat());
+                    m_ptr_BlockInstance->Width        = projectXml.attributes().value(ATTR_WIDTH).toFloat();
+                    m_ptr_BlockInstance->Color        = projectXml.attributes().value(ATTR_COLOR).toString();
+                    m_ptr_BlockInstance->Room         = projectXml.attributes().value(ATTR_ROOM).toString();
+                    m_ptr_BlockInstance->Category     = projectXml.attributes().value(ATTR_CATEGORY).toString();
 
                     if(m_ptr_Page != nullptr){
                         m_ptr_Page->addBlockInstance(m_ptr_BlockInstance);
@@ -298,6 +302,8 @@ bool Project_class::load(const QString &projectPath, QString *error){
         }else if(token == QXmlStreamReader::EndElement){
             if(tokenName == TOKEN_VARIABLE){
                 m_ptr_Variable = nullptr;
+            }else if(tokenName == TOKEN_PAGE){
+                m_ptr_Page = nullptr;
             }else if(tokenName == TOKEN_BLOCK){
                 m_ptr_BlockInstance = nullptr;
             }

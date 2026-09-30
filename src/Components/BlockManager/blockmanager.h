@@ -47,7 +47,6 @@ public:  /* Functions */
     bool loadBlockDescriptor (const QString &descriptorPath);
 
     BlockBase_class *getInstance(QUuid &Uuid);
-
 signals:
     void categoriesChanged();
 };

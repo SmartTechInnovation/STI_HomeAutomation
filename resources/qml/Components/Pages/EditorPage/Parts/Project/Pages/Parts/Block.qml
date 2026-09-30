@@ -8,48 +8,44 @@ Item {
 
     property string blockInstUuid: ""
     property string blockTypeUuid: ""
-    property string blockType: "Inteligent Room Controller"
-    property string blockTitle: "Living"
-    property string blockIcon:  ""
-    property color  blockColor: "#FF7D30"
-    property real   defaultWidth: 400
+    property string blockType:     ""
+    property string blockTitle:    ""
+    property string blockIcon:     ""
+    property color  blockColor:    "#FF7D30"
+    property real   defaultWidth:  400
 
-    property var    inputs: [
-        { name: "vC", color: "red",   connected: true,  visible: true },
-        { name: "vT", color: "green", connected: false, visible: true },
-        { name: "vT", color: "blue",  connected: false, visible: true },
-        { name: "vT", color: "green", connected: false, visible: true },
-        { name: "vT", color: "green", connected: false, visible: true },
-        { name: "vT", color: "green", connected: false, visible: true },
-        { name: "vT", color: "green", connected: false, visible: true },
-        { name: "vT", color: "green", connected: false, visible: true },
-        { name: "vT", color: "green", connected: false, visible: true },
-        { name: "vT", color: "green", connected: false, visible: true },
-        { name: "vT", color: "green", connected: false, visible: true },
-        { name: "vT", color: "green", connected: false, visible: true },
-        { name: "vT", color: "green", connected: false, visible: true },
-        { name: "vT", color: "green", connected: false, visible: true },
-        { name: "vT", color: "green", connected: false, visible: true },
+    property var    inputs:     ({})
+    property var    outputs:    ({})
+    property var    properties: ({})
 
-        // ... pana la 20
-    ]
-    property var    outputs: [
-        { name: "H",   color: "green", extName: "Heating", connected: false, visible: true },
-        { name: "C",   color: "green", extName: "Cooling", connected: false, visible: true },
-        { name: "HC",  color: "green", extName: "Heating/Cooling", connected: false, visible: false },
-        { name: "Shd", color: "green", extName: "Shading Demand", connected: false, visible: false },
-        { name: "HCm", color: "green", extName: "Heating Cooling Mode", connected: false, visible: false },
-        { name: "Error", color: "green",   extName: "Error", connected: false, visible: false },
-    ]
     property bool   b_Selected: false
     property bool   b_Compact:  false
 
     readonly property real rowSpacing: 30
-    readonly property var  visibleInputs:  root.inputs.filter(function(i) { return i.visible })
-    readonly property var  visibleOutputs: root.outputs.filter(function(i) { return i.visible })
 
-    // root NU e ancorat de nimic -- x/y raman libere, setate din delegate-ul de pe canvas.
-    // implicitWidth/Height sunt derivate din continut, prin lantul body -> mainColumn -> connectionsRow.
+    readonly property var allInputs: {
+        var res = []
+        for (var i = 0; i < root.inputs.length; ++i) {
+            res.push(Object.assign({}, root.inputs[i],
+                                   { src: "input", srcIndex: i }))
+        }
+        for (var j = 0; j < root.properties.length; ++j) {
+            // default-uri pentru proprietati; ce e in properties[j] le suprascrie
+            res.push(Object.assign({ visible: false, connected: false, color: root.propertyPortColor },
+                                   root.properties[j],
+                                   { src: "property", srcIndex: j }))
+        }
+        return res
+    }
+
+    readonly property var allOutputs: root.outputs.map(function(o, i) {
+        return Object.assign({}, o, { src: "output", srcIndex: i })
+    })
+
+    readonly property var visibleInputs:  root.allInputs.filter (function(e) { return e.visible })
+    readonly property var visibleOutputs: root.allOutputs.filter(function(e) { return e.visible })
+
+
     implicitWidth:  body.implicitWidth
     implicitHeight: body.implicitHeight
     width:  implicitWidth
@@ -63,10 +59,18 @@ Item {
     signal portReleased(real wx, real wy)
 
     function toggleInputVisible(fullIndex) {
-        if (root.inputs[fullIndex].connected) return
-        var arr = root.inputs.map(function(o) { return Object.assign({}, o) })
-        arr[fullIndex].visible = !arr[fullIndex].visible
-        root.inputs = arr
+        var e = root.allInputs[fullIndex]
+        if (!e || e.connected) return
+
+        if (e.src === "property") {
+            var parr = root.properties.map(function(o) { return Object.assign({}, o) })
+            parr[e.srcIndex].visible = !(parr[e.srcIndex].visible === true)
+            root.properties = parr
+        } else {
+            var arr = root.inputs.map(function(o) { return Object.assign({}, o) })
+            arr[e.srcIndex].visible = !arr[e.srcIndex].visible
+            root.inputs = arr
+        }
     }
 
     function toggleOutputVisible(fullIndex) {
@@ -232,7 +236,7 @@ Item {
 
                             DisplayConnections {
                                 id: inputsMenu
-                                items: root.inputs
+                                items: root.allInputs
                                 onToggleVisible: (fullIndex) => toggleInputVisible(fullIndex)
                                 y: parent.width
                             }
@@ -303,7 +307,7 @@ Item {
 
                             DisplayConnections {
                                 id: outputsMenu
-                                items: root.outputs
+                                items: root.allOutputs
                                 onToggleVisible: (fullIndex) => toggleOutputVisible(fullIndex)
                                 y: parent.width
                             }

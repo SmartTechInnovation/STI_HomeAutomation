@@ -11,9 +11,9 @@ Item {
 
     property var project: null
 
-    readonly property var projectPages:  project ? project.pages : []
-    readonly property int currentPage:   project ? project.pageActv : -1
-    readonly property int totalPages:    projectPages.length + 1 //Pages + HomePage
+    readonly property var pageList:   project ? project.pageList : []
+    readonly property int pageActv:   project ? project.pageActv : -1
+    readonly property int totalPages: pageList.length + 1 //Pages + HomePage
 
     signal blockSelected(string uuid)
 
@@ -62,15 +62,15 @@ Item {
                     Layout.fillWidth:  true
                     Layout.fillHeight: true
 
-                    model:        root.projectPages
-                    currentIndex: root.currentPage
+                    model:        root.pageList
+                    currentIndex: root.pageActv
                     defaultIcon:  ""
-                    closable:     root.projectPages.length > 1
+                    closable:     root.pageList.length > 1
                     renamable:    true
                     showAdd:      true
                     addToolTip:   qsTr("New page")
                     maxTabWidth:  190
-                    leadingSeparator: root.currentPage !== -1
+                    leadingSeparator: root.pageActv !== -1
                     confirmClose: true
                     closeMessage: "Do tou want delete this page ?"
 
@@ -97,18 +97,18 @@ Item {
             Page {
                 id: coverPageView
                 anchors.fill: parent
-                visible:   root.currentPage === -1 && root.project !== null
+                visible:   root.pageActv === -1 && root.project !== null
                 project:   root.project
                 coverPage: true
                 pageNumber:1
                 pageTotal: root.totalPages
                 pageTitle: qsTr("Cover")
-                pageDate:  root.project ? root.project.info.mDate : ""
+                pageMDate:  root.project ? root.project.infoMap.mDate : ""
             }
 
             Repeater {
                 id: workPageView
-                model: root.projectPages
+                model: root.pageList
 
                 delegate: Page {
                     required property int index
@@ -116,13 +116,13 @@ Item {
 
                     anchors.fill: parent
 
-                    visible:      root.currentPage === index
+                    visible:      root.pageActv === index
                     project:      root.project
-                    pageModel:    modelData.page
+                    pageTitle:    modelData.title
+                    pageMDate:    modelData.mDate
                     pageNumber:   modelData.number
                     pageTotal:    root.totalPages
-                    pageTitle:    modelData.title
-                    pageDate:     modelData.mDate
+                    pageRef:      modelData.pageRef
                 }
             }
         }

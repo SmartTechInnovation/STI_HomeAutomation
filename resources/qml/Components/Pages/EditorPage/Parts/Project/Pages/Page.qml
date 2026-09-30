@@ -10,13 +10,14 @@ Item {
 
     clip: true
 
-    property var project:    null
-    property var pageModel:  null
-    property int pageNumber: 1
-    property int pageTotal:  1
-    property bool coverPage: false
     property string pageTitle: qsTr("Untitled")
-    property string pageDate:  ""
+    property string pageMDate:  ""
+
+    property var  project:    null
+    property var  pageRef:    null
+    property int  pageNumber: 1
+    property int  pageTotal:  1
+    property bool coverPage:  false
 
     readonly property int workPageWidth:  project ? project.pageSize.width  : 4200
     readonly property int workPageHeight: project ? project.pageSize.height : 2970
@@ -28,11 +29,11 @@ Item {
     signal blockSelected(string uuid)
 
     function saveView(){
-        if(!pageModel) return
-        pageModel.viewX     = world.x
-        pageModel.viewY     = world.y
-        pageModel.viewScale = world.scale
-        pageModel.viewValid = true
+        if(!pageRef) return
+        pageRef.viewX     = world.x
+        pageRef.viewY     = world.y
+        pageRef.viewScale = world.scale
+        pageRef.viewValid = true
     }
 
     // ====== Background ======
@@ -115,11 +116,11 @@ Item {
         PageFrame {
             id: pageFrame
             anchors.fill: parent
-            info:         root.project ? root.project.info : ({})
+            info:         root.project ? root.project.infoMap : ({})
             pageTitle:    root.pageTitle
             pageNumber:   root.pageNumber
             pageTotal:    root.pageTotal
-            pageDate:     root.pageDate
+            pageDate:     root.pageMDate
         }
         // ===== Cover Page Content =====
         Loader {
@@ -129,49 +130,42 @@ Item {
             width:  root.workPageWidth  - 300
             height: root.workPageHeight - 200
             sourceComponent: PageCover {
-                info:       root.project ? root.project.info : ({})
+                info:       root.project ? root.project.infoMap : ({})
                 pageTotal:  root.pageTotal
                 pageTitle:  qsTr("Cover")
-                pageDate:   root.pageDate
+                pageDate:   root.pageMDate
             }
         }
         // ================ Program on Page =================
         Repeater {
             id: rep_Blocks
 
-            model: root.pageModel
+            model: root.pageRef ? root.pageRef.blockList : ({})
 
             delegate: Block {
                 id: blockDelegate
-                required property int    index
-                required property string uuidInstance
-                required property string uuidType
-                required property string title
-                required property string type
-                required property string color
-                required property string icon
-                required property real   pX
-                required property real   pY
-                required property real   bWidth
-                required inputs
-                required outputs
+                required property int index
+                required property var modelData
 
                 property real dragDx: 0
                 property real dragDy: 0
 
-                x: Math.max(0, Math.min(root.workPageWidth  - width,  pX + dragDx))
-                y: Math.max(0, Math.min(root.workPageHeight - height, pY + dragDy))
-                z: b_selected ? 3 : 2
+                x: Math.max(0, Math.min(root.workPageWidth  - width,  modelData.position.x + dragDx))
+                y: Math.max(0, Math.min(root.workPageHeight - height, modelData.position.y + dragDy))
+                z: b_Selected ? 3 : 2
 
-                blockInstUuid: uuidInstance
-                blockTypeUuid: uuidType
-                blockTitle:    title
-                blockType:     type
-                blockColor:    color
-                blockIcon:     icon
-                defaultWidth:  bWidth
+                blockTypeUuid: modelData.uuid
+                blockInstUuid: modelData.iUuid
+                blockTitle:    modelData.title
+                blockType:     modelData.type
+                blockColor:    modelData.color
+                blockIcon:     modelData.icon
+                defaultWidth:  modelData.width
+                inputs:        modelData.inputs
+                outputs:       modelData.outputs
+                properties:    modelData.properties
 
-                b_Selected:    root.selectedInstanceUuid == uuidInstance
+                b_Selected:    root.selectedInstanceUuid === modelData.iUuid
 
             }
         }

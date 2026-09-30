@@ -6,6 +6,8 @@
 #include <QColor>
 #include <QPointF>
 #include <QVector>
+#include <QUuid>
+#include <QVariantMap>
 
 class BlockBase_class;
 
@@ -30,6 +32,7 @@ public:  /* Typedefs and enums */
     };
 
 private: /* Members */
+    QUuid   m_Uuid;         // Port unique Id
     QString m_str_Name;     // Port Short    Name
     QString m_str_ExtName;  // Port Extended Name
     QColor  m_color;        // Port Color
@@ -49,6 +52,7 @@ private: /* Members */
     QVector<Port_class *> m_vec_FromPorts;
 
     QVector<PortVariant_s> m_vec_Variant;
+    QVector<QUuid>         m_vec_Sources; //Temporary store source of signal;
 
     QObject    *m_ptr_Parent        = nullptr;
 
@@ -64,6 +68,7 @@ public:
     static QColor     getColor  (PortType_e PortType);
     static bool       compatible(PortType_e out, PortType_e in);
 
+    void setUuid(const QUuid &uuid)                                { m_Uuid         = uuid;                              };
     void setName(const QString &ShortName, const QString &ExtName) { m_str_Name     = ShortName; m_str_ExtName = ExtName;};
     void setColor(const QColor &color)                             { m_color        = color;   m_bool_CustomColor = true;};
     void setVisible(bool value)                                    { m_b_Visible    = value;                             };
@@ -74,13 +79,27 @@ public:
     void setLiveValue(void *PtrToValue)                            { m_ptr_LiveDataRef = PtrToValue;                     };
     void addVariant(const PortVariant_s &Variant)                  { m_vec_Variant.push_back(Variant);                   };
 
-    inline QString getName()      const { return m_str_Name;        };
-    inline QString getExtName()   const { return m_str_ExtName;     };
-    inline QColor  getColor()     const { return m_bool_CustomColor ? m_color : getColor((PortType_e)m_int_PortType); };
-    inline bool    getVisible()   const { return m_b_Visible;       };
-    inline bool    getConnected() const { return m_b_Connected;     };
-    inline int     getPortType()  const { return m_int_PortType;    };
-    inline void    *getLiveData() const { return m_ptr_LiveDataRef; };
+    /* ==== Sources (inputs only) ==== */
+    bool addSource   (const QUuid &Source);
+    bool removeSource(const QUuid &Source);
+    void setSources  (const QVector<QUuid> &Sources)               { m_vec_Sources = Sources;                            };
+
+    QVariantMap   getQVariantMap();
+
+    inline QUuid   getUuid()         const { return m_Uuid;            };
+    inline QString getName()         const { return m_str_Name;        };
+    inline QString getExtName()      const { return m_str_ExtName;     };
+    inline QColor  getColor()        const { return m_bool_CustomColor ? m_color : getColor((PortType_e)m_int_PortType); };
+    inline bool    getVisible()      const { return m_b_Visible;       };
+    inline bool    getConnected()    const { return m_b_Connected;     };
+    inline int     getPortType()     const { return m_int_PortType;    };
+    inline void    *getLiveData()    const { return m_ptr_LiveDataRef; };
+    inline QString getDocs()         const { return m_str_Docs;        };
+    inline QString getDefaultValue() const { return m_str_DefaultValue;};
+    inline QString getUnit()         const { return m_str_Unit;        };
+
+    inline const QVector<PortVariant_s> &getVariants() const { return m_vec_Variant; };
+    inline const QVector<QUuid        > &getSources()  const { return m_vec_Sources; };
 };
 
 #endif // PORT_H

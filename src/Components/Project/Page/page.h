@@ -5,15 +5,16 @@
 #include <QString>
 #include <QVector>
 #include <QUndoStack>
-#include <QAbstractListModel>
+#include <QVariantList>
 
 #include "../../BlockManager/Block/blockbase.h"
 
-class Page_class : public QAbstractListModel
+class Page_class : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString      title        READ title        NOTIFY titleChanged)
     Q_PROPERTY(QString      modifiedDate READ modifiedDate NOTIFY modifiedDateChanged)
+    Q_PROPERTY(QVariantList blockList    READ blockList    NOTIFY blockListChanged)
     Q_PROPERTY(QVariantList connections  READ connections  NOTIFY connectionsChanged)
 
     /* View state - kept while the app runs, not saved */
@@ -23,20 +24,6 @@ class Page_class : public QAbstractListModel
     Q_PROPERTY(bool  viewValid MEMBER m_b_ViewValid    NOTIFY viewChanged)
 
 public: /* Typedef and enums */
-    enum Roles_e{
-        UuidRole = Qt::UserRole + 1,
-        KindRole,
-        VarRole,
-        TitleRole,
-        TypeRole,
-        ColorRole,
-        IconRole,
-        PxRole,
-        PyRole,
-        WidthRole,
-        InputsRole,
-        OutputsRole,
-    };
 
 public: /* Members */
     QString Title;
@@ -55,20 +42,17 @@ public:
     explicit Page_class(QObject *parent = nullptr);
     ~Page_class();
 
-    /* ==== QAbstractListModel ==== */
-    int                    rowCount(const QModelIndex &parent = QModelIndex()) const override;
-    QVariant               data    (const QModelIndex &index, int role)        const override;
-    QHash<int, QByteArray> roleNames()                                         const override;
-
-    QString title()            const { return Title;              }
-    QString modifiedDate()     const { return ModifiedDate;       }
-    QVariantList connections() const { return m_list_Connections; }
+    QString      title()        const { return Title;              }
+    QString      modifiedDate() const { return ModifiedDate;       }
+    QVariantList blockList()    const;
+    QVariantList connections()  const { return m_list_Connections; }
 
     void addBlockInstance(BlockBase_class *BlockRef);
 
 signals:
     void titleChanged();
     void modifiedDateChanged();
+    void blockListChanged();
     void connectionsChanged();
     void viewChanged();
 };

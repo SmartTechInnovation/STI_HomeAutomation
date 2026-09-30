@@ -6,6 +6,7 @@
 #include <QColor>
 #include <QVector>
 #include <QPointF>
+#include <QVariantMap>
 
 #include "Ports/port.h"
 
@@ -13,7 +14,8 @@ class BlockBase_class
 {
 public: /* Typedef and enums */
 public: /* Members */
-    QUuid   Uuid;                 // UUID
+    QUuid   Uuid;                 // Block Identifier (From Templates)
+    QUuid   IUuid;                // Block Instance Identifier (Unique)
     QString Title        = "Unnamed"; // Editable Name
     QString Type         = "Unnamed"; // Fixed Type Name
     QString Description  = "";
@@ -31,12 +33,14 @@ public: /* Members */
     QVector<Port_class *> m_vec_Properties;
 public:
     BlockBase_class();
-    BlockBase_class(QUuid uuid);
+    BlockBase_class(QUuid uuid, QUuid instanceUuid = QUuid());
 
     BlockBase_class &operator =(const BlockBase_class &Ref);
     void addInput   (Port_class &newInputPort);
     void addOutput  (Port_class &newInputPort);
     void addProperty(Port_class &newPropertyPort);
+
+    QVariantMap getQVariantMap();
 };
 
 #endif // BLOCKBASE_H

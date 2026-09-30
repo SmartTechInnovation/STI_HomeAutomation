@@ -73,6 +73,7 @@
 #define ATTR_ROOM        "Room"
 #define ATTR_CATEGORY    "Category"
 #define ATTR_UUID        "Uuid"
+#define ATTR_IUUID       "IUuid"
 #define ATTR_IP_ADDR     "IpAddress"
 #define ATTR_PORT_HTTP   "PortHttp"
 #define ATTR_PORT_HTTPS  "PortHttps"

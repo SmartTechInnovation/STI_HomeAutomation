@@ -15,8 +15,10 @@ import STI.ProjectManager
 Item {
     id: root
 
-    property var projectTreeRef: []
-    property var projectPages:   []
+    property var    project:      null
+    property string selectionKey: ""
+
+    onProjectChanged: selectionKey = ""
 
     // ===== Background =====
     Rectangle {
@@ -81,14 +83,17 @@ Item {
             Layout.fillHeight: true
 
             ProjectTree {
+                id: projectTree
                 SplitView.preferredWidth: 200
+
             }
 
             Project {
+                id: projectView
                 SplitView.fillWidth: true
                 SplitView.fillHeight: true
 
-                projectPages: root.projectPages
+                project: root.project
             }
 
             Properties {

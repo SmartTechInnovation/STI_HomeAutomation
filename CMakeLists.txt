@@ -83,6 +83,11 @@ qt_add_qml_module(appSTI_HomeAutomation
         QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Topbar/ToolBtn.qml
         QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Topbar/BlocksMenu.qml
         QML_FILES resources/qml/Components/Logger/LogTab.qml
+        QML_FILES resources/qml/Components/Tab/TabStrip.qml
+        QML_FILES
+        SOURCES src/Components/Project/project_commands.h
+        QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/PageFrame.qml
+        QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/PageCover.qml
 
 )
 

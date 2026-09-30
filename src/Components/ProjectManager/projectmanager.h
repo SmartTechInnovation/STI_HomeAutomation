@@ -15,6 +15,7 @@ class ProjectManager_class : public QObject
     Q_PROPERTY(QVariantList recentProjects  READ recentProjects NOTIFY recentProjectsChanged)
     Q_PROPERTY(QVariantList openedTabs      READ openedTabs     NOTIFY openedTabsChanged)
     Q_PROPERTY(int          activeTabIndex  READ activeTabIndex NOTIFY activeTabIndexChanged)
+    Q_PROPERTY(QObject     *activeProject   READ activeProject  NOTIFY activeTabIndexChanged)
 
 private: /* Typedef and enums */
     struct RecentProject_s{
@@ -32,7 +33,8 @@ private: /* Members */
     Project_class             *m_ptr_ActiveProject = nullptr;
     private:
         void _loadRecent();
-        void _pushRecent(Project_class *ProjectRef);
+        void _pushRecent  (Project_class *ProjectRef);
+        void _trackProject(Project_class *ProjectRef);
 
     public:
         explicit ProjectManager_class(QObject *parent = nullptr);
@@ -43,6 +45,7 @@ private: /* Members */
         QVariantList    recentProjects() const;
         QVariantList    openedTabs()     const;
         int             activeTabIndex() const;
+        QObject        *activeProject()  const;
 
         Q_INVOKABLE int newProject();
         Q_INVOKABLE int openProject(const QUrl &projectPath);
@@ -52,13 +55,12 @@ private: /* Members */
         Q_INVOKABLE int openPath(const QUrl &projectPath);
         Q_INVOKABLE int closeProject(const int &Index);
         Q_INVOKABLE int setActiveTab(const int &Index);
+        Q_INVOKABLE int moveTab(int From, int To);
 
     signals:
-
         void recentProjectsChanged();
         void openedTabsChanged();
         void activeTabIndexChanged();
-
 };
 
 extern ProjectManager_class S_ProjectManager;

@@ -7,6 +7,10 @@
 #include <QColor>
 #include <QUndoStack>
 #include <QMap>
+#include <QUuid>
+#include <QVariantMap>
+#include <QVariantList>
+#include <QStandardItemModel>
 
 #include "Page/page.h"
 #include "Room/room.h"
@@ -15,16 +19,28 @@
 #include "Variable/variable.h"
 #include "Controller/controller.h"
 
+#define WORKSPACE_SCALE 10
+
 class Project_class : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString title READ getTitle NOTIFY titleChanged)
-    Q_PROPERTY(QString path  READ getPath)
-    //Q_PROPERTY(bool    modified READ isModified  NOTIFY modifiedChanged)
-    //Q_PROPERTY(bool    canUndo  READ canUndo  NOTIFY undoStateChanged)
-    //Q_PROPERTY(bool    canRedo  READ canRedo  NOTIFY undoStateChanged)
-    //Q_PROPERTY(QString undoText READ undoText NOTIFY undoStateChanged)
-    //Q_PROPERTY(QString redoText READ redoText NOTIFY undoStateChanged)
+    Q_PROPERTY(QString      title      READ getTitle    NOTIFY titleChanged    )
+    Q_PROPERTY(QString      path       READ getPath     NOTIFY pathChanged     )
+    Q_PROPERTY(bool         modified   READ isModified  NOTIFY modifiedChanged )
+    Q_PROPERTY(bool         hasFile    READ hasFile     NOTIFY pathChanged     )
+    Q_PROPERTY(bool         canUndo    READ canUndo     NOTIFY undoStateChanged)
+    Q_PROPERTY(bool         canRedo    READ canRedo     NOTIFY undoStateChanged)
+    Q_PROPERTY(QString      undoText   READ undoText    NOTIFY undoStateChanged)
+    Q_PROPERTY(QString      redoText   READ redoText    NOTIFY undoStateChanged)
+    Q_PROPERTY(QString      pageFormat READ pageFormat  NOTIFY infoChanged     )
+    Q_PROPERTY(QSize        pageSize   READ pageSize    NOTIFY infoChanged     )
+    Q_PROPERTY(int          pageCount  READ pageCount   NOTIFY pagesChanged    )
+    Q_PROPERTY(int          pageActv   READ pageActv    NOTIFY pageActvChanged WRITE setPageActv)
+    Q_PROPERTY(QVariantMap  info       READ info        NOTIFY infoChanged     )
+    Q_PROPERTY(QVariantList pages      READ pages       NOTIFY pagesChanged    )
+    Q_PROPERTY(QObject     *tree       READ tree        NOTIFY treeChanged     )
+
+
 private: /* Typedefs and enums */
     enum PaperFormat_e{
         PaperA4, /* 297 x 210 */
@@ -39,6 +55,7 @@ private: /* Typedefs and enums */
         QString Title;
         QString CreationDate;
         QString ModifiedDate;
+        QString Author;
         QString ConfigVers;
     };
 
@@ -52,8 +69,13 @@ private: /* Typedefs and enums */
         QString Timezone;
     };
 
-    struct CustomerData_s{
-        QString Customer;
+    struct ContactData_s{
+        QString Name;
+        QString Address;
+        QString Phone;
+        QString Email;
+        QString Web;
+        QString Logo;
     };
 
     struct UnitsType_s{
@@ -69,7 +91,8 @@ private: /* Typedefs and enums */
     struct MetaData_s{
         InfoData_s     infoData;
         LocationData_s locationData;
-        CustomerData_s customerData;
+        ContactData_s  company;
+        ContactData_s  client;
         UnitsType_s    unitsTypes;
         QString        iconPath;
         PaperFormat_e  paperFormat;
@@ -117,33 +140,73 @@ private: /* Members */
 
     Controller_class      m_Controller;
 
+    QStandardItemModel    *m_ptr_Tree     = nullptr;
+    bool                   m_b_Tree_Dirty = false;
+
+
 private: /* Functions */
-    QString       _getPath() const;
-    QString       _paperToString(PaperFormat_e format);
-    PaperFormat_e _paperFromString(const QString &Format);
+    QString       _getPath()       const;
+    int           _getActivePage() const;
+    static QString       _paperToString(PaperFormat_e format);
+    static PaperFormat_e _paperFromString(const QString &Format);
+    static QSize         _paperToSize(PaperFormat_e format);
+
 
 public:
     explicit Project_class(QObject *parent = nullptr);
+    ~Project_class();
 
     Q_INVOKABLE void undo();
     Q_INVOKABLE void redo();
 
-    void    setTitle   (const QString &Title)      { m_MetaData.infoData.Title = Title;     }
-    void    setPath    (const QString &path)       { m_str_RootPath            = path;      }
+    void    setTitle(const QString &Title);
+    void    setPath (const QString &path);
 
-    QString getTitle()         const { return m_MetaData.infoData.Title;        }
-    QString getCreationDate()  const { return m_MetaData.infoData.CreationDate; }
-    QString getModifiedDate()  const { return m_MetaData.infoData.ModifiedDate; }
-    QString getLocation()      const { return m_MetaData.locationData.Street;   }
-    QString getWorkspace()     const { return m_str_Workspace;                  }
-    QString getPath()          const { return m_str_RootPath;                   }
+    QString      getTitle()         const { return m_MetaData.infoData.Title;             }
+    QString      getCreationDate()  const { return m_MetaData.infoData.CreationDate;      }
+    QString      getModifiedDate()  const { return m_MetaData.infoData.ModifiedDate;      }
+    QString      getLocation()      const { return m_MetaData.locationData.Street;        }
+    QString      getWorkspace()     const { return m_str_Workspace;                       }
+    QString      getPath()          const { return m_str_RootPath;                        }
+    bool         isModified()       const { return !m_UndoStack.isClean();                }
+    bool         hasFile()          const { return !m_str_ProjectPath.isEmpty();          }
+    bool         canUndo()          const { return m_UndoStack.canUndo();                 }
+    bool         canRedo()          const { return m_UndoStack.canRedo();                 }
+    QString      undoText()         const { return m_UndoStack.undoText();                }
+    QString      redoText()         const { return m_UndoStack.redoText();                }
+    QString      pageFormat()       const { return _paperToString(m_MetaData.paperFormat);}
+    QSize        pageSize()         const { return _paperToSize(m_MetaData.paperFormat);  }
+    int          pageCount()        const { return m_vec_Pages.size();                    }
+    int          pageActv()         const { return _getActivePage();                      }
+    QVariantMap  info()             const;
+    QVariantList pages()            const;
+    QObject     *tree()             const { return m_ptr_Tree;                            }
+
+    void         setPageActv(int index);
 
     bool save(QString *error);
     bool load(const QString &projectPath, QString *error);
 
+    Page_class *getPage (int Index);
+    Page_class *takePage(int Index);
+    void      insertPage(int Index, Page_class *PageRef);
+    void      movePage  (int from, int to);
+
+    /* ==== QML API - every change goes through the undo stack ==== */
+    Q_INVOKABLE int  cmdAddPage   (int index, const QString &title);
+    Q_INVOKABLE void cmdRemovePage(int index);
+    Q_INVOKABLE void cmdMovePage  (int from, int to);
+    Q_INVOKABLE void cmdRenamePage(int index, const QString &title);
 
 signals:
     void titleChanged();
+    void pathChanged();
+    void modifiedChanged();
+    void undoStateChanged();
+    void infoChanged();
+    void pagesChanged();
+    void pageActvChanged();
+    void treeChanged();
 };
 
 #endif // PROJECT_CLASS_H

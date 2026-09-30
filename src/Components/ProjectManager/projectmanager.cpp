@@ -7,6 +7,7 @@
 #include "QXmlStreamReader"
 #include "QXmlStreamWriter"
 #include <QStandardPaths>
+#include <QQmlEngine>
 
 #include "../../Setup/Setup.hpp"
 #include "../Logger/logger.h"
@@ -120,7 +121,11 @@ void ProjectManager_class::_pushRecent(Project_class *ProjectRef){
     recentProjectsFile.close();
 }
 
-
+void ProjectManager_class::_trackProject(Project_class *ProjectRef){
+    QQmlEngine::setObjectOwnership(ProjectRef, QQmlEngine::CppOwnership);
+    connect(ProjectRef, &Project_class::modifiedChanged, this, &ProjectManager_class::openedTabsChanged);
+    connect(ProjectRef, &Project_class::titleChanged,    this, &ProjectManager_class::openedTabsChanged);
+}
 
 QVariantList ProjectManager_class::recentProjects() const {
     QVariantList Result;
@@ -158,6 +163,10 @@ int ProjectManager_class::activeTabIndex() const{
         }
     }
     return Result;
+}
+
+QObject *ProjectManager_class::activeProject() const{
+    return m_ptr_ActiveProject;
 }
 
 int ProjectManager_class::newProject(){
@@ -310,6 +319,18 @@ int ProjectManager_class::setActiveTab(const int &Index){
         return -1;
     }
     m_ptr_ActiveProject      = m_vec_OpenedProjects[Index];
+    emit activeTabIndexChanged();
+    return 0;
+}
+
+int ProjectManager_class::moveTab(int From, int To){
+    if(From < 0 || From > m_vec_OpenedProjects.length()){
+        return -1;
+    }
+    if(To < 0) To = 0;
+    if(To >= m_vec_OpenedProjects.length()) To = m_vec_OpenedProjects.length() - 1;
+    m_vec_OpenedProjects.move(From, To);
+    emit openedTabsChanged();
     emit activeTabIndexChanged();
     return 0;
 }

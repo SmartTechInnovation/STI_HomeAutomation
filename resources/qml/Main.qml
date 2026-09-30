@@ -15,16 +15,16 @@ import STI.ProjectManager
 
 ApplicationWindow {
     id: mainApp
-    width: 1200
-    height: 720
+    width:  1280
+    height: 800
     minimumWidth: 720
     minimumHeight: 500
     visible: true
     title: qsTr("Home Automation Config")
 
+    property var activeProject:  null
     property var recentProjects: ProjectManager.recentProjects
     property var openedTabs:     ProjectManager.openedTabs
-
 
     readonly property bool prop_ro_Maximized: mainApp.visibility === Window.Maximized
 
@@ -78,20 +78,31 @@ ApplicationWindow {
 
                 Repeater {
                     model: [
-                        { icon_src: "qrc:/icons/page/page-text.svg"  , id_name: "btn_NP"  },
-                        { icon_src: "qrc:/icons/file/folder-open.svg", id_name: "btn_OP" },
-                        { icon_src: "qrc:/icons/action/save.svg"     , id_name: "btn_SP" },
-                        { icon_src: "qrc:/icons/action/undo.svg"     , id_name: "btn_Undo"        },
-                        { icon_src: "qrc:/icons/action/redo.svg"     , id_name: "btn_Redo"        },
+                        { icon_src: "qrc:/icons/page/page-text.svg"  , id_name: "btn_NP"   },
+                        { icon_src: "qrc:/icons/file/folder-open.svg", id_name: "btn_OP"   },
+                        { icon_src: "qrc:/icons/action/save.svg"     , id_name: "btn_SP"   },
+                        { icon_src: "qrc:/icons/action/undo.svg"     , id_name: "btn_Undo" },
+                        { icon_src: "qrc:/icons/action/redo.svg"     , id_name: "btn_Redo" },
                     ]
                     Button {
-                        required property string icon_src
-                        required property string id_name
                         id: id_topBtn
                         Layout.fillHeight: true
                         Layout.preferredWidth: 25
                         padding: 2
-                        icon.source: icon_src
+                        icon.source: modelData.icon_src
+                        icon.width:  16
+                        icon.height: 16
+
+                        enabled: {
+                            switch(modelData.id_name){
+                                case "btn_SP":   return mainApp.activeProject !== null;
+                                case "btn_Undo": return mainApp.activeProject !== null && mainApp.activeProject.canUndo;
+                                case "btn_Redo": return mainApp.activeProject !== null && mainApp.activeProject.canRedo;
+                            }
+                            return true;
+                        }
+
+                        opacity: enabled ? 1.0 : 0.35
 
                         hoverEnabled: true
 
@@ -102,11 +113,25 @@ ApplicationWindow {
                         }
 
                         onClicked: () =>{
-                            if     (id_name === "btn_NP")   ProjectManager.newProject()
-                            else if(id_name === "btn_OP")   folder_OpenProject.open()
-                            else if(id_name === "btn_SP")   ProjectManager.saveProject()
-                            else if(id_name === "btn_Undo") ProjectManager.undoProject()
-                            else if(id_name === "btn_Redo") ProjectManager.redoProject()
+                            switch(modelData.id_name){
+                                case "btn_NP":   ProjectManager.newProject();  break
+                                case "btn_OP":   folder_OpenProject.open();    break
+                                case "btn_SP":   ProjectManager.saveProject(); break
+                                case "btn_Undo": ProjectManager.undoProject(); break
+                                case "btn_Redo": ProjectManager.redoProject(); break
+                            }
+                        }
+
+                        ToolTip.visible: hovered
+                        ToolTip.delay:   600
+                        ToolTip.text: {
+                            switch(modelData.id_name) {
+                                case "btn_NP":   return qsTr("New Project")
+                                case "btn_OP":   return qsTr("Open project")
+                                case "btn_SP":   return qsTr("Save")
+                                case "btn_Undo": return qsTr("Undo")
+                                case "btn_Redo": return qsTr("Redo")
+                            }
                         }
                     }
                 }
@@ -117,44 +142,49 @@ ApplicationWindow {
                     onAccepted: ProjectManager.openProject(selectedFolder)
                 }
 
-                Item { Layout.preferredWidth: 100 }
+                Item { Layout.preferredWidth: 55 }
 
-                Tab { // ==== Home Tab ====
-                    active: ProjectManager.activeTabIndex === -1
-                    closable: false
-                    icon_src: "qrc:/icons/navigation/home.svg"
+                Item {
+                    Layout.fillHeight:     true
+                    Layout.preferredWidth: 46
+                    Layout.leftMargin:     8
+                    Layout.topMargin:      5
 
-                    onSig_activate: {
-                        ProjectManager.setActiveTab(-1)
+                    Tab {
+                        anchors.fill: parent
+                        active:   ProjectManager.activeTabIndex === -1
+                        hovered:  ma_HomeTab.containsMouse
+                        closable:  false
+                        separator: false
+                        icon: "qrc:/icons/navigation/home.svg"
+                    }
+                    MouseArea {
+                        id: ma_HomeTab
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape:  Qt.PointingHandCursor
+                        onPressed:    ProjectManager.setActiveTab(-1)
                     }
                 }
 
                 // ====== Projects Tabs =====
-                ListView {
-                    id: list_OpenedProjects
+                TabStrip {
+                    id: strip_Projects
                     Layout.fillWidth:  true
                     Layout.fillHeight: true
-                    orientation: ListView.Horizontal
-                    clip:        true
-                    spacing:     2
-                    boundsBehavior: Flickable.StopAtBounds
-                    model:       mainApp.openedTabs
+                    Layout.topMargin:  5
 
-                    ScrollBar.horizontal: ScrollBar {
-                        policy: list_OpenedProjects.contentWidth > list_OpenedProjects.width ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
-                    }
+                    model:        mainApp.openedTabs
+                    currentIndex: ProjectManager.activeTabIndex
+                    defaultIcon:  "qrc:/icons/file/file-html.svg"
+                    showAdd:      true
+                    addToolTip:   qsTr("New project")
+                    leadingSeparator: ProjectManager.activeTabIndex !== -1
 
-                    delegate: Tab {
-                        id: tab_Project
-                        active:   ProjectManager.activeTabIndex === index
-                        icon_src: "qrc:/icons/file/file-html.svg"
-
-                        label: modelData.title
-                        onSig_activate: {
-                            ProjectManager.setActiveTab(index)
-                        }
-                        onSig_closeTab: ProjectManager.closeProject(index)
-                    }
+                    onActivated:      (index) => ProjectManager.setActiveTab(index)
+                    onCloseRequested: (index) => ProjectManager.closeProject(index)
+                    onMoved:          (from, to) => ProjectManager.moveTab(from, to)
+                    onAddRequested:   ProjectManager.newProject()
                 }
             }
         }
@@ -178,6 +208,7 @@ ApplicationWindow {
             EditorPage {
                 anchors.fill: parent
                 visible:      ProjectManager.activeTabIndex >= 0
+                project:      ProjectManager.activeProject
             }
         }
     }

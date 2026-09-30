@@ -2,6 +2,8 @@
 #define PROJECT_TOKENS_H
 
 #define TOKEN_PROJECT     "Project"
+#define TOKEN_COMPANY     "Company"
+#define TOKEN_CLIENT      "Client"
 #define TOKEN_ROOMS       "Rooms"
 #define TOKEN_ROOM        "Room"
 #define TOKEN_CATEGORIES  "Categories"
@@ -29,6 +31,11 @@
 #define TOKEN_BLOCK       "BlockInstance"
 
 #define ATTR_TITLE     "Title"
+#define ATTR_NAME      "Name"
+#define ATTR_ADDRESS   "Address"
+#define ATTR_PHONE     "Phone"
+#define ATTR_EMAIL     "Email"
+#define ATTR_WEB       "Web"
 #define ATTR_CONF_VERS "ConfigVers"
 #define ATTR_CREATION_DATE "CDate"
 #define ATTR_MODIFIED_DATE "MDate"

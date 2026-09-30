@@ -19,9 +19,16 @@ QtObject {
     // ======== Backgrouds ========
     readonly property color bgChrome:   Qt.darker(black, 1.45)      // TitleBar, Tabs, Statusbar
     readonly property color bgCanvas:   Qt.darker(black, 1.25)      // Background
+    readonly property color bgStrip:    Qt.darker(black, 1.9)
     readonly property color bgWindow:   black
     readonly property color bgPanel:    Qt.lighter(black, 1.18)
     readonly property color bgElevated: Qt.lighter(black, 1.5)
     readonly property color bgHover:    Qt.lighter(black, 1.85)
     readonly property color bgTab:      Qt.lighter(black, 1.90)
+
+    // ======== Paper (pages - same look on screen and in PDF) ========
+    readonly property color paper:      "#F9FBFF"
+    readonly property color ink:        black
+    readonly property color inkMuted:   gray
+    readonly property color inkFaint:   "#D9DCE1"
 }

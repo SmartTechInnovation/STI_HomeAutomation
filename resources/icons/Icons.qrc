@@ -180,5 +180,6 @@
         <file>text/prevent-line-break.svg</file>
         <file>text/right-to-left.svg</file>
         <file>text/text.svg</file>
+        <file>document/cover.svg</file>
     </qresource>
 </RCC>

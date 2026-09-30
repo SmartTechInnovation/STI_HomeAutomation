@@ -1,12 +1,14 @@
 #include "project.h"
 
 #include <QDir>
+#include <QUrl>
 #include <QFile>
 #include <QFileInfo>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 
 #include "project_tokens.h"
+#include "project_commands.h"
 #include "../Logger/logger.h"
 #include "../BlockManager/blockmanager.h"
 
@@ -16,12 +18,96 @@ Project_class::Project_class(QObject *parent) : QObject(parent) {
 
 }
 
+Project_class::~Project_class(){
+
+}
+
 void Project_class::undo(){
     m_UndoStack.undo();
 }
 
 void Project_class::redo(){
     m_UndoStack.redo();
+}
+
+void Project_class::setTitle(const QString &Title){
+    m_MetaData.infoData.Title = Title;
+    emit titleChanged();
+    emit infoChanged();
+}
+
+void Project_class::setPath(const QString &path){
+    m_str_RootPath = path;
+}
+
+QVariantMap Project_class::info() const{
+    auto resolveUrl = [this](const QString &path) -> QString {
+        if(path.isEmpty()) return QString();
+        if(path.startsWith("qrc:") || path.startsWith("file:") || path.startsWith("http")) return path;
+        QFileInfo fileInfo(path);
+        const QString absolute = fileInfo.isAbsolute() ? path : QDir(m_str_RootPath).filePath(path);
+        return QUrl::fromLocalFile(absolute).toString();
+    };
+
+    QVariantMap company;
+    company["name"]    = m_MetaData.company.Name;
+    company["address"] = m_MetaData.company.Address;
+    company["phone"]   = m_MetaData.company.Phone;
+    company["email"]   = m_MetaData.company.Email;
+    company["web"]     = m_MetaData.company.Web;
+    company["logoUrl"] = resolveUrl(m_MetaData.company.Logo);
+
+    QVariantMap client;
+    client["name"]    = m_MetaData.client.Name;
+    client["address"] = m_MetaData.client.Address;
+    client["phone"]   = m_MetaData.client.Phone;
+    client["email"]   = m_MetaData.client.Email;
+
+    QVariantMap Result;
+    Result["title"]       = m_MetaData.infoData.Title;
+    Result["configVers"]  = m_MetaData.infoData.ConfigVers;
+    Result["cDate"]       = m_MetaData.infoData.CreationDate;
+    Result["mDate"]       = m_MetaData.infoData.ModifiedDate;
+    Result["author"]      = m_MetaData.infoData.Author;
+    Result["street"]      = m_MetaData.locationData.Street;
+    Result["town"]        = m_MetaData.locationData.Town;
+    Result["postCode"]    = m_MetaData.locationData.PostCode;
+    Result["country"]     = m_MetaData.locationData.Country;
+    Result["latitude"]    = m_MetaData.locationData.Latitude;
+    Result["longitude"]   = m_MetaData.locationData.Longitude;
+    Result["timezone"]    = m_MetaData.locationData.Timezone;
+    Result["paperFormat"] = _paperToString(m_MetaData.paperFormat);
+    Result["company"]     = company;
+    Result["client"]      = client;
+    return Result;
+}
+
+QVariantList Project_class::pages() const{
+    QVariantList Result;
+    for(int i = 0; i < m_vec_Pages.size(); i++){
+        QVariantMap pageMap;
+        pageMap["title"]  = m_vec_Pages[i]->Title;
+        pageMap["mDate"]  = m_vec_Pages[i]->ModifiedDate;
+        pageMap["index"]  = i;
+        pageMap["number"] = i + 2;            // page 1 = title page (Home)
+        pageMap["page"]   = QVariant::fromValue<QObject *>(m_vec_Pages[i]);
+        Result.push_back(pageMap);
+    }
+    return Result;
+}
+
+void Project_class::setPageActv(int index){
+    if(index < -1)                  index = -1;
+    if(index >= m_vec_Pages.size()) index = m_vec_Pages.size() - 1;
+    if(index == _getActivePage()){
+        return;
+    }
+    if(index == -1){
+        m_ptr_ActivePage = nullptr;
+    }else{
+        m_ptr_ActivePage = m_vec_Pages[index];
+    }
+    emit pageActvChanged();
 }
 
 bool Project_class::save(QString *error){
@@ -68,7 +154,7 @@ bool Project_class::load(const QString &projectPath, QString *error){
                 m_MetaData.locationData.Latitude    = projectXml.attributes().value(ATTR_LATITUDE).toString();
                 m_MetaData.locationData.Timezone    = projectXml.attributes().value(ATTR_TIMEZONE).toString();
                 m_MetaData.iconPath                 = projectXml.attributes().value(ATTR_ICON_PATH).toString();
-                m_MetaData.customerData.Customer    = projectXml.attributes().value(ATTR_CUSTOMER).toString();
+                m_MetaData.client.Name              = projectXml.attributes().value(ATTR_CUSTOMER).toString();
                 m_MetaData.paperFormat              = _paperFromString(projectXml.attributes().value(ATTR_PAPER_FORMAT).toString());
                 m_MetaData.unitsTypes.UnitElevation = projectXml.attributes().value(ATTR_U_ELEVATION).toString();
                 m_MetaData.unitsTypes.UnitArea      = projectXml.attributes().value(ATTR_U_AREA).toString();
@@ -79,6 +165,18 @@ bool Project_class::load(const QString &projectPath, QString *error){
                 m_MetaData.unitsTypes.Currency      = projectXml.attributes().value(ATTR_U_CURRENCY).toString();
                 m_MetaData.format24h                = projectXml.attributes().value(ATTR_F_CLOCK).toString()   == "true";
                 m_MetaData.telemetry                = projectXml.attributes().value(ATTR_TELEMETRY).toString() == "true";
+            }else if(tokenName == TOKEN_COMPANY){
+                m_MetaData.company.Name             = projectXml.attributes().value(ATTR_NAME).toString();
+                m_MetaData.company.Address          = projectXml.attributes().value(ATTR_ADDRESS).toString();
+                m_MetaData.company.Email            = projectXml.attributes().value(ATTR_EMAIL).toString();
+                m_MetaData.company.Phone            = projectXml.attributes().value(ATTR_PHONE).toString();
+                m_MetaData.company.Logo             = projectXml.attributes().value(ATTR_LOGO_PATH).toString();
+                m_MetaData.company.Web              = projectXml.attributes().value(ATTR_WEB).toString();
+            }else if(tokenName == TOKEN_CLIENT){
+                m_MetaData.client.Name              = projectXml.attributes().value(ATTR_NAME).toString();
+                m_MetaData.client.Address           = projectXml.attributes().value(ATTR_ADDRESS).toString();
+                m_MetaData.client.Email             = projectXml.attributes().value(ATTR_EMAIL).toString();
+                m_MetaData.client.Phone             = projectXml.attributes().value(ATTR_PHONE).toString();
             }else if(tokenName == TOKEN_ROOMS){
                 m_RoomsTree.Title                   = projectXml.attributes().value(ATTR_TITLE).toString();
                 m_RoomsTree.Icon                    = projectXml.attributes().value(ATTR_ICON_PATH).toString();
@@ -165,7 +263,7 @@ bool Project_class::load(const QString &projectPath, QString *error){
 
             }else if(tokenName == TOKEN_PAGE){
                 if(m_ptr_Page == nullptr){
-                    m_ptr_Page = new Page_class();
+                    m_ptr_Page = new Page_class(this);
                 }
                 if(m_ptr_Page){
                     m_ptr_Page->Title               = projectXml.attributes().value(ATTR_TITLE).toString();
@@ -205,8 +303,82 @@ bool Project_class::load(const QString &projectPath, QString *error){
             }
         }
     }
-
     return true;
+}
+
+Page_class *Project_class::getPage (int Index){
+    if(Index < 0 || Index >= m_vec_Pages.size())
+        return nullptr;
+    return m_vec_Pages[Index];
+}
+
+Page_class *Project_class::takePage(int Index){
+    if(Index < 0 || Index >= m_vec_Pages.size())
+        return nullptr;
+    Page_class *pageRef = m_vec_Pages.takeAt(Index);
+    if(m_ptr_ActivePage == pageRef)
+        m_ptr_ActivePage = nullptr;
+    emit pagesChanged();
+    emit pageActvChanged();
+    return pageRef;
+}
+
+void Project_class::insertPage(int Index, Page_class *PageRef){
+    if(Index < 0)                  Index = 0;
+    if(Index > m_vec_Pages.size()) Index = m_vec_Pages.size();
+    m_vec_Pages.insert(Index, PageRef);
+    emit pagesChanged();
+    emit pageActvChanged();
+}
+
+void Project_class::movePage(int From, int To){
+    if(From < 0 || From >= m_vec_Pages.size()) return;
+    if(To   < 0) To = 0;
+    if(To   >= m_vec_Pages.max_size() - 1) To = m_vec_Pages.max_size() - 1;
+    if(From == To) return;
+    m_vec_Pages.move(From, To);
+    emit pagesChanged();
+    emit pageActvChanged();
+}
+
+int Project_class::cmdAddPage(int Index, const QString &title){
+    if(Index < 0 || Index > m_vec_Pages.size()) Index = m_vec_Pages.size();
+    Page_class *page = new Page_class(this);
+    page->Title = title.isEmpty() ? tr("Page") : title;
+    m_UndoStack.push(new AddPageCmd(this, page, Index));
+    return Index;
+}
+
+void Project_class::cmdRemovePage(int index){
+    if(index < 0 || index >= m_vec_Pages.size()) return;
+    m_UndoStack.push(new RemovePageCmd(this, index));
+}
+
+void Project_class::cmdMovePage(int From, int To){
+    if(From < 0 || From >= m_vec_Pages.size()) return;
+    if(To   < 0) To = 0;
+    if(To   >= m_vec_Pages.size()) To = m_vec_Pages.size() - 1;
+    if(From == To) return;
+    m_UndoStack.push(new MovePageCmd(this, From, To));
+}
+
+void Project_class::cmdRenamePage(int index, const QString &title){
+    if(index < 0 || index >= m_vec_Pages.size()) return;
+    Page_class *pageRef = m_vec_Pages[index];
+    const QString newTitle = title.trimmed();
+    if(newTitle.isEmpty() || newTitle == pageRef->Title) return;
+    m_UndoStack.push(new RenamePageCmd(this, pageRef, newTitle));
+}
+
+int Project_class::_getActivePage() const{
+    if(m_ptr_ActivePage == nullptr) return -1;
+
+    for(int i = 0; i < m_vec_Pages.size(); i++){
+        if(m_ptr_ActivePage == m_vec_Pages[i]){
+            return i;
+        }
+    }
+    return -1;
 }
 
 QString Project_class::_paperToString(PaperFormat_e format){
@@ -242,4 +414,30 @@ Project_class::PaperFormat_e Project_class::_paperFromString(const QString &form
     if(format == "A1") return PaperFormat_e::PaperA1;
     if(format == "A0") return PaperFormat_e::PaperA0;
     return PaperMax;
+}
+
+QSize Project_class::_paperToSize(PaperFormat_e format){
+    QSize PageSize = QSize(420, 297);
+    switch(format){
+    case PaperA4:
+        PageSize = QSize(297, 210);
+        break;
+    case PaperA3:
+        PageSize = QSize(420, 297);
+        break;
+    case PaperA2:
+        PageSize = QSize(594, 420);
+        break;
+    case PaperA1:
+        PageSize = QSize(841, 594);
+        break;
+    case PaperA0:
+        PageSize = QSize(1189, 841);
+        break;
+    case PaperMax:
+        break;
+    default:
+        PageSize = QSize(420, 297);
+    }
+    return PageSize * WORKSPACE_SCALE;
 }

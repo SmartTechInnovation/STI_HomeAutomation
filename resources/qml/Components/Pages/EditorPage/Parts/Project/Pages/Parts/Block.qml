@@ -6,10 +6,12 @@ import QtQuick.Window
 Item {
     id: root
 
-    property string str_BlockId
-    property string str_BlockType: "Inteligent Room Controller"
-    property string str_BlockTitle: "Living"
-    property color  color_BlockColor: "#FF7D30"
+    property string blockInstUuid: ""
+    property string blockTypeUuid: ""
+    property string blockType: "Inteligent Room Controller"
+    property string blockTitle: "Living"
+    property string blockIcon:  ""
+    property color  blockColor: "#FF7D30"
     property real   defaultWidth: 400
 
     property var    inputs: [
@@ -111,9 +113,9 @@ Item {
         id: body
         anchors.fill: parent
         radius:       10
-        color:        root.color_BlockColor
+        color:        root.blockColor
         border.width: 2
-        border.color: root.b_Selected ? "#000000" : root.color_BlockColor
+        border.color: root.b_Selected ? "#000000" : root.blockColor
 
         implicitWidth:  Math.max(root.defaultWidth, mainColumn.implicitWidth  + 2 * mainColumn.anchors.margins)
         implicitHeight: mainColumn.implicitHeight + 2 * mainColumn.anchors.margins
@@ -131,7 +133,7 @@ Item {
                 Text {
                     id: label
                     Layout.margins: 10
-                    text: root.str_BlockTitle
+                    text: root.blockTitle
                     font.pixelSize: 14
                     font.bold: true
                     color: "white"
@@ -148,7 +150,7 @@ Item {
 
                 Text {
                     anchors.fill: parent
-                    text: root.str_BlockType
+                    text: root.blockType
                     font.pixelSize: 14
                     color: "black"
                     horizontalAlignment: Text.AlignHCenter

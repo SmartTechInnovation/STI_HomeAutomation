@@ -3,13 +3,15 @@
 
 #include <QString>
 #include <QColor>
+#include <QVector>
 
-class Category_class
+#include "../Generic/generic.h"
+
+class Category_class : public Generic_class
 {
 public: /* Typedef and enums */
 
 public: /* Members */
-    QString Title;
     QString Icon;
     QColor  Color;
     size_t  Order;
@@ -17,6 +19,15 @@ public: /* Members */
     QString Docs;
 public:
     Category_class();
+};
+
+class Categories_class : public Generic_class
+{
+public: /* Typedef and enums */
+public: /* Members */
+    QVector<Category_class *> m_vec_Categories;
+public: /* Funcitons */
+    Categories_class() { }
 };
 
 #endif // CATEGORY_H

@@ -10,11 +10,14 @@
 #include <QUuid>
 #include <QVariantMap>
 #include <QVariantList>
-#include <QStandardItemModel>
 
+#include "Tree/projecttree.h"
 #include "Page/page.h"
 #include "Room/room.h"
 #include "User/user.h"
+#include "Rights/rights.h"
+#include "UserGroups/usergroup.h"
+#include "ManagedTablet/managedtablet.h"
 #include "Category/category.h"
 #include "Variable/variable.h"
 #include "Controller/controller.h"
@@ -24,21 +27,24 @@
 class Project_class : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString      title      READ getTitle    NOTIFY titleChanged    )
-    Q_PROPERTY(QString      path       READ getPath     NOTIFY pathChanged     )
-    Q_PROPERTY(bool         modified   READ isModified  NOTIFY modifiedChanged )
-    Q_PROPERTY(bool         hasFile    READ hasFile     NOTIFY pathChanged     )
-    Q_PROPERTY(bool         canUndo    READ canUndo     NOTIFY undoStateChanged)
-    Q_PROPERTY(bool         canRedo    READ canRedo     NOTIFY undoStateChanged)
-    Q_PROPERTY(QString      undoText   READ undoText    NOTIFY undoStateChanged)
-    Q_PROPERTY(QString      redoText   READ redoText    NOTIFY undoStateChanged)
-    Q_PROPERTY(QString      pageFormat READ pageFormat  NOTIFY infoChanged     )
-    Q_PROPERTY(QVariantList pageList   READ pageList    NOTIFY pagesChanged    )
-    Q_PROPERTY(QSize        pageSize   READ pageSize    NOTIFY infoChanged     )
-    Q_PROPERTY(int          pageCount  READ pageCount   NOTIFY pagesChanged    )
-    Q_PROPERTY(int          pageActv   READ pageActv    NOTIFY pageActvChanged WRITE setPageActv)
-    Q_PROPERTY(QVariantMap  infoMap    READ infoMap     NOTIFY infoChanged     )
-    Q_PROPERTY(QObject     *tree       READ tree        NOTIFY treeChanged     )
+    Q_PROPERTY(QString      title         READ getTitle      NOTIFY titleChanged    )
+    Q_PROPERTY(QString      path          READ getPath       NOTIFY pathChanged     )
+    Q_PROPERTY(bool         modified      READ isModified    NOTIFY modifiedChanged )
+    Q_PROPERTY(bool         hasFile       READ hasFile       NOTIFY pathChanged     )
+    Q_PROPERTY(bool         canUndo       READ canUndo       NOTIFY undoStateChanged)
+    Q_PROPERTY(bool         canRedo       READ canRedo       NOTIFY undoStateChanged)
+    Q_PROPERTY(QString      undoText      READ undoText      NOTIFY undoStateChanged)
+    Q_PROPERTY(QString      redoText      READ redoText      NOTIFY undoStateChanged)
+    Q_PROPERTY(QString      pageFormat    READ pageFormat    NOTIFY infoChanged     )
+    Q_PROPERTY(QVariantList pageList      READ pageList      NOTIFY pagesChanged    )
+    Q_PROPERTY(QSize        pageSize      READ pageSize      NOTIFY infoChanged     )
+    Q_PROPERTY(int          pageCount     READ pageCount     NOTIFY pagesChanged    )
+    Q_PROPERTY(int          pageActv      READ pageActv      NOTIFY pageActvChanged WRITE setPageActv)
+    Q_PROPERTY(QVariantMap  infoMap       READ infoMap       NOTIFY infoChanged     )
+    Q_PROPERTY(QObject      *tree         READ tree          NOTIFY treeChanged     )
+    Q_PROPERTY(QString      selectedUuid  READ selectedUuid  NOTIFY selectedUuidChanged  WRITE setSelectedUuid)
+    Q_PROPERTY(QString      selectedIUuid READ selectedIUuid NOTIFY selectedIUuidChanged WRITE setSelectedIUuid)
+    Q_PROPERTY(QVariantMap  context       READ context       NOTIFY contextChanged  )
 
 
 private: /* Typedefs and enums */
@@ -89,6 +95,7 @@ private: /* Typedefs and enums */
     };
 
     struct MetaData_s{
+        QUuid          instanceUuid;
         InfoData_s     infoData;
         LocationData_s locationData;
         ContactData_s  company;
@@ -100,30 +107,6 @@ private: /* Typedefs and enums */
         bool           telemetry;
     };
 
-    struct RoomsTree_s{
-        QString Title;
-        QString Icon;
-        QVector<Room_class *> m_vec_Rooms;
-    };
-
-    struct CategoriesTree_s{
-        QString Title;
-        QString Icon;
-        QVector<Category_class *> m_vec_Categories;
-    };
-
-    struct UsersTree_s{
-        QString Title;
-        QString Icon;
-        QVector<User_class *> m_vec_Users;
-    };
-
-    struct VariablesTree_s{
-        QString Title;
-        QString Icon;
-        QMap<int, QVector<Variable_class *>> m_map_Variables;
-    };
-
 private: /* Members */
     MetaData_s m_MetaData;
     QString    m_str_Workspace;
@@ -131,36 +114,41 @@ private: /* Members */
     QString    m_str_ProjectPath;
     QUndoStack m_UndoStack;
 
-    RoomsTree_s           m_RoomsTree;
-    CategoriesTree_s      m_CategoriesTree;
-    VariablesTree_s       m_VariablesTree;
-    UsersTree_s           m_UsersTree;
+    ProjectTree_class    *m_ProjectTree = nullptr;
+    friend class ProjectTree_class; // Used for Tree to acces members of project
+
+    Rooms_class           m_RoomsTree;
+    Categories_class      m_CategoriesTree;
+    VariableTypes_class   m_VariablesTree;
+    Users_class           m_UsersTree;
+    Rights_class          m_RightsTree;
+    UserGroups_class      m_UserGroupsTree;
+    ManagedTablets_class  m_ManagedTabletsTree;
     QVector<Page_class *> m_vec_Pages;
     Page_class           *m_ptr_ActivePage = nullptr;
-
+    QUuid                 m_SelectedUuid  = QUuid();
+    QUuid                 m_SelectedIUuid = QUuid();
     Controller_class      m_Controller;
 
-    QStandardItemModel    *m_ptr_Tree     = nullptr;
-    bool                   m_b_Tree_Dirty = false;
-
-
 private: /* Functions */
-    QString              _getPath()       const;
-    int                  _getActivePage() const;
-    static QString       _paperToString(PaperFormat_e format);
-    static PaperFormat_e _paperFromString(const QString &Format);
-    static QSize         _paperToSize(PaperFormat_e format);
-
+    int                  getPageActv() const;
+    static PaperFormat_e fromString(const QString       &Format);
+    static QString       toString  (const PaperFormat_e &Format);
+    static QSize         toSize    (const PaperFormat_e &Format);
 
 public:
     explicit Project_class(QObject *parent = nullptr);
     ~Project_class();
 
+    void build();
+
     Q_INVOKABLE void undo();
     Q_INVOKABLE void redo();
 
-    void    setTitle(const QString &Title);
-    void    setPath (const QString &path);
+    void    setTitle(const QString &Title){ m_MetaData.infoData.Title = Title;
+                                            emit titleChanged();
+                                            emit infoChanged(); }
+    void    setPath (const QString &path) { m_str_RootPath = path; }
 
     QString      getTitle()         const { return m_MetaData.infoData.Title;             }
     QString      getCreationDate()  const { return m_MetaData.infoData.CreationDate;      }
@@ -174,15 +162,20 @@ public:
     bool         canRedo()          const { return m_UndoStack.canRedo();                 }
     QString      undoText()         const { return m_UndoStack.undoText();                }
     QString      redoText()         const { return m_UndoStack.redoText();                }
-    QString      pageFormat()       const { return _paperToString(m_MetaData.paperFormat);}
-    QSize        pageSize()         const { return _paperToSize(m_MetaData.paperFormat);  }
+    QString      pageFormat()       const { return toString(m_MetaData.paperFormat);      }
+    QSize        pageSize()         const { return toSize(m_MetaData.paperFormat);        }
     int          pageCount()        const { return m_vec_Pages.size();                    }
-    int          pageActv()         const { return _getActivePage();                      }
+    int          pageActv()         const { return getPageActv();                         }
     QVariantMap  infoMap()          const;
     QVariantList pageList()         const;
-    QObject     *tree()             const { return m_ptr_Tree;                            }
+    QObject     *tree()             const { return m_ProjectTree->getTree();              }
+    QVariantMap  context()          const;
+    QString      selectedUuid()     const { return m_SelectedUuid.toString(QUuid::WithoutBraces);  }
+    QString      selectedIUuid()    const { return m_SelectedIUuid.toString(QUuid::WithoutBraces); }
 
     void         setPageActv(int index);
+    void         setSelectedUuid (const QString &uuid);
+    void         setSelectedIUuid(const QString &uuid);
 
     bool save(QString *error);
     bool load(const QString &projectPath, QString *error);
@@ -207,6 +200,9 @@ signals:
     void pagesChanged();
     void pageActvChanged();
     void treeChanged();
+    void selectedUuidChanged();
+    void selectedIUuidChanged();
+    void contextChanged();
 };
 
 #endif // PROJECT_CLASS_H

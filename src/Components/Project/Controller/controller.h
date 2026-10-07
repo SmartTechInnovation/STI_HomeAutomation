@@ -3,21 +3,16 @@
 
 #include <QString>
 #include <QVector>
+#include <QVariantMap>
 
-class Controller_class
+#include "../../PeripheryManager/xmlnode.h"
+#include "../Generic/generic.h"
+
+class Controller_class : public Generic_class
 {
 public: /*Typedefs and enums */
-    struct VirtualInputs_s{
-        QString Title;
 
-    };
-
-    struct VirtualOutputs_s{
-        QString Title;
-
-    };
 public: /* Members */
-    QString Title;
     QString IpAddress;
     int     PortHttp  = 80;
     int     PortHttps = 443;
@@ -25,10 +20,11 @@ public: /* Members */
     QString Model;
 
     /* Periphery */
-    VirtualInputs_s VirtualInputs;
-    VirtualInputs_s VirtualOutputs;
+    QVector<XmlNode_class *> m_vec_Periphery;
 public:
     Controller_class();
+
+    QVariantMap getContextMenu(const QUuid &uuid) const;
 };
 
 #endif // CONTROLLER_H

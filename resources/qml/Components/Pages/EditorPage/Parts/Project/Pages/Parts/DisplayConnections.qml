@@ -3,6 +3,8 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
 
+import "../../../../../../Theme"
+
 Popup {
     id: root
 
@@ -44,7 +46,8 @@ Popup {
         Rectangle {
             Layout.fillWidth:  true
             Layout.preferredHeight: Math.min(contentHeight, 220)
-            Layout.leftMargin: 5
+            Layout.leftMargin:  5
+            Layout.rightMargin: 5
             color: "white"
 
             radius: 3
@@ -60,7 +63,7 @@ Popup {
                     spacing: 4
 
                     CheckBoxCustom {
-                        checked: modelData.visible
+                        checked: modelData.visible || modelData.connected
                         enabled: !modelData.connected
                         onToggled: root.toggleVisible(index)
                     }
@@ -68,7 +71,15 @@ Popup {
                     Text{
                         Layout.preferredWidth: 40
                         text: modelData.name
-                        font.pixelSize: 7
+                        font.pixelSize: 12
+                        color: "black"
+                    }
+
+                    Text{
+                        Layout.preferredWidth: 40
+                        text: modelData.extName
+                        font.pixelSize: 12
+                        font.bold:      true
                         color: "black"
                     }
                 }

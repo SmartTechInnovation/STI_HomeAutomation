@@ -15,10 +15,22 @@ import STI.ProjectManager
 Item {
     id: root
 
-    property var    project:      null
-    property string selectionKey: ""
+    property var    project:        null
+    property string selectionUuid:  project ? project.selectedUuid  : ""
+    property string selectionIUuid: project ? project.selectedIUuid : ""
 
-    onProjectChanged: selectionKey = ""
+    onProjectChanged: {
+        project.selectedUuid  = ""
+        project.selectedIUuid = ""
+    }
+
+    function treeSelected(uuid, iUuid){
+        selectionUuid  = uuid;
+        selectionIUuid = iUuid
+        if(!project) return
+        project.selectedUuid  = uuid
+        project.selectedIUuid = iUuid
+    }
 
     // ===== Background =====
     Rectangle {
@@ -67,6 +79,7 @@ Item {
 
                     TopToolBar {
                         anchors.fill: parent
+                        project: root.project
                     }
                 }
             }
@@ -85,7 +98,8 @@ Item {
             ProjectTree {
                 id: projectTree
                 SplitView.preferredWidth: 200
-
+                project: root.project
+                onSelected: (uuid, iUuid) => root.treeSelected(uuid, iUuid)
             }
 
             Project {

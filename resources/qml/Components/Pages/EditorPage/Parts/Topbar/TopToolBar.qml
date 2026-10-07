@@ -10,8 +10,56 @@ import "../../../../Theme"
 Item {
     id: root
 
+    property int currentTab: 0 // Blocks, 1 Monitor, 2 Diagnostics, 3 Context
+    property var project: null
+    property var context: (project && project.context && project.context.Title) ? project.context : null
+
     readonly property var list_Categories:         BlockManager.categories
     readonly property var list_ShortcutCategories: BlockManager.shortcutCategories
+
+    onContextChanged: currentTab = context ? 3 : (currentTab === 3 ? 0 : currentTab)
+
+    signal blockPicked(string uuid)
+
+    component TopTab: Rectangle {
+        id: topTab
+        property string title: ""
+        property bool   active: false
+
+        signal clicked()
+
+        implicitWidth: txt_TopTab.implicitWidth + 24
+        height: parent ? parent.height : 22
+        radius: 5
+        color: active ? Theme.bgHover : Theme.bgCanvas
+
+        Text {
+            id: txt_TopTab
+            anchors.centerIn: parent
+            text:      topTab.title
+            color:     topTab.active ? Theme.white : Theme.gray
+            font.bold: topTab.active
+            font.pixelSize: 11
+        }
+
+        Rectangle {
+            anchors.bottom: parent.bottom;
+            anchors.horizontalCenter: parent.horizontalCenter;
+            width: parent.width - 12;
+            height: 2;
+            radius: 1;
+            color: Theme.green
+            visible: topTab.active
+        }
+
+        MouseArea {
+            id: ma_TopTab
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: topTab.clicked()
+        }
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -19,94 +67,221 @@ Item {
         spacing: 4
 
         // ======= Tab Bar =======
-        Rectangle {
+        Row {
             Layout.fillWidth: true
-            Layout.preferredHeight: 20
+            Layout.preferredHeight: 22
+            spacing: 4
 
-            color: "black"
+            TopTab {
+                title: qsTr("Blocks");
+                active: root.currentTab === 0;
+                onClicked: root.currentTab = 0
+            }
+            TopTab {
+                title: qsTr("Monitor");
+                active: root.currentTab === 1;
+                onClicked: root.currentTab = 1
+            }
+            TopTab {
+                title: qsTr("Diagnostics");
+                active: root.currentTab === 2;
+                onClicked: root.currentTab = 2
+            }
+
+            Rectangle {
+                visible: topTab_Context.visible
+                anchors.verticalCenter: parent.verticalCenter
+                width: 2
+                height: parent.height - 4
+                color: Theme.gray
+                radius: 0.5
+            }
+
+            TopTab {
+                id: topTab_Context
+                visible: root.context !== null
+                title:   root.context ? (root.context.Title ?? "") : ""
+                active: root.currentTab === 3
+                onClicked: root.currentTab = 3
+            }
         }
 
-        // ========= Tool Bar Menu =========
-        RowLayout {
+        StackLayout {
             Layout.fillWidth:  true
             Layout.fillHeight: true
-            spacing: 8
+            currentIndex: root.currentTab
 
-            // ====== All function blocks ======
-            ToolBtn{
-                id: btn_FunctionBlocks
-
+            // ========= Tool Bar Menu =========
+            RowLayout {
+                Layout.fillWidth:  true
                 Layout.fillHeight: true
-                Layout.preferredWidth: height
+                spacing: 8
 
-                color: Theme.white
-                firstRowText:  "Function"
-                secondRowText: "Block"
+                // ====== All function blocks ======
+                ToolBtn{
+                    id: btn_FunctionBlocks
 
-                property bool wasOpen: false
+                    Layout.fillHeight: true
+                    Layout.preferredWidth: height
 
-                onPressed: wasOpen = popup_FunctionBlocks.opened
+                    color: Theme.white
+                    firstRowText:  "Function"
+                    secondRowText: "Block"
 
-                onClicked: {
-                    if (wasOpen){
-                        popup_FunctionBlocks.close()
-                    }else{
-                        popup_FunctionBlocks.hoveredCategory     = null
-                        popup_FunctionBlocks.hoveredCategoryName = ""
-                        var pos = btn_FunctionBlocks.mapToItem(root, 0, btn_FunctionBlocks.height)
-                        popup_FunctionBlocks.x = pos.x
-                        popup_FunctionBlocks.y = pos.y + 4
-                        popup_FunctionBlocks.open()
+                    property bool wasOpen: false
+
+                    onPressed: wasOpen = popup_FunctionBlocks.opened
+
+                    onClicked: {
+                        if (wasOpen){
+                            popup_FunctionBlocks.close()
+                        }else{
+                            popup_FunctionBlocks.hoveredCategory     = null
+                            popup_FunctionBlocks.hoveredCategoryName = ""
+                            var pos = btn_FunctionBlocks.mapToItem(root, 0, btn_FunctionBlocks.height)
+                            popup_FunctionBlocks.x = pos.x
+                            popup_FunctionBlocks.y = pos.y + 4
+                            popup_FunctionBlocks.open()
+                        }
+                    }
+                }
+
+                // ====== Separator ======
+                Rectangle{
+                    Layout.preferredWidth: 1
+                    Layout.fillHeight: true
+                    color: Theme.gray
+                }
+
+                // ====== Shortcuts ======
+                ListView {
+                    id: list_Shortcuts
+                    Layout.fillWidth:  true
+                    Layout.fillHeight: true
+
+                    orientation: ListView.Horizontal
+                    clip:        true
+                    spacing:     8
+                    model:       root.list_ShortcutCategories
+                    boundsBehavior: Flickable.StopAtBounds
+
+                    ScrollBar.horizontal: ScrollBar {
+                        policy: list_Shortcuts.contentWidth > list_Shortcuts.width ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
+                    }
+
+                    delegate: ToolBtn {
+                        id: btn_ShortcutCategory
+                        height: parent.height
+                        width:  parent.height
+
+                        firstRowText: modelData.name
+                        iconSrc:      modelData.icon
+
+                        property bool wasOpen: false
+
+                        onPressed: wasOpen = popup_ShortcutCategory.opened
+
+                        onClicked: {
+                            if (wasOpen){
+                                popup_ShortcutCategory.close()
+                            }else{
+                                var pos = btn_ShortcutCategory.mapToItem(root, 0, btn_ShortcutCategory.height)
+                                popup_ShortcutCategory.category     = modelData
+                                popup_ShortcutCategory.categoryName = modelData.name
+                                popup_ShortcutCategory.x = pos.x
+                                popup_ShortcutCategory.y = pos.y + 4
+                                popup_ShortcutCategory.open()
+                            }
+                        }
                     }
                 }
             }
 
-            // ====== Separator ======
-            Rectangle{
-                Layout.preferredWidth: 1
-                Layout.fillHeight: true
-                color: Theme.gray
+            // ========= Monitor =========
+            Item {
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    x: 8
+                    text:  qsTr("Monitor: live values from the controller will be shown here (needs the connection to the controller).")
+                    color: Theme.gray
+                    font.pixelSize: 12
+                }
             }
 
-            // ====== Shortcuts ======
-            ListView {
-                id: list_Shortcuts
-                Layout.fillWidth:  true
-                Layout.fillHeight: true
-
-                orientation: ListView.Horizontal
-                clip:        true
-                spacing:     8
-                model:       root.list_ShortcutCategories
-                boundsBehavior: Flickable.StopAtBounds
-
-                ScrollBar.horizontal: ScrollBar {
-                    policy: list_Shortcuts.contentWidth > list_Shortcuts.width ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
+            // ========= Diagnostics =========
+            Item {
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    x: 8
+                    text:  qsTr("Diagnostics: bus statistics, errors and logs from the controller will be shown here.")
+                    color: Theme.gray
+                    font.pixelSize: 12
                 }
+            }
 
-                delegate: ToolBtn {
-                    id: btn_ShortcutCategory
-                    height: parent.height
-                    width:  parent.height
+            // ========= Context Menus =======
+            RowLayout {
+                spacing: 8
 
-                    firstRowText: modelData.name
-                    iconSrc:      modelData.icon
+                // Main menu with all functions
+                ToolBtn {
+                    id: btn_MainMenu
+
+                    Layout.fillHeight: true
+                    Layout.preferredWidth: height
+
+                    visible:      root.context ? (root.context.MenuName !== undefined ? true : false) : false
+                    firstRowText: root.context ? (root.context.MenuName !== undefined ? root.context.MenuName : "") : ""
+                    iconSrc:      root.context ? (root.context.MenuName !== undefined ? root.context.Icon : "") : ""
 
                     property bool wasOpen: false
 
-                    onPressed: wasOpen = popup_ShortcutCategory.opened
+                    onPressed: wasOpen = popup_ShortcutContext.opened
 
                     onClicked: {
                         if (wasOpen){
-                            popup_ShortcutCategory.close()
+                            popup_ShortcutContext.close()
                         }else{
-                            var pos = btn_ShortcutCategory.mapToItem(root, 0, btn_ShortcutCategory.height)
-                            popup_ShortcutCategory.category     = modelData
-                            popup_ShortcutCategory.categoryName = modelData.name
-                            popup_ShortcutCategory.x = pos.x
-                            popup_ShortcutCategory.y = pos.y + 4
-                            popup_ShortcutCategory.open()
+                            var pos = btn_MainMenu.mapToItem(root, 0, btn_MainMenu.height)
+                            popup_ShortcutContext.x = pos.x
+                            popup_ShortcutContext.y = pos.y + 4
+                            popup_ShortcutContext.open()
                         }
+                    }
+                }
+
+                // ====== Separator ======
+                Rectangle{
+                    Layout.preferredWidth: 1
+                    Layout.fillHeight: true
+                    color: Theme.gray
+                }
+
+                // ====== Shortcuts ======
+                ListView {
+                    id: list_ContextShortcuts
+                    Layout.fillWidth:  true
+                    Layout.fillHeight: true
+
+                    orientation: ListView.Horizontal
+                    clip:        true
+                    spacing:     8
+                    model:       root.context ? root.context.Items : ({})
+                    boundsBehavior: Flickable.StopAtBounds
+
+                    ScrollBar.horizontal: ScrollBar {
+                        policy: list_Shortcuts.contentWidth > list_Shortcuts.width ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
+                    }
+
+                    delegate: ToolBtn {
+                        id: btn_ShortcutContext
+                        height: parent.height
+                        width:  parent.height
+
+                        firstRowText: modelData.Title
+                        iconSrc:      modelData.Icon
+
+                        onPressed: console.log(modelData.Uuid)
                     }
                 }
             }
@@ -238,6 +413,29 @@ Item {
     }
 
     Popup {
+        id: popup_ShortcutContext
+
+
+        padding: 0
+        margins: 0
+        modal:   false
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+        background: Item {}
+
+        onClosed: {
+            context     = null
+        }
+
+        contentItem: ShortcutsMenu {
+            id: submenuShortcutsContext
+
+            title: root.context ? root.context.Title : ""
+            items: root.context ? root.context.Items : []
+        }
+    }
+
+    Popup {
         id: popup_ShortcutCategory
 
         property var    category:     null
@@ -251,8 +449,8 @@ Item {
         background: Item {}
 
         onClosed: {
-            category: null
-            categoryName: ""
+            category     = null
+            categoryName = ""
         }
 
         contentItem: BlocksMenu {

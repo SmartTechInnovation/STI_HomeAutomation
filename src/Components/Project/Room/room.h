@@ -3,8 +3,12 @@
 
 #include <QString>
 #include <QColor>
+#include <QUuid>
+#include <QVector>
 
-class Room_class
+#include "../Generic/generic.h"
+
+class Room_class : public Generic_class
 {
 public: /*Typedefs and enums */
     enum RoomType_e{
@@ -16,7 +20,6 @@ public: /*Typedefs and enums */
         Room_Max,
     };
 public: /* Members */
-    QString    Title;
     QString    Icon;
     size_t     Area;
     QColor     Color;
@@ -29,6 +32,15 @@ public:
 
     static QString    toString(RoomType_e Type);
     static RoomType_e fromString(const QString &Type);
+};
+
+class Rooms_class : public Generic_class
+{
+public: /* Typedef and enums */
+public: /* Members */
+    QVector<Room_class *> m_vec_Rooms;
+public: /* Functions */
+    explicit Rooms_class();
 };
 
 #endif // ROOM_H

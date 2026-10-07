@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(STI_HomeAutomation VERSION 0.1 LANGUAGES CXX)
+project(STIx_Config VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -15,17 +15,17 @@ if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/importedcontent/CMakeLists.txt")
     add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/importedcontent)
 endif()
 
-qt_add_executable(appSTI_HomeAutomation)
+qt_add_executable(appSTIx_Config)
 
-target_compile_definitions(appSTI_HomeAutomation PRIVATE
+target_compile_definitions(appSTIx_Config PRIVATE
     PROJECT_VERSION_STR="${PROJECT_VERSION}"
 )
 
-target_include_directories(appSTI_HomeAutomation PRIVATE
+target_include_directories(appSTIx_Config PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-qt_add_qml_module(appSTI_HomeAutomation
+qt_add_qml_module(appSTIx_Config
     URI STI_HomeAutomation
     QML_FILES
         resources/qml/Main.qml
@@ -53,12 +53,23 @@ qt_add_qml_module(appSTI_HomeAutomation
         src/Components/Project/project.h
         src/Components/Project/project.cpp
         src/Components/Project/project_tokens.h
+        src/Components/Project/project_commands.h
+        src/Components/Project/Tree/projecttree.h
+        src/Components/Project/Tree/projecttree.cpp
+        src/Components/Project/Generic/generic.h
+        src/Components/Project/Generic/generic.cpp
         src/Components/Project/Room/room.h
         src/Components/Project/Room/room.cpp
         src/Components/Project/Category/category.h
         src/Components/Project/Category/category.cpp
         src/Components/Project/User/user.h
         src/Components/Project/User/user.cpp
+        src/Components/Project/Rights/rights.h
+        src/Components/Project/Rights/rights.cpp
+        src/Components/Project/UserGroups/usergroup.h
+        src/Components/Project/UserGroups/usergroup.cpp
+        src/Components/Project/ManagedTablet/managedtablet.h
+        src/Components/Project/ManagedTablet/managedtablet.cpp
         src/Components/Project/Variable/variable.h
         src/Components/Project/Variable/variable.cpp
         src/Components/Project/Controller/controller.h
@@ -73,22 +84,23 @@ qt_add_qml_module(appSTI_HomeAutomation
         src/Components/BlockManager/Block/blockbase.cpp
         src/Components/BlockManager/Block/Ports/port.h
         src/Components/BlockManager/Block/Ports/port.cpp
+        src/Components/PeripheryManager/peripherymanager.h
+        src/Components/PeripheryManager/peripherymanager.cpp
+        src/Components/PeripheryManager/xmlnode.h
+        src/Components/PeripheryManager/peripherymanager_tokens.h
         src/Components/Logger/logger.h
         src/Components/Logger/logger.cpp
-
 
     RESOURCES
         resources/qml/Components/Theme/qmldir
         QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Topbar/TopToolBar.qml
         QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Topbar/ToolBtn.qml
         QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Topbar/BlocksMenu.qml
+        QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Topbar/ShortcutsMenu.qml
         QML_FILES resources/qml/Components/Logger/LogTab.qml
         QML_FILES resources/qml/Components/Tab/TabStrip.qml
-        QML_FILES
-        SOURCES src/Components/Project/project_commands.h
         QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/PageFrame.qml
         QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/PageCover.qml
-
 )
 
 # Theme.qml e singleton — calea trebuie sa fie EXACT ca in QML_FILES de mai sus
@@ -97,18 +109,18 @@ set_source_files_properties(
     PROPERTIES QT_QML_SINGLETON_TYPE TRUE
 )
 
-qt_add_resources(appSTI_HomeAutomation_icons
+qt_add_resources(appSTIx_Config_icons
     resources/icons/Icons.qrc
 )
-target_sources(appSTI_HomeAutomation PRIVATE
-    ${appSTI_HomeAutomation_icons}
+target_sources(appSTIx_Config PRIVATE
+    ${appSTIx_Config_icons}
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.
-set_target_properties(appSTI_HomeAutomation PROPERTIES
-#    MACOSX_BUNDLE_GUI_IDENTIFIER com.example.appSTI_HomeAutomation
+set_target_properties(appSTIx_Config PROPERTIES
+#    MACOSX_BUNDLE_GUI_IDENTIFIER com.example.appSTIx_Config
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE
@@ -116,7 +128,7 @@ set_target_properties(appSTI_HomeAutomation PROPERTIES
     QT_QML_CONTROLS_STYLE Basic
 )
 
-target_link_libraries(appSTI_HomeAutomation
+target_link_libraries(appSTIx_Config
     PRIVATE Qt6::Core
     PRIVATE Qt6::Quick
     PRIVATE Qt6::QuickControls2
@@ -125,7 +137,7 @@ target_link_libraries(appSTI_HomeAutomation
     PRIVATE Qt6::Xml
 )
 
-install(TARGETS appSTI_HomeAutomation
+install(TARGETS appSTIx_Config
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}

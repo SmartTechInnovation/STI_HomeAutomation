@@ -1,12 +1,18 @@
 import QtQuick
 import QtQuick.Shapes
+import QtQuick.Controls
+
+import "../../../../../../Theme"
 
 Item {
     id: root
 
-    property color colorPort: "#4aa3df"
-    property Item  blockRef: null
-    property bool  connected: false   // false = gol (doar contur), true = plin
+    property var   portModel: null
+    property Item  blockRef:  null
+    property bool  connected: portModel.connected
+    property real  worldScale: 1
+
+    readonly property bool hovered: ma_Port.containsMouse
 
     signal pressedAt()
     signal draggedTo(real wx, real wy)
@@ -28,9 +34,9 @@ Item {
             height: root.height
             radius: width / 2
             anchors.verticalCenter: parent.verticalCenter
-            color: root.connected ? root.colorPort : "transparent"
+            color: root.connected ? root.portModel.color : "transparent"
             border.width: 3
-            border.color: root.colorPort
+            border.color: root.portModel.color
             antialiasing: true
         }
 
@@ -43,8 +49,8 @@ Item {
 
             ShapePath {
                 strokeWidth: 1.5
-                strokeColor: root.colorPort
-                fillColor:   root.colorPort
+                strokeColor: root.portModel.color
+                fillColor:   root.portModel.color
                 joinStyle: ShapePath.RoundJoin
                 capStyle:  ShapePath.RoundCap
 
@@ -54,6 +60,30 @@ Item {
                 PathLine { x: 0; y: 0 }
             }
         }
+    }
+
+    ToolTip {
+        id: port_Tip
+        visible: root.hovered
+        delay: 500
+        text:  root.portModel.extName + " [" + root.portModel.type + "]"
+        scale: worldScale
+
+        contentItem: Rectangle {
+            radius: 5
+            color:        "#222222"
+            border.color: "#444444"
+            border.width: 2
+
+            Text {
+                padding: 8
+                text: port_Tip.text
+                color: Theme.white
+                font.pixelSize: 12
+            }
+        }
+
+        background: null
     }
 
     MouseArea {

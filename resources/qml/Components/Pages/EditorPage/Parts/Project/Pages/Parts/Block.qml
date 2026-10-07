@@ -13,6 +13,7 @@ Item {
     property string blockIcon:     ""
     property color  blockColor:    "#FF7D30"
     property real   defaultWidth:  400
+    property real   worldScale:    1
 
     property var    inputs:     ({})
     property var    outputs:    ({})
@@ -42,8 +43,8 @@ Item {
         return Object.assign({}, o, { src: "output", srcIndex: i })
     })
 
-    readonly property var visibleInputs:  root.allInputs.filter (function(e) { return e.visible })
-    readonly property var visibleOutputs: root.allOutputs.filter(function(e) { return e.visible })
+    readonly property var visibleInputs:  root.allInputs.filter (function(e) { return e.visible || e.connected })
+    readonly property var visibleOutputs: root.allOutputs.filter(function(e) { return e.visible || e.connected })
 
 
     implicitWidth:  body.implicitWidth
@@ -199,12 +200,12 @@ Item {
                                 Port {
                                     x: 6
                                     anchors.verticalCenter: parent.verticalCenter
-                                    colorPort: modelData.color
-                                    connected: modelData.connected
+                                    portModel: modelData
                                     blockRef: root.parent
                                     onPressedAt:  root.portPressed(index, false)
                                     onDraggedTo:  (wx, wy) => root.portDragged(wx, wy)
                                     onReleasedAt: (wx, wy) => root.portReleased(wx, wy)
+                                    worldScale: root.worldScale
                                 }
                             }
                         }
@@ -270,12 +271,12 @@ Item {
                                     anchors.right: parent.right
                                     anchors.rightMargin: 6
                                     anchors.verticalCenter: parent.verticalCenter
-                                    colorPort: modelData.color
-                                    connected: modelData.connected
+                                    portModel: modelData
                                     blockRef: root.parent
                                     onPressedAt:  root.portPressed(index, true)
                                     onDraggedTo:  (wx, wy) => root.portDragged(wx, wy)
                                     onReleasedAt: (wx, wy) => root.portReleased(wx, wy)
+                                    worldScale: root.worldScale
                                 }
                             }
                         }

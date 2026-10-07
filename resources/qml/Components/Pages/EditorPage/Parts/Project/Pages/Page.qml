@@ -164,6 +164,7 @@ Item {
                 inputs:        modelData.inputs
                 outputs:       modelData.outputs
                 properties:    modelData.properties
+                worldScale:    world.scale
 
                 b_Selected:    root.selectedInstanceUuid === modelData.iUuid
 

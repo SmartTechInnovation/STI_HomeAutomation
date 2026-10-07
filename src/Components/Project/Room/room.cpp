@@ -38,3 +38,7 @@ Room_class::RoomType_e Room_class::fromString(const QString &Type){
     if(Type == "Other")   return RoomType_e::Room_Other;
     return RoomType_e::Room_Max;
 }
+
+Rooms_class::Rooms_class(){
+
+}

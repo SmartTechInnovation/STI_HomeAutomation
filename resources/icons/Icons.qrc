@@ -31,6 +31,7 @@
         <file>action/save.svg</file>
         <file>action/send-receive.svg</file>
         <file>action/undo.svg</file>
+        <file>document/cover.svg</file>
         <file>document/new-multiple.svg</file>
         <file>document/new.svg</file>
         <file>document/open-recent.svg</file>
@@ -99,6 +100,7 @@
         <file>misc/none.svg</file>
         <file>misc/password.svg</file>
         <file>misc/puzzle-piece.svg</file>
+        <file>misc/rooms.svg</file>
         <file>misc/spam.svg</file>
         <file>misc/success.svg</file>
         <file>misc/tag.svg</file>
@@ -111,6 +113,7 @@
         <file>misc/unknown.svg</file>
         <file>misc/user.svg</file>
         <file>misc/users.svg</file>
+        <file>misc/variable.svg</file>
         <file>misc/warning.svg</file>
         <file>misc/zoom.svg</file>
         <file>navigation/anchor.svg</file>
@@ -145,12 +148,15 @@
         <file>signals/wave-sine.svg</file>
         <file>signals/wave-square.svg</file>
         <file>signals/wave-triangle.svg</file>
+        <file>software/bool.svg</file>
         <file>software/calculator.svg</file>
         <file>software/code-markup.svg</file>
         <file>software/command-line.svg</file>
         <file>software/desktop.svg</file>
+        <file>software/string.svg</file>
         <file>software/system-monitor.svg</file>
         <file>software/text-editor.svg</file>
+        <file>software/text.svg</file>
         <file>software/version-control.svg</file>
         <file>text/align-left.svg</file>
         <file>text/align-right.svg</file>
@@ -180,6 +186,6 @@
         <file>text/prevent-line-break.svg</file>
         <file>text/right-to-left.svg</file>
         <file>text/text.svg</file>
-        <file>document/cover.svg</file>
+        <file>software/plc.svg</file>
     </qresource>
 </RCC>

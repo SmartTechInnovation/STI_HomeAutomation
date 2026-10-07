@@ -4,6 +4,7 @@
 #include <QStandardPaths>
 
 #define LEGACY_BLOCKS_PATH "/Users/ionax/Documents/HomeAutomation/Legacy"
+#define PERIPHERY_PATH     "/Users/ionax/Documents/HomeAutomation/Periphery"
 #define CACHE_APP_PATH     QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)
 #define CONFIG_DIR_NAME    "/config"
 

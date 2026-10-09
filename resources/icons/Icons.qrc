@@ -187,5 +187,7 @@
         <file>text/right-to-left.svg</file>
         <file>text/text.svg</file>
         <file>software/plc.svg</file>
+        <file>hardware/DigitalIn.svg</file>
+        <file>hardware/DigitalOut.svg</file>
     </qresource>
 </RCC>

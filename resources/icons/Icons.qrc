@@ -189,5 +189,8 @@
         <file>software/plc.svg</file>
         <file>hardware/DigitalIn.svg</file>
         <file>hardware/DigitalOut.svg</file>
+        <file>misc/user_shield.svg</file>
+        <file>action/reference.svg</file>
+        <file>action/source.svg</file>
     </qresource>
 </RCC>

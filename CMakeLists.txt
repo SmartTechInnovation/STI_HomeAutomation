@@ -101,6 +101,7 @@ qt_add_qml_module(appSTIx_Config
         QML_FILES resources/qml/Components/Tab/TabStrip.qml
         QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/PageFrame.qml
         QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/PageCover.qml
+        RESOURCES resources/schema/Project_EN.xml
 )
 
 # Theme.qml e singleton — calea trebuie sa fie EXACT ca in QML_FILES de mai sus

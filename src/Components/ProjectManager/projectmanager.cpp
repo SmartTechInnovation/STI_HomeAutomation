@@ -21,10 +21,10 @@ ProjectManager_class::ProjectManager_class(QObject *parent) : QObject(parent) {
 }
 
 void ProjectManager_class::begin(){
-    _loadRecent();
+    loadRecent();
 }
 
-void ProjectManager_class::_loadRecent(){
+void ProjectManager_class::loadRecent(){
     const QString configDirPath = CACHE_APP_PATH + CONFIG_DIR_NAME;
     QDir().mkpath(configDirPath);
 
@@ -62,7 +62,7 @@ void ProjectManager_class::_loadRecent(){
     emit recentProjectsChanged();
 }
 
-void ProjectManager_class::_pushRecent(Project_class *ProjectRef){
+void ProjectManager_class::pushRecent(Project_class *ProjectRef){
     if(ProjectRef == nullptr) return;
 
     const QString configDirPath = CACHE_APP_PATH + CONFIG_DIR_NAME;
@@ -73,8 +73,10 @@ void ProjectManager_class::_pushRecent(Project_class *ProjectRef){
 
     bool finded = false;
 
+    QVariantMap projectInfo = ProjectRef->info();
+
     for(int i = 0; i < m_vec_RecentProjects.size(); i++){
-        if(m_vec_RecentProjects[i]->Title == ProjectRef->getTitle() && m_vec_RecentProjects[i]->Path == ProjectRef->getPath()){
+        if(m_vec_RecentProjects[i]->Title == projectInfo["title"] /*&& m_vec_RecentProjects[i]->Path == ProjectRef->getPath()*/){
             finded = true;
             RecentProject_s *projectRef = m_vec_RecentProjects[i];
             m_vec_RecentProjects.erase(m_vec_RecentProjects.begin()+i);
@@ -84,12 +86,12 @@ void ProjectManager_class::_pushRecent(Project_class *ProjectRef){
     }
     if(!finded){
         RecentProject_s *newRecentProject = new RecentProject_s;
-        newRecentProject->Title        = ProjectRef->getTitle();
-        newRecentProject->Location     = ProjectRef->getLocation();
-        newRecentProject->Workspace    = ProjectRef->getWorkspace();
-        newRecentProject->CreationDate = ProjectRef->getCreationDate();
-        newRecentProject->ModifiedDate = ProjectRef->getModifiedDate();
-        newRecentProject->Path         = ProjectRef->getPath();
+        newRecentProject->Title        = projectInfo["title"].toString();
+        //newRecentProject->Location     = ProjectRef->getLocation();
+        //newRecentProject->Workspace    = ProjectRef->getWorkspace();
+        //newRecentProject->CreationDate = ProjectRef->getCreationDate();
+        //newRecentProject->ModifiedDate = ProjectRef->getModifiedDate();
+        //newRecentProject->Path         = ProjectRef->getPath();
         m_vec_RecentProjects.push_front(newRecentProject);
         emit recentProjectsChanged();
     }
@@ -121,7 +123,7 @@ void ProjectManager_class::_pushRecent(Project_class *ProjectRef){
     recentProjectsFile.close();
 }
 
-void ProjectManager_class::_trackProject(Project_class *ProjectRef){
+void ProjectManager_class::trackProject(Project_class *ProjectRef){
     QQmlEngine::setObjectOwnership(ProjectRef, QQmlEngine::CppOwnership);
     connect(ProjectRef, &Project_class::modifiedChanged, this, &ProjectManager_class::openedTabsChanged);
     connect(ProjectRef, &Project_class::titleChanged,    this, &ProjectManager_class::openedTabsChanged);
@@ -146,8 +148,8 @@ QVariantList ProjectManager_class::openedTabs() const {
     QVariantList Result;
     for(const Project_class *project : m_vec_OpenedProjects){
         QVariantMap projectMap;
-        projectMap["path"]  = project->getPath();
-        projectMap["title"] = project->getTitle();
+        //projectMap["path"]  = project->getPath();
+        //projectMap["title"] = project->getTitle();
 
         Result.push_back(projectMap);
     }
@@ -171,7 +173,7 @@ QObject *ProjectManager_class::activeProject() const{
 
 int ProjectManager_class::newProject(){
     Project_class *newProject = new Project_class();
-    newProject->setTitle("NewProject");
+    //newProject->setTitle("NewProject");
 
     m_vec_OpenedProjects.push_back(newProject);
     m_ptr_ActiveProject = newProject;
@@ -216,45 +218,45 @@ int ProjectManager_class::openProject(const QUrl &projectPath){
     }
 
     bool finded = false;
-    for(auto &p : m_vec_OpenedProjects){
-        QString strProjectPath = projectPath.path();
-        if(strProjectPath[strProjectPath.length()-1] == '/')
-            strProjectPath.removeLast();
-        if(p->getPath() == strProjectPath){
-            finded = true;
-            break;
-        }
-    }
+    //for(auto &p : m_vec_OpenedProjects){
+    //    QString strProjectPath = projectPath.path();
+    //    if(strProjectPath[strProjectPath.length()-1] == '/')
+    //        strProjectPath.removeLast();
+    //    if(p->getPath() == strProjectPath){
+    //        finded = true;
+    //        break;
+    //    }
+    //}
 
     if(finded){
         S_Logger.write(Log::Info, PROJECT_MANAGER_NAME, "Warning on loading project", "Project is already opened", "", true);
         return -1;
     }
 
-    Project_class *existingProject = new Project_class;
-    existingProject->setTitle(projectName);
-    existingProject->setPath(projectXmlPath);
-    if(!existingProject->load(projectXmlPath, &Error)){
-        S_Logger.write(Log::Warning, PROJECT_MANAGER_NAME, Error, "Error on loading project: " + projectName, "Check if project is valid.", true);
-        return -1;
-    }
+    //Project_class *existingProject = new Project_class;
+    //existingProject->setTitle(projectName);
+    //existingProject->setPath(projectXmlPath);
+    //if(!existingProject->load(projectXmlPath, &Error)){
+    //    S_Logger.write(Log::Warning, PROJECT_MANAGER_NAME, Error, "Error on loading project: " + projectName, "Check if project is valid.", true);
+    //    return -1;
+    //}
 
-    m_vec_OpenedProjects.push_back(existingProject);
-    m_ptr_ActiveProject          = existingProject;
-    emit activeTabIndexChanged();
-    emit openedTabsChanged();
-    _pushRecent(existingProject);
+    //m_vec_OpenedProjects.push_back(existingProject);
+    //m_ptr_ActiveProject          = existingProject;
+    //emit activeTabIndexChanged();
+    //emit openedTabsChanged();
+    //pushRecent(existingProject);
     return 0;
 }
 
 int ProjectManager_class::saveProject(){
     if(m_ptr_ActiveProject != nullptr){
         QString RefError;
-        if(m_ptr_ActiveProject->save(&RefError) != 0){
-            if(!RefError.isEmpty()){
-                S_Logger.write(Log::Warning, PROJECT_MANAGER_NAME, RefError, "Error on saving project: " + m_ptr_ActiveProject->getTitle(), "Check if project is valid.", true);
-            }
-        }
+        //if(m_ptr_ActiveProject->save(&RefError) != 0){
+        //    if(!RefError.isEmpty()){
+        //        S_Logger.write(Log::Warning, PROJECT_MANAGER_NAME, RefError, "Error on saving project: " + m_ptr_ActiveProject->getTitle(), "Check if project is valid.", true);
+        //    }
+        //}
     }
     return 0;
 }

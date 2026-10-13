@@ -31,6 +31,8 @@ qt_add_qml_module(appSTIx_Config
         resources/qml/Main.qml
         resources/qml/Components/Theme/Theme.qml
         resources/qml/Components/Tab/Tab.qml
+        resources/qml/Components/Tab/TabStrip.qml
+        resources/qml/Components/Logger/LogTab.qml
         resources/qml/Components/Pages/HomePage/HomePage.qml
         resources/qml/Components/Pages/HomePage/Parts/SearchBox.qml
         resources/qml/Components/Pages/EditorPage/EditorPage.qml
@@ -45,6 +47,12 @@ qt_add_qml_module(appSTIx_Config
         resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/Parts/CheckBoxCustom.qml
         resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/Parts/OutputSignal.qml
         resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/Parts/InputSignal.qml
+        resources/qml/Components/Pages/EditorPage/Parts/Topbar/TopToolBar.qml
+        resources/qml/Components/Pages/EditorPage/Parts/Topbar/ToolBtn.qml
+        resources/qml/Components/Pages/EditorPage/Parts/Topbar/BlocksMenu.qml
+        resources/qml/Components/Pages/EditorPage/Parts/Topbar/ShortcutsMenu.qml
+        resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/PageFrame.qml
+        resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/PageCover.qml
     SOURCES
         src/App/main.cpp
         src/Setup/Setup.hpp
@@ -56,24 +64,6 @@ qt_add_qml_module(appSTIx_Config
         src/Components/Project/project_commands.h
         src/Components/Project/Tree/projecttree.h
         src/Components/Project/Tree/projecttree.cpp
-        src/Components/Project/Generic/generic.h
-        src/Components/Project/Generic/generic.cpp
-        src/Components/Project/Room/room.h
-        src/Components/Project/Room/room.cpp
-        src/Components/Project/Category/category.h
-        src/Components/Project/Category/category.cpp
-        src/Components/Project/User/user.h
-        src/Components/Project/User/user.cpp
-        src/Components/Project/Rights/rights.h
-        src/Components/Project/Rights/rights.cpp
-        src/Components/Project/UserGroups/usergroup.h
-        src/Components/Project/UserGroups/usergroup.cpp
-        src/Components/Project/ManagedTablet/managedtablet.h
-        src/Components/Project/ManagedTablet/managedtablet.cpp
-        src/Components/Project/Variable/variable.h
-        src/Components/Project/Variable/variable.cpp
-        src/Components/Project/Controller/controller.h
-        src/Components/Project/Controller/controller.cpp
         src/Components/Project/Page/page.h
         src/Components/Project/Page/page.cpp
         src/Components/ProjectManager/projectmanager.h
@@ -84,24 +74,16 @@ qt_add_qml_module(appSTIx_Config
         src/Components/BlockManager/Block/blockbase.cpp
         src/Components/BlockManager/Block/Ports/port.h
         src/Components/BlockManager/Block/Ports/port.cpp
-        src/Components/PeripheryManager/peripherymanager.h
-        src/Components/PeripheryManager/peripherymanager.cpp
-        src/Components/PeripheryManager/xmlnode.h
-        src/Components/PeripheryManager/peripherymanager_tokens.h
+        src/Components/SchemaManager/schemamanager.h
+        src/Components/SchemaManager/schemamanager.cpp
+        src/Components/Document/document_tokens.h
+        src/Components/Document/xmlnode.h
+        src/Components/Document/xmlnode.cpp
         src/Components/Logger/logger.h
         src/Components/Logger/logger.cpp
 
     RESOURCES
         resources/qml/Components/Theme/qmldir
-        QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Topbar/TopToolBar.qml
-        QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Topbar/ToolBtn.qml
-        QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Topbar/BlocksMenu.qml
-        QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Topbar/ShortcutsMenu.qml
-        QML_FILES resources/qml/Components/Logger/LogTab.qml
-        QML_FILES resources/qml/Components/Tab/TabStrip.qml
-        QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/PageFrame.qml
-        QML_FILES resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/PageCover.qml
-        RESOURCES resources/schema/Project_EN.xml
 )
 
 # Theme.qml e singleton — calea trebuie sa fie EXACT ca in QML_FILES de mai sus
@@ -110,11 +92,12 @@ set_source_files_properties(
     PROPERTIES QT_QML_SINGLETON_TYPE TRUE
 )
 
-qt_add_resources(appSTIx_Config_icons
+qt_add_resources(appSTIx_Config_res
     resources/icons/Icons.qrc
 )
+
 target_sources(appSTIx_Config PRIVATE
-    ${appSTIx_Config_icons}
+    ${appSTIx_Config_res}
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

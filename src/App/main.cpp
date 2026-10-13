@@ -9,7 +9,7 @@
 #include "application.h"
 #include "src/Components/ProjectManager/projectmanager.h"
 #include "src/Components/BlockManager/blockmanager.h"
-#include "src/Components/PeripheryManager/peripherymanager.h"
+#include "src/Components/SchemaManager/schemamanager.h"
 #include "src/Components/Logger/logger.h"
 
 int main(int argc, char *argv[])
@@ -20,17 +20,18 @@ int main(int argc, char *argv[])
     app.setApplicationName("STIx Config");
     app.setApplicationVersion(QStringLiteral(PROJECT_VERSION_STR));
 
-    Application_class AppRuntime;
-
-    AppRuntime.begin();
+    Application.begin();
+    Application.Organisation    = app.organizationName();
+    Application.ApplicationName = app.applicationName();
 
     QQuickStyle::setStyle("Basic");
 
-    qmlRegisterSingletonInstance("STI.ProjectManager", 1, 0,   "ProjectManager",   &S_ProjectManager);
-    qmlRegisterSingletonInstance("STI.Logger",         1, 0,   "Logger",           &S_Logger);
+    qmlRegisterSingletonInstance("STI.Application",    1, 0, "Application",    &Application);
+    qmlRegisterSingletonInstance("STI.ProjectManager", 1, 0, "ProjectManager", &S_ProjectManager);
+    qmlRegisterSingletonInstance("STI.Logger",         1, 0, "Logger",         &S_Logger);
     qmlRegisterUncreatableMetaObject(Log::staticMetaObject, "STI.Logger", 1, 0, "Log", "Log is an enum namespace");
-    qmlRegisterSingletonInstance("STI.BlockManager",   1, 0,   "BlockManager",     &S_BlockManager);
-    qmlRegisterSingletonInstance("STI.PeripheryManager", 1, 0, "PeripheryManager", &S_PeripheryManager);
+    qmlRegisterSingletonInstance("STI.BlockManager",   1, 0, "BlockManager",   &S_BlockManager);
+    qmlRegisterSingletonInstance("STI.SchemaManager",  1, 0, "SchemaManager",  &S_SchemaManager);
 
     QQmlApplicationEngine engine;
 

@@ -2,109 +2,155 @@
 #define PROJECT_COMMANDS_H
 
 #include <QUndoCommand>
-#include <QCoreApplication>
 
 #include "project.h"
 
+/*
+ * The only 3 operations that change a project document.
+ * Bigger edits (add block, connect, delete with references, ...) are macros of these.
+ *
+ * Ownership: a node that is not in the document belongs to the command that
+ * took it out (or created it); the command deletes it when it is destroyed.
+ */
 
-/* ============================ Pages ============================ */
-
-class AddPageCmd : public QUndoCommand {
-    Project_class *m_ptr_Project = nullptr;
-    Page_class    *m_ptr_Page    = nullptr;
-    int            m_int_Index   = 0;
-    bool           m_bool_Owned  = true;
+class InsertNodeCmd : public QUndoCommand
+{
+    Project_class *m_ptr_Project;
+    XmlNode_class *m_ptr_Parent;
+    XmlNode_class *m_ptr_Node;
+    int            m_int_Row;
+    bool           m_b_Owned = true;
 public:
-    AddPageCmd(Project_class *projectRef, Page_class *page, int index)
-        : m_ptr_Project(projectRef), m_ptr_Page(page), m_int_Index(index)
-    {
-        setText(QCoreApplication::translate("Undo", "Add page %1").arg(page->title()));
+    InsertNodeCmd(Project_class *project, XmlNode_class *parent, int row, XmlNode_class *node, const QString &text = QString()){
+        m_ptr_Project = project;
+        m_ptr_Parent  = parent;
+        m_ptr_Node    = node;
+        m_int_Row     = row;
+        setText(text);
     }
-    ~AddPageCmd() override {
-        if(m_bool_Owned){
-            delete m_ptr_Page;
-        }
+    ~InsertNodeCmd() override {
+        if(m_b_Owned)
+            delete m_ptr_Node;
     }
 
     void redo() override {
-        m_ptr_Project->insertPage(m_int_Index, m_ptr_Page);
-        m_ptr_Project->setPageActv(m_int_Index);
-        m_bool_Owned = false;
+        m_ptr_Project->insertNode(m_ptr_Parent, m_ptr_Node, m_int_Row);
+        m_b_Owned = false;
     }
-
     void undo() override {
-        m_ptr_Project->takePage(m_int_Index);
-        m_bool_Owned = true;
+        m_ptr_Project->takeNode(m_ptr_Node);
+        m_b_Owned = true;
     }
 };
 
-class RemovePageCmd : public QUndoCommand
+class RemoveNodeCmd : public QUndoCommand
 {
     Project_class *m_ptr_Project;
-    Page_class    *m_ptr_Page;
-    int            m_int_Index;
+    XmlNode_class *m_ptr_Parent;
+    XmlNode_class *m_ptr_Node;
+    int            m_int_Row;
     bool           m_b_Owned = false;
 public:
-    RemovePageCmd(Project_class *project, int index)
-        : m_ptr_Project(project), m_int_Index(index)
-    {
-        m_ptr_Page = m_ptr_Project->getPage(index);
-        setText(QCoreApplication::translate("Undo", "Remove page %1").arg(m_ptr_Page ? m_ptr_Page->Title : QString()));
+    RemoveNodeCmd(Project_class *project, XmlNode_class *node, const QString &text = QString()){
+        m_ptr_Project   = project;
+        m_ptr_Parent    = node->parent();
+        m_ptr_Node      = node;
+        m_int_Row       = node->row();
+        setText(text);
     }
-    ~RemovePageCmd() override { if(m_b_Owned) delete m_ptr_Page; }
+    ~RemoveNodeCmd() override {
+        if(m_b_Owned)
+            delete m_ptr_Node;
+    }
 
     void redo() override {
-
-        m_ptr_Project->takePage(m_int_Index);
+        m_ptr_Project->takeNode(m_ptr_Node);
         m_b_Owned = true;
     }
     void undo() override {
-        m_ptr_Project->insertPage(m_int_Index, m_ptr_Page);
+        m_ptr_Project->insertNode(m_ptr_Parent, m_ptr_Node, m_int_Row);
         m_b_Owned = false;
-        m_ptr_Project->setPageActv(m_int_Index);
     }
 };
 
-class MovePageCmd : public QUndoCommand{
-    Project_class *m_ptr_Project;
-    int            m_int_From;
-    int            m_int_To;
-public:
-    MovePageCmd(Project_class *project, int from, int to)
-        : m_ptr_Project(project), m_int_From(from), m_int_To(to)
-    {
-        setText(QCoreApplication::translate("Undo", "Move page"));
-    }
-    void redo() override {
-        m_ptr_Project->movePage(m_int_From, m_int_To);
-    }
-    void undo() override {
-        m_ptr_Project->movePage(m_int_To, m_int_From);
-    }
-};
-
-class RenamePageCmd : public QUndoCommand
+class MoveNodeCmd : public QUndoCommand
 {
     Project_class *m_ptr_Project;
-    Page_class    *m_ptr_Page;
-    QString        m_str_Old;
-    QString        m_str_New;
+    XmlNode_class *m_ptr_Node;
+    XmlNode_class *m_ptr_OldParent;
+    XmlNode_class *m_ptr_NewParent;
+    int            m_int_OldRow;
+    int            m_int_NewRow;
 public:
-    RenamePageCmd(Project_class *project, Page_class *page, const QString &newTitle)
-        : m_ptr_Project(project), m_ptr_Page(page), m_str_Old(page->Title), m_str_New(newTitle)
-    {
-        setText(QCoreApplication::translate("Undo", "Rename page"));
+    /* newRow = row after the node was taken out of its old place */
+    MoveNodeCmd(Project_class *project, XmlNode_class *node, XmlNode_class *newParent, int newRow, const QString &text = QString()){
+        m_ptr_Project = project;
+        m_ptr_Node = node;
+        m_ptr_OldParent = node->parent();
+        m_ptr_NewParent = newParent;
+        m_int_OldRow = node->row();
+        m_int_NewRow = newRow;
+        setText(text);
     }
     void redo() override {
-        m_ptr_Page->Title = m_str_New;
-        emit m_ptr_Project->pagesChanged();
+        m_ptr_Project->takeNode(m_ptr_Node, true);
+        m_ptr_Project->insertNode(m_ptr_NewParent, m_ptr_Node, m_int_NewRow);
     }
-
     void undo() override {
-        m_ptr_Page->Title = m_str_Old;
-        emit m_ptr_Project->pagesChanged();
+        m_ptr_Project->takeNode(m_ptr_Node, true);
+        m_ptr_Project->insertNode(m_ptr_OldParent, m_ptr_Node, m_int_OldRow);
     }
 };
 
+class SetAttributeCmd : public QUndoCommand
+{
+    Project_class *m_ptr_Project;
+    XmlNode_class *m_ptr_Node;
+    QString        m_str_Key;
+    QString        m_str_Old;
+    QString        m_str_New;
+    bool           m_b_HadOld;
+    int            m_int_MergeId;
+public:
+    /* mergeId >= 0: consecutive edits of the same attribute become one undo step (typing) */
+    SetAttributeCmd(Project_class *project, XmlNode_class *node, const QString &key, const QString &value,
+                    const QString &text = QString(), int mergeId = -1)
+        : m_ptr_Project(project), m_ptr_Node(node), m_str_Key(key),
+        m_str_Old(node->value(key)), m_str_New(value), m_b_HadOld(node->hasAttr(key)), m_int_MergeId(mergeId)
+    {
+        m_ptr_Project   = project;
+        m_ptr_Node      = node;
+        m_str_Key       = key;
+        m_str_Old       = node->value(key);
+        m_str_New       = value;
+        m_b_HadOld      = node->hasAttr(key);
+        m_int_MergeId   = mergeId;
+        setText(text);
+    }
+
+    int  id() const override {
+        return m_int_MergeId;
+    }
+
+    bool mergeWith(const QUndoCommand *other) override {
+        auto *cmd = static_cast<const SetAttributeCmd *>(other);
+        if(cmd->m_ptr_Node != m_ptr_Node || cmd->m_str_Key != m_str_Key)
+            return false;
+        m_str_New = cmd->m_str_New;
+        return true;
+    }
+
+    void redo() override {
+        m_ptr_Project->setAttribute(m_ptr_Node, m_str_Key, m_str_New);
+    }
+
+    void undo() override {
+        if(!m_b_HadOld){
+            m_ptr_Project->rmAttribute(m_ptr_Node, m_str_Key);
+        }else{
+            m_ptr_Project->setAttribute(m_ptr_Node, m_str_Key, m_str_Old);
+        }
+    }
+};
 
 #endif // PROJECT_COMMANDS_H

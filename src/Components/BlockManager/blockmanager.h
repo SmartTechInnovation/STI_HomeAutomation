@@ -42,9 +42,8 @@ public:  /* Functions */
     QVariantList shortcutCategories() const;
 
     void begin();
-    bool loadLegacyBook      (const QString &folderPath);
-    bool loadLegacyCategories(const QString &descriptorPath);
-    bool loadBlockDescriptor (const QString &descriptorPath);
+    bool loadCategories(const QString &descriptorPath);
+    bool loadBlock     (const QString &descriptorPath);
 
     BlockBase_class *getInstance(QUuid &Uuid);
 signals:

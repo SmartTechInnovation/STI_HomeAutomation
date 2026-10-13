@@ -32,9 +32,9 @@ private: /* Members */
     QVector<RecentProject_s *> m_vec_RecentProjects;
     Project_class             *m_ptr_ActiveProject = nullptr;
     private:
-        void _loadRecent();
-        void _pushRecent  (Project_class *ProjectRef);
-        void _trackProject(Project_class *ProjectRef);
+        void loadRecent();
+        void pushRecent  (Project_class *ProjectRef);
+        void trackProject(Project_class *ProjectRef);
 
     public:
         explicit ProjectManager_class(QObject *parent = nullptr);

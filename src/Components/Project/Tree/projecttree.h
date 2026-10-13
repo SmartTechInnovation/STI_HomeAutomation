@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QStandardItemModel>
 
-#include "../../PeripheryManager/xmlnode.h"
+#include "../../Document/xmlnode.h"
 
 class Project_class;
 

@@ -91,37 +91,29 @@ QVariantList BlockManager_class::shortcutCategories() const{
 }
 
 void BlockManager_class::begin(){
-    loadLegacyBook(LEGACY_BLOCKS_PATH);
-    emit categoriesChanged();
-}
+    const QString pathBlocksDir = CACHE_APP_PATH + TEMPLATES_DIR_NAME + BLOCKS_DIR_NAME;
 
-bool BlockManager_class::loadLegacyBook(const QString &folderPath){
-    bool Result = true;
-
-    QDirIterator it(folderPath,
+    QDirIterator it(pathBlocksDir,
                     QStringList{ "Descriptor.xml" },
                     QDir::Files,
                     QDirIterator::Subdirectories);
-
     while (it.hasNext()) {
         const QString path = it.next();
 
         QFileInfo descInfo(path);
         QString   dirName = descInfo.dir().dirName();
 
-        if(dirName == "Legacy"){
-            if (!loadLegacyCategories(path))
-                Result = false;
+        if(dirName == QDir(pathBlocksDir).dirName()){
+            loadCategories(path);
         }else{
-            if(!loadBlockDescriptor(path)){
-                Result = false;
-            }
+            loadBlock(path);
         }
     }
-    return Result;
+
+    emit categoriesChanged();
 }
 
-bool BlockManager_class::loadLegacyCategories(const QString &descriptorPath){
+bool BlockManager_class::loadCategories(const QString &descriptorPath){
     bool Result = true;
 
     QFile descriptorFile(descriptorPath);
@@ -172,7 +164,7 @@ bool BlockManager_class::loadLegacyCategories(const QString &descriptorPath){
     return Result;
 }
 
-bool BlockManager_class::loadBlockDescriptor (const QString &descriptorPath){
+bool BlockManager_class::loadBlock(const QString &descriptorPath){
     bool Result = true;
 
     QFile     descriptorFile(descriptorPath);

@@ -3,26 +3,36 @@
 #include <QDateTime>
 #include <QHash>
 
-Page_class::Page_class(QObject *parent) : QObject(parent) {
-     ModifiedDate = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss");
+#include "../../Document/document_tokens.h"
+
+Page_class::Page_class(Project_class *project, XmlNode_class *pageNode) {
+    m_ptr_Project = project;
+    m_ptr_NodeRef = pageNode;
 }
 
 Page_class::~Page_class(){
-    qDeleteAll(m_vec_Blocks);
-    m_vec_Blocks.clear();
+
 }
 
-QVariantList Page_class::blockList()    const{
-    QVariantList blockList;
-    for(int i = 0; i < m_vec_Blocks.size(); i++){
-        QVariantMap blockMap = m_vec_Blocks[i]->getQVariantMap();
-        blockMap["index"] = i;
-        blockList.push_back(blockMap);
-    }
-    return blockList;
+XmlNode_class *Page_class::nodeRef() const{
+    return m_ptr_NodeRef;
 }
 
-void Page_class::addBlockInstance(BlockBase_class *BlockRef){
-    m_vec_Blocks.push_back(BlockRef);
-    emit blockListChanged();
+QString Page_class::iUuid() const{
+    return m_ptr_NodeRef->value(ATTR_IUUID);
+}
+
+QString Page_class::title() const{
+    return m_ptr_NodeRef->value(ATTR_TITLE);
+}
+
+QString Page_class::modifiedDate() const{
+    return m_ptr_NodeRef->value(ATTR_MODIFIED_DATE);
+}
+
+QVariantList Page_class::connections() const{
+    QVariantList Result;
+
+
+    return Result;
 }

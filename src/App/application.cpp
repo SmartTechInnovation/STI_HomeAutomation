@@ -35,6 +35,7 @@ void Application_class::begin(){
 void Application_class::firstConfig(){
     /* This function need to be done for first setup */
     const QString templatesPath = CACHE_APP_PATH + TEMPLATES_DIR_NAME;
+    const QString documentsPath = PROJECTS_PATH  + "/" + ApplicationName;
 
     if(!QDir().exists(templatesPath + PERIPHERY_DIR_NAME)){
         QDir().mkpath(templatesPath + PERIPHERY_DIR_NAME);
@@ -45,8 +46,8 @@ void Application_class::firstConfig(){
     if(!QDir().exists(templatesPath + SCHEMA_DIR_NAME)){
         QDir().mkpath(templatesPath + SCHEMA_DIR_NAME);
     }
-    if(!QDir().exists(PROJECTS_PATH + ApplicationName)){
-        QDir().mkpath(PROJECTS_PATH + ApplicationName);
+    if(!QDir().exists(documentsPath)){
+        QDir().mkpath(documentsPath);
     }
 
     saveConfig();

@@ -13,7 +13,6 @@
 #include "project_tokens.h"
 #include "project_commands.h"
 #include "../Logger/logger.h"
-#include "../BlockManager/blockmanager.h"
 
 #define PROJECT_NAME "Project"
 #define DATE_FORMAT  "yyyy-MM-dd HH:mm:ss"
@@ -38,8 +37,8 @@ Project_class::Project_class(QObject *parent) : QObject(parent) {
 
 Project_class::~Project_class(){
     m_UndoStack.clear();
-    qDeleteAll(m_hash_NodeByIUuid);
-    m_hash_NodeByIUuid.clear();
+    qDeleteAll(m_hash_PageByIUuid);
+    m_hash_PageByIUuid.clear();
     if(m_ptr_Root){
         delete m_ptr_Root;
         m_ptr_Root = nullptr;
@@ -135,7 +134,10 @@ QString Project_class::uniqueTitle(XmlNode_class *parent, const QString &base){
 void Project_class::setDocument(XmlNode_class *root){
     m_UndoStack.clear();
 
-    delete m_ptr_Root;
+    if(m_ptr_Root){
+        delete m_ptr_Root;
+        m_ptr_Root = nullptr;
+    }
 
     m_ptr_Root     = root;
     m_ptr_Selected = nullptr;
@@ -197,8 +199,9 @@ bool Project_class::newDocument(const QString &title){
     rootNode->setValue(ATTR_CREATION_DATE,  nowString());
     rootNode->setValue(ATTR_MODIFIED_DATE,  nowString());
 
-    m_str_RootPath.clear();
     m_str_ProjectPath.clear();
+    m_str_ProjectDir.clear();
+
     setDocument(rootNode);
     emit pathChanged();
     return true;
@@ -211,7 +214,7 @@ bool Project_class::load(const QString &projectPath){
         return false;
     }
     QXmlStreamReader xml(&projectFile);
-    XmlNode_class   *root = XmlNode_class::read(xml);
+    XmlNode_class   *root = XmlNode_class::readDoc(xml);
     if(root == nullptr){
         S_Logger.write(Log::Error, PROJECT_NAME, projectPath + ": " + xml.errorString() + " line " + QString::number(xml.lineNumber()), "Loading Error", "Check file integrity", true);
         return false;
@@ -222,9 +225,9 @@ bool Project_class::load(const QString &projectPath){
         return false;
     }
     m_str_ProjectPath = projectPath;
-    m_str_RootPath    = QFileInfo(projectPath).dir().path();
+    m_str_ProjectDir  = QFileInfo(projectPath).dir().path();
 
-    setDocument(m_ptr_Root);
+    setDocument(root);
 
     emit pathChanged();
     return true;
@@ -236,7 +239,7 @@ bool Project_class::save(){
         emit saveAsRequested();
         return false;
     }
-    QDir().mkpath(m_str_RootPath);
+    QDir().mkpath(m_str_ProjectDir);
     if(QFile::exists(m_str_ProjectPath)){
         const QString backupPath = m_str_ProjectPath + ".bak";
         QFile::remove(backupPath);
@@ -287,7 +290,7 @@ bool Project_class::saveAs(const QString &folderPath){
         return false;
     }
     m_str_ProjectPath = projectFile;
-    m_str_RootPath    = projectFolder;
+    m_str_ProjectDir  = projectFolder;
     emit pathChanged();
     return save();
 }
@@ -305,9 +308,16 @@ int Project_class::pageCount()       const{
     return m_ptr_Program->children().size();
 }
 int Project_class::pageActv()         const{
-    if(m_ptr_Program == nullptr)
+    if(m_ptr_Program == nullptr || m_ptr_ActivePage == nullptr)
         return -1;
-    return m_ptr_Program->children().indexOf(m_ptr_ActivePage);
+
+    int index = 0;
+    for(auto &child : pages()){
+        if(child == m_ptr_ActivePage)
+            return index;
+        index++;
+    }
+    return -1;
 }
 
 QVector<XmlNode_class *> Project_class::pages() const{
@@ -341,6 +351,7 @@ QVariantList Project_class::pageList(){
             pageMap["index"]    = index;
             pageMap["number"]   = index + 2;
             pageMap["pageRef"]  = QVariant::fromValue<QObject *>(toObject(child));
+            index++;
             Result.append(pageMap);
         }
     }
@@ -353,7 +364,7 @@ QVariantMap Project_class::info()          const{
     auto resolveUrl = [this](const QString &path) -> QString {
         if(path.isEmpty()) return QString();
         if(path.startsWith("qrc:") || path.startsWith("file:") || path.startsWith("http")) return path;
-        const QString absolute = QFileInfo(path).isAbsolute() ? path : QDir(m_str_RootPath).filePath(path);
+        const QString absolute = QFileInfo(path).isAbsolute() ? path : QDir(m_str_ProjectDir).filePath(path);
         return QUrl::fromLocalFile(absolute).toString();
     };
 
@@ -363,7 +374,7 @@ QVariantMap Project_class::info()          const{
         if(format == "A2") return QSize(594, 420);
         if(format == "A1") return QSize(841, 594);
         if(format == "A0") return QSize(1189, 841);
-        return QSize(420, 297);;
+        return QSize(420, 297);
     };
 
     const XmlNode_class *root = m_ptr_Root;
@@ -381,7 +392,7 @@ QVariantMap Project_class::info()          const{
     Result["longitude"]  = root->value(ATTR_LONGITUDE);
     Result["timezone"]   = root->value(ATTR_TIMEZONE);
     Result["paperFormat"]= root->value(ATTR_PAPER_FORMAT, "A3");
-    Result["paperSize"]  = paperFormatToSize(root->value(ATTR_PAPER_FORMAT, "A3"));
+    Result["paperSize"]  = paperFormatToSize(root->value(ATTR_PAPER_FORMAT, "A3")) * WORKSPACE_SCALE;
 
     XmlNode_class *CompanyRef = nullptr;
     XmlNode_class *ClientRef  = nullptr;
@@ -403,7 +414,7 @@ QVariantMap Project_class::info()          const{
         Company["phone"]    = CompanyRef->value(ATTR_PHONE);
         Company["email"]    = CompanyRef->value(ATTR_EMAIL);
         Company["web"]      = CompanyRef->value(ATTR_WEB);
-        Company["logo"]     = CompanyRef->value(ATTR_LOGO_PATH);
+        Company["logoUrl"]  = resolveUrl(CompanyRef->value(ATTR_LOGO_PATH));
     }
     if(ClientRef){
         Client["iUuid"]    = ClientRef->value(ATTR_IUUID);
@@ -442,13 +453,27 @@ QVariantMap Project_class::selection() const{
     QVariantMap Result;
     if(m_ptr_Selected == nullptr) return Result;
 
-    const NodeType_s *nodeTemplate = S_SchemaManager.getNode(m_ptr_Selected);
+    //const NodeType_s *nodeTemplate = S_SchemaManager.getNode(m_ptr_Selected);
 
     Result["iUuid"]     = m_ptr_Selected->value(ATTR_IUUID);
     Result["title"]     = m_ptr_Selected->value(ATTR_TITLE);
 
     //Result["properties"] = propertiesOf(m_ptr_Selected);
     return Result;
+}
+
+QString Project_class::getPath() const{
+    return m_str_ProjectPath;
+}
+
+QString Project_class::getDir() const{
+    return m_str_ProjectDir;
+}
+
+QString Project_class::getTitle() const{
+    if(m_ptr_Root)
+        return m_ptr_Root->value(ATTR_TITLE);
+    return tr("Unnamed");
 }
 
 QVariantMap Project_class::context() const{
@@ -458,11 +483,11 @@ QVariantMap Project_class::context() const{
 }
 
 void Project_class::setPageActv(int index){
-    int pageCnt = pageCount();
-    int pageIdx = 0;
-    if(index < 0 || index >= pageCnt)
-        return;
-    m_ptr_ActivePage = pages()[index];
+    if(index < 0 || index >= pageCount()){
+        m_ptr_ActivePage = nullptr;
+    }else{
+        m_ptr_ActivePage = pages().at(index);
+    }
     emit pageActvChanged();
 }
 
@@ -479,7 +504,6 @@ int Project_class::cmdAddPage(int index, const QString &title){
     if(index < 0 || index > pageCount())
         index = pageCount();
 
-    const NodeType_s *pageTemplate = S_SchemaManager.getNode(TOKEN_PAGE);
     XmlNode_class    *newPage      = new XmlNode_class(TOKEN_PAGE);
     newPage->setValue(ATTR_IUUID,           QUuid().createUuidV7().toString(QUuid::WithoutBraces));
     newPage->setValue(ATTR_TITLE,           uniqueTitle(m_ptr_Program, title));
@@ -487,6 +511,7 @@ int Project_class::cmdAddPage(int index, const QString &title){
 
     m_UndoStack.push(new InsertNodeCmd(this, m_ptr_Program, index, newPage, tr("Add page %1").arg(newPage->value(ATTR_TITLE))));
     setPageActv(index);
+    emit pagesChanged();
     return pageActv();
 }
 
@@ -494,10 +519,12 @@ void Project_class::cmdRemovePage(int index){
     int currentIndex = 0;
     if(index < 0 || index >= pageCount())
         return;
-    m_UndoStack.push(new RemoveNodeCmd(this, pages()[index], tr("Rm page %1").arg(pages()[index]->value(ATTR_TITLE))));
-    if(m_ptr_ActivePage == pages()[index]){
+    XmlNode_class *selectedNode = m_ptr_Program->children()[index];
+    m_UndoStack.push(new RemoveNodeCmd(this, selectedNode, tr("Rm page %1").arg(selectedNode->value(ATTR_TITLE))));
+    if(m_ptr_ActivePage == selectedNode){
         setPageActv(qMin(index, pageCount() - 1));
     }
+    emit pagesChanged();
 }
 
 void Project_class::cmdMovePage(int From, int To){
@@ -506,15 +533,18 @@ void Project_class::cmdMovePage(int From, int To){
     To = qBound(0, To, pageCnt-1);
     if(From == To) return;
 
-    XmlNode_class *takePage = pages().takeAt(From);
+    XmlNode_class *takePage = m_ptr_Program->takeChild(pages().at(From));
     m_ptr_Program->insertChild(takePage, To);
+    emit pagesChanged();
 }
 
 void Project_class::cmdRenamePage(int index, const QString &title){
     const QString newTitle = title.trimmed();
     int pageCnt = pageCount();
     if(index < 0 || index >= pageCnt) return;
-    if(newTitle.isEmpty() || newTitle == pages()[index]->value(ATTR_TITLE)) return;
+    XmlNode_class *selectedNode = m_ptr_Program->children()[index];
+    if(newTitle.isEmpty() || newTitle == selectedNode->value(ATTR_TITLE)) return;
 
-    m_UndoStack.push(new SetAttributeCmd(this, pages()[index], ATTR_TITLE, newTitle, tr("Rename Page")));
+    m_UndoStack.push(new SetAttributeCmd(this, selectedNode, ATTR_TITLE, newTitle, tr("Rename Page")));
+    emit pagesChanged();
 }

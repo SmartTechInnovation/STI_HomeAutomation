@@ -270,7 +270,7 @@ Item {
             Item { width: 1; height: 6 }
             KeyValue { key: qsTr("Config version"); value: root.field(root.info.configVers) }
             KeyValue { key: qsTr("Paper format");   value: root.field(root.info.paperFormat) }
-            KeyValue { key: qsTr("Pages");          value: String(root.pageCount) }
+            KeyValue { key: qsTr("Pages");          value: String(root.pageTotal) }
             KeyValue { key: qsTr("Author");         value: root.field(root.info.author) }
         }
     }

@@ -19,8 +19,8 @@ Item {
     property int  pageTotal:  1
     property bool coverPage:  false
 
-    readonly property int workPageWidth:  project ? project.pageSize.width  : 4200
-    readonly property int workPageHeight: project ? project.pageSize.height : 2970
+    readonly property int workPageWidth:  project ? project.info.paperSize.width  : 4200
+    readonly property int workPageHeight: project ? project.info.paperSize.height : 2970
     readonly property int snap:           10 // 1mm grid
 
     // ====== Editor State ======
@@ -130,7 +130,7 @@ Item {
             width:  root.workPageWidth  - 300
             height: root.workPageHeight - 200
             sourceComponent: PageCover {
-                info:       root.project ? root.project.infoMap : ({})
+                info:       root.project ? root.project.info : ({})
                 pageTotal:  root.pageTotal
                 pageTitle:  qsTr("Cover")
                 pageDate:   root.pageMDate

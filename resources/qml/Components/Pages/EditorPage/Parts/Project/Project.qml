@@ -15,7 +15,7 @@ Item {
     readonly property int pageActv:   project ? project.pageActv : -1
     readonly property int totalPages: pageList.length + 1 //Pages + HomePage
 
-    signal blockSelected(string uuid)
+    property int menuIndex: -1
 
     ColumnLayout {
         anchors.fill: parent
@@ -32,7 +32,7 @@ Item {
                 anchors.topMargin: 5
                 spacing: 0
 
-                // ===== Title page (pinned) =====
+                // ===== Cover page (pinned) =====
                 Item {
                     Layout.fillHeight:     true
                     Layout.preferredWidth: 80
@@ -42,14 +42,14 @@ Item {
                         anchors.fill: parent
                         label:     qsTr("Cover")
                         icon:      "qrc:/icons/document/cover.svg"
-                        active:    root.currentPage === -1
-                        hovered:   ma_TitleTab.containsMouse
+                        active:    root.pageActv === -1
+                        hovered:   ma_CoverTab.containsMouse
                         closable:  false
                         separator: false
                     }
 
                     MouseArea {
-                        id: ma_TitleTab
+                        id: ma_CoverTab
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape:  Qt.PointingHandCursor
@@ -74,16 +74,11 @@ Item {
                     confirmClose: true
                     closeMessage: "Do tou want delete this page ?"
 
-                    onActivated:      (index) => root.project.pageActv = index
-                    onCloseRequested: (index) => root.project.cmdRemovePage(index)
+                    onActivated:      (index)    => root.project.pageActv = index
+                    onCloseRequested: (index)    => root.project.cmdRemovePage(index)
                     onMoved:          (from, to) => root.project.cmdMovePage(from, to)
-                    onAddRequested:              root.project.cmdAddPage(-1, qsTr("Page"))
+                    onAddRequested:                 root.project.cmdAddPage(-1, qsTr("Page"))
                     onRenamed:        (index, text) => root.project.cmdRenamePage(index, text)
-                    onContextRequested: (index, sx, sy) => {
-                        root.menuIndex = index
-                        var p = root.mapFromItem(null, sx, sy)
-                        menu_Page.popup(root, p.x, p.y)
-                    }
                 }
             }
         }
@@ -97,17 +92,17 @@ Item {
             Page {
                 id: coverPageView
                 anchors.fill: parent
-                visible:   root.pageActv === -1 && root.project !== null
-                project:   root.project
-                coverPage: true
-                pageNumber:1
-                pageTotal: root.totalPages
-                pageTitle: qsTr("Cover")
-                pageMDate:  root.project ? root.project.infoMap.mDate : ""
+                visible:    root.pageActv === -1 && root.project !== null
+                project:    root.project
+                coverPage:  true
+                pageNumber: 1
+                pageTotal:  root.totalPages
+                pageTitle:  qsTr("Cover")
+                pageMDate:  root.project ? root.project.info.mDate : ""
             }
 
             Repeater {
-                id: workPageView
+                id: rep_Pages
                 model: root.pageList
 
                 delegate: Page {
@@ -115,14 +110,15 @@ Item {
                     required property var modelData
 
                     anchors.fill: parent
-
                     visible:      root.pageActv === index
                     project:      root.project
+                    pageRef:      modelData.pageRef
                     pageTitle:    modelData.title
                     pageMDate:    modelData.mDate
                     pageNumber:   modelData.number
                     pageTotal:    root.totalPages
-                    pageRef:      modelData.pageRef
+
+                    onVisibleChanged: if(visible) forceActiveFocus();
                 }
             }
         }

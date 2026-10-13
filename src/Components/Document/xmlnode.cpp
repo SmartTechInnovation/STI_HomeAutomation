@@ -19,9 +19,11 @@ XmlNode_class *XmlNode_class::read (QXmlStreamReader &xml){
     }
     while(!xml.atEnd() && !xml.hasError()){
         xml.readNext();
-        if(xml.isStartElement())
-            newNode->m_vec_Children.append(read(xml));
-        else if(xml.isEndElement())
+        if(xml.isStartElement()){
+            XmlNode_class *child = read(xml);
+            child->m_ptr_Parent = newNode;
+            newNode->m_vec_Children.append(child);
+        }else if(xml.isEndElement())
             break;
     }
     return newNode;

@@ -54,7 +54,7 @@ private: /* Typedefs and enums */
 
 private: /* Members */
     QString                        m_str_ProjectPath;
-    QString                        m_str_RootPath;
+    QString                        m_str_ProjectDir;
 
     XmlNode_class                 *m_ptr_Root       = nullptr;
     XmlNode_class                 *m_ptr_ActivePage = nullptr;
@@ -115,6 +115,9 @@ public:
     QVariantMap  selection()        const;
     QVariantMap  context()          const;
 
+    QString      getPath()          const;
+    QString      getDir()           const;
+    QString      getTitle()         const;
 
     void         setPageActv(int index);
     void         setSelectedIUuid(const QString &uuid);

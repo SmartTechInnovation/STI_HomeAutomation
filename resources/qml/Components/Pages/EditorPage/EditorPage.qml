@@ -16,30 +16,11 @@ Item {
     id: root
 
     property var    project:        null
-    property string selectionUuid:  project ? project.selectedUuid  : ""
-    property string selectionIUuid: project ? project.selectedIUuid : ""
-
-    onProjectChanged: {
-        project.selectedUuid  = ""
-        project.selectedIUuid = ""
-    }
-
-    function treeSelected(uuid, iUuid){
-        selectionUuid  = uuid;
-        selectionIUuid = iUuid
-        if(!project) return
-        project.selectedUuid  = uuid
-        project.selectedIUuid = iUuid
-    }
 
     // ===== Background =====
     Rectangle {
         anchors.fill: parent
         color:        Theme.bgCanvas
-
-        TapHandler {
-            onTapped: root.forceActiveFocus()
-        }
     }
 
     // ===== Editor Workspace ====
@@ -70,17 +51,14 @@ Item {
                     color: Theme.gray
                 }
 
-                Rectangle {
-                    id: topMenu
+                TopToolBar {
                     Layout.fillWidth:  true
                     Layout.fillHeight: true
+                    project: root.project
 
-                    color: "transparent"
-
-                    TopToolBar {
-                        anchors.fill: parent
-                        project: root.project
-                    }
+                    //onBlockPicked:       (uuid) => projectView.addBlockAtCenter(uuid)
+                    //onContextItemPicked: (iUuid, item) => root.runContextItem(iUuid, item)
+                    //onDeleteRequested:   (iUuid) => root.project.cmdRemove(iUuid)
                 }
             }
         }
@@ -97,21 +75,21 @@ Item {
 
             ProjectTree {
                 id: projectTree
-                SplitView.preferredWidth: 200
+                SplitView.preferredWidth: 240
+                //onContextItemPicked: (iUuid, item) => root.runContextItem(iUuid, item)
                 project: root.project
-                onSelected: (uuid, iUuid) => root.treeSelected(uuid, iUuid)
             }
 
             Project {
                 id: projectView
-                SplitView.fillWidth: true
+                SplitView.fillWidth:  true
                 SplitView.fillHeight: true
-
                 project: root.project
             }
 
             Properties {
-                SplitView.preferredWidth: 200
+                SplitView.preferredWidth: 300
+                project: root.project
             }
         }
     }

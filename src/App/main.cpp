@@ -20,9 +20,10 @@ int main(int argc, char *argv[])
     app.setApplicationName("STIx Config");
     app.setApplicationVersion(QStringLiteral(PROJECT_VERSION_STR));
 
-    Application.begin();
     Application.Organisation    = app.organizationName();
     Application.ApplicationName = app.applicationName();
+
+    Application.begin();
 
     QQuickStyle::setStyle("Basic");
 

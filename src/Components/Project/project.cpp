@@ -518,10 +518,11 @@ QVariantMap Project_class::selection() const{ // Needed for properties menu
         QVariantList childList;
         for(auto &childDef : nodeTemplate->Children){
             const NodeType_s *childTemplate = S_SchemaManager.getNode(childDef.Uuid);
-            if(!childTemplate) continue;
+            /* hidden types and mandatory children (created with the parent) are never added from the menu */
+            if(!childTemplate || childTemplate->Hidden || childDef.Mandatory) continue;
 
             QVariantMap childMap;
-            childMap["uuid"]        = childTemplate->Uuid.toString(QUuid::WithoutBraces);;
+            childMap["uuid"]        = childTemplate->Uuid.toString(QUuid::WithoutBraces);
             childMap["title"]       = childTemplate->Title;
             childMap["icon"]        = childTemplate->Icon;
             childMap["description"] = childTemplate->Description;

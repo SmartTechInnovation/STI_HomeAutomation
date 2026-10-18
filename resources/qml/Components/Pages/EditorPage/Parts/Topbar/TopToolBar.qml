@@ -277,8 +277,10 @@ Item {
 
                     delegate: ToolBtn {
                         id: btn_ShortcutContext
-                        height: parent.height
-                        width:  parent.height
+                        required property var modelData
+                        visible: modelData.visible === true
+                        height:  parent.height
+                        width:   visible ? parent.height : 0
 
                         firstRowText: modelData.title
                         iconSrc:      modelData.icon
@@ -438,7 +440,8 @@ Item {
             items: (root.selection && root.selection.template !== undefined) ? root.selection.template.items : []
 
             onContextPicked: (uuid) => {
-                contextPicked(uuid)
+                popup_ShortcutContext.close()
+                root.contextPicked(uuid)
             }
         }
     }

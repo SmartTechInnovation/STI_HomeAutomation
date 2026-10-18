@@ -142,6 +142,18 @@ ApplicationWindow {
                     onAccepted: ProjectManager.openProject(selectedFolder)
                 }
 
+                /* first save of a new project: pick the parent folder, <folder>/<Title>/Project.xml is created */
+                FolderDialog {
+                    id: folder_SaveProject
+                    title: qsTr("Save project in...")
+                    currentFolder: StandardPaths.standardLocations(StandardPaths.DocumentsLocation)[0]
+                    onAccepted: ProjectManager.saveProjectAs(selectedFolder)
+                }
+                Connections {
+                    target: ProjectManager
+                    function onSaveAsRequested(){ folder_SaveProject.open() }
+                }
+
                 Item { Layout.preferredWidth: 55 }
 
                 Item {

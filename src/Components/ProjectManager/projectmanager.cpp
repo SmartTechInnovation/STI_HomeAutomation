@@ -252,9 +252,23 @@ int ProjectManager_class::openProject(const QUrl &projectPath){
 }
 
 int ProjectManager_class::saveProject(){
-    if(m_ptr_ActiveProject != nullptr){
-        m_ptr_ActiveProject->save();
+    if(m_ptr_ActiveProject == nullptr)
+        return 0;
+    if(!m_ptr_ActiveProject->hasFile()){
+        emit saveAsRequested();
+        return 0;
     }
+    m_ptr_ActiveProject->save();
+    return 0;
+}
+
+int ProjectManager_class::saveProjectAs(const QUrl &folderPath){
+    if(m_ptr_ActiveProject == nullptr)
+        return -1;
+    if(!m_ptr_ActiveProject->saveAs(folderPath.toLocalFile()))
+        return -1;
+    pushRecent(m_ptr_ActiveProject);
+    emit openedTabsChanged();
     return 0;
 }
 

@@ -75,6 +75,9 @@ public:  /* Functions */
     const NodeType_s *getNode(const QUuid   &uuid)       const;
     const NodeType_s *getNode(const QString &tagName)    const;
     const NodeType_s *getNode(const XmlNode_class *node) const;
+
+    /* NodeTypes with Section="true" - created automatically under RootDevice */
+    QVector<const NodeType_s *> sections() const;
 };
 
 extern SchemaManager_class S_SchemaManager;

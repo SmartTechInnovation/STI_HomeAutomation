@@ -50,6 +50,7 @@ private: /* Members */
         Q_INVOKABLE int newProject();
         Q_INVOKABLE int openProject(const QUrl &projectPath);
         Q_INVOKABLE int saveProject();
+        Q_INVOKABLE int saveProjectAs(const QUrl &folderPath);
         Q_INVOKABLE int undoProject();
         Q_INVOKABLE int redoProject();
         Q_INVOKABLE int openPath(const QUrl &projectPath);
@@ -61,6 +62,7 @@ private: /* Members */
         void recentProjectsChanged();
         void openedTabsChanged();
         void activeTabIndexChanged();
+        void saveAsRequested();         // active project has no file yet -> QML opens the folder dialog
 };
 
 extern ProjectManager_class S_ProjectManager;

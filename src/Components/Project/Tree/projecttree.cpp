@@ -53,9 +53,9 @@ void ProjectTree_class::sync(TreeItem_class *item){
     QModelIndex modelIndex = indexFor(item);
 
     /* Clean unexistent xml Nodes from Tree */
-    for(auto &child : item->Children){
+    for(int index = item->Children.size() - 1; index >= 0; --index){
+        TreeItem_class *child = item->Children.at(index);
         if(!item->Node->children().contains(child->Node)){
-            int index = item->Children.indexOf(child);
             beginRemoveRows(modelIndex, index, index);
             TreeItem_class *takeChild = item->Children.takeAt(index);
             forget(takeChild);
@@ -123,6 +123,8 @@ void ProjectTree_class::onReset(){
     rootProject->Node   = m_ptr_Project->getRoot();
     rootProject->Parent = m_ptr_TreeRoot;
     m_ptr_TreeRoot->Children.push_back(rootProject);
+
+    m_hash_Items[rootProject->Node] = rootProject;
 
     sync(rootProject);
 

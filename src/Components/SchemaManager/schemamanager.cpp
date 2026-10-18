@@ -54,6 +54,15 @@ const SchemaManager_class::NodeType_s *SchemaManager_class::getNode(const XmlNod
         return getNode(node->value(ATTR_UUID));
 }
 
+QVector<const SchemaManager_class::NodeType_s *> SchemaManager_class::sections() const{
+    QVector<const NodeType_s *> Result;
+    for(const NodeType_s *nodeType : m_vec_NodeTypes){
+        if(nodeType->Section)
+            Result.append(nodeType);
+    }
+    return Result;
+}
+
 void SchemaManager_class::loadFile(const QString &filePath){
     QFile file(filePath);
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text)){

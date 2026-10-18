@@ -144,15 +144,22 @@ void Project_class::setDocument(XmlNode_class *root){
         m_ptr_Root = nullptr;
     }
 
-    m_ptr_Root     = root;
-    m_ptr_Selected = nullptr;
-    indexNode(m_ptr_Root);
+    m_ptr_Root       = root;
+    m_ptr_Selected   = nullptr;
+    m_ptr_Program    = nullptr;
+    m_ptr_ActivePage = nullptr;
 
     for(auto &child : m_ptr_Root->children()){
         if(child->TagName == TOKEN_PROGRAM){
             m_ptr_Program = child;
         }
     }
+    /* Program is not in the schema (C++ token) - a new project has none, so create it */
+    if(m_ptr_Program == nullptr){
+        m_ptr_Program = new XmlNode_class(TOKEN_PROGRAM);
+        m_ptr_Root->appendChild(m_ptr_Program);
+    }
+    indexNode(m_ptr_Root);
 
     emit documentReset();
     emit titleChanged();
@@ -187,6 +194,20 @@ XmlNode_class *Project_class::createNode(XmlNode_class *parent, const NodeType_s
         const NodeType_s *childTemplate = S_SchemaManager.getNode(child.Uuid);
         if(child.Mandatory && childTemplate){ /* If child needs to be auto added */
             newNode->appendChild(createNode(newNode, childTemplate));
+        }
+    }
+    /* RootDevice gets every periphery section (NodeType with Section="true") */
+    if(newNode->TagName == TOKEN_ROOT_DEV){
+        for(const NodeType_s *sectionTemplate : S_SchemaManager.sections()){
+            bool exists = false;
+            for(const auto *existing : newNode->children()){
+                if(existing->TagName == sectionTemplate->TagName){
+                    exists = true;
+                    break;
+                }
+            }
+            if(!exists)
+                newNode->appendChild(createNode(newNode, sectionTemplate));
         }
     }
     return newNode;

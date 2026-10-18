@@ -16,6 +16,8 @@ Rectangle {
     readonly property int headerHeight: 24
     readonly property int listHeight:   Math.min(maxListHeight, Math.max(rowHeight, (items ? items.length : 0) * rowHeight))
 
+    signal contextPicked(string uuid)
+
     implicitWidth: 250
     implicitHeight: headerHeight + listHeight + 10
 
@@ -71,10 +73,10 @@ Rectangle {
                     IconImage {
                         Layout.fillHeight: true
                         Layout.preferredWidth: height
-                        visible: modelData.Icon.length > 0
+                        visible: modelData.icon.length > 0
                         color: Theme.white
                         fillMode: Image.PreserveAspectFit
-                        source: modelData.Icon
+                        source: modelData.icon
                         sourceSize.width:  width - 4
                         sourceSize.height: height - 4
                     }
@@ -83,13 +85,13 @@ Rectangle {
                         Layout.fillHeight: true;
                         Layout.fillWidth:  true;
                         Text{
-                            text: modelData.Title
+                            text: modelData.title
                             color: Theme.white
                             font.pixelSize: 13
                             font.bold:      true
                         }
                         Text{
-                            text: modelData.Description
+                            text: modelData.description
                             color: Theme.white
                             font.pixelSize: 9
                         }
@@ -104,7 +106,7 @@ Rectangle {
                     hoverEnabled: true
                     cursorShape:  Qt.PointingHandCursor
 
-                    onClicked: console.info(modelData.Uuid)
+                    onClicked: contextPicked(modelData.uuid)
                 }
             }
         }

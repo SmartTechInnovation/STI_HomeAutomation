@@ -142,6 +142,7 @@ public:
 
     void redo() override {
         m_ptr_Project->setAttribute(m_ptr_Node, m_str_Key, m_str_New);
+        emit m_ptr_Project->selectionChanged();
     }
 
     void undo() override {
@@ -150,6 +151,7 @@ public:
         }else{
             m_ptr_Project->setAttribute(m_ptr_Node, m_str_Key, m_str_Old);
         }
+        emit m_ptr_Project->selectionChanged();
     }
 };
 

@@ -28,6 +28,11 @@ Item {
 
     signal blockSelected(string uuid)
 
+    function select(iUuid){
+        if(project) project.selectedIUuid = iUuid
+        root.forceActiveFocus()
+    }
+
     function saveView(){
         if(!pageRef) return
         pageRef.viewX     = world.x
@@ -52,6 +57,8 @@ Item {
         onPressed: (pos) => {
             lastX = pos.x
             lastY = pos.y
+            if(pos.button === Qt.LeftButton)
+                root.select("")
             root.forceActiveFocus()
         }
         onReleased: root.saveView()

@@ -58,7 +58,6 @@
 #define ATTR_IO_TYPE    "IoType"
 #define ATTR_MAX        "Max"
 #define ATTR_GROUP_BY   "GroupBy"
-#define ATTR_TREE_HIDDEN "TreeHidden"
 #define ATTR_TITLE_ATTR "TitleAttr"
 #define ATTR_TYPE       "Type"
 #define ATTR_DEFAULT    "Default"

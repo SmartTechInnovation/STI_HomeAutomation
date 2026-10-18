@@ -13,6 +13,7 @@
 #include "project_tokens.h"
 #include "project_commands.h"
 #include "../Logger/logger.h"
+#include "src/Components/Document/document_tokens.h"
 
 #define PROJECT_NAME "Project"
 #define DATE_FORMAT  "yyyy-MM-dd HH:mm:ss"
@@ -26,7 +27,7 @@ QString nowString(){
 /* ================================================== */
 
 Project_class::Project_class(QObject *parent) : QObject(parent) {
-    //m_ProjectTree = new ProjectTree_class(this);
+    m_ptr_Tree = new ProjectTree_class(this);
 
     connect(&m_UndoStack, &QUndoStack::cleanChanged,   this, &Project_class::modifiedChanged);
     connect(this,         &Project_class::pathChanged, this, &Project_class::modifiedChanged);
@@ -51,8 +52,8 @@ void Project_class::insertNode(XmlNode_class *parent, XmlNode_class *node, int r
     indexNode(node);
     touchPage(node);
 
-    emit nodeInserted(node);
-    emit selectionDataChanged();
+    emit nodeInserted(parent, node);
+    emit selectionChanged();
 }
 
 void Project_class::takeNode(XmlNode_class *node, bool moving){
@@ -64,7 +65,7 @@ void Project_class::takeNode(XmlNode_class *node, bool moving){
     parent->takeChild(node);
 
     emit nodeRemoved(parent, node);
-    emit selectionDataChanged();
+    emit selectionChanged();
 }
 
 void Project_class::setAttribute(XmlNode_class *node,   const QString &tag, const QString &value){
@@ -156,8 +157,7 @@ void Project_class::setDocument(XmlNode_class *root){
     emit pageActvChanged();
     emit selectedUuidChanged();
     emit selectedIUuidChanged();
-    emit selectionDataChanged();
-    emit contextChanged();
+    emit selectionChanged();
     emit undoStateChanged();
     emit modifiedChanged();
 }
@@ -170,6 +170,7 @@ XmlNode_class *Project_class::createNode(XmlNode_class *parent, const NodeType_s
     newNode->TagName = nodeTemplate->TagName;
     newNode->setValue(ATTR_UUID,    nodeTemplate->Uuid.toString(QUuid::WithoutBraces));
     newNode->setValue(ATTR_IUUID,   QUuid().createUuidV7().toString(QUuid::WithoutBraces));
+    newNode->setValue(ATTR_TITLE,   nodeTemplate->Title);
 
     for(auto &property : nodeTemplate->Properties){
         if(property.TagName == ATTR_TITLE){
@@ -185,6 +186,21 @@ XmlNode_class *Project_class::createNode(XmlNode_class *parent, const NodeType_s
         }
     }
     return newNode;
+}
+
+/* ===== Document access (views / C++) ===== */
+XmlNode_class *Project_class::getRoot() const {
+    return m_ptr_Root;
+}
+
+XmlNode_class *Project_class::getNode(const QUuid   &iUuid) const  {
+    return m_hash_NodeByIUuid.value(iUuid, nullptr);
+}
+
+XmlNode_class *Project_class::getNode(const QString &iUuid) const  {
+    if(iUuid.isEmpty())
+        return nullptr;
+    return getNode(QUuid(iUuid));
 }
 
 /* ===== File ===== */
@@ -449,16 +465,79 @@ QString  Project_class::selectedIUuid() const{
     return QString();
 }
 
-QVariantMap Project_class::selection() const{
+QVariantMap Project_class::selection() const{ // Needed for properties menu
     QVariantMap Result;
     if(m_ptr_Selected == nullptr) return Result;
 
-    //const NodeType_s *nodeTemplate = S_SchemaManager.getNode(m_ptr_Selected);
+    const NodeType_s *nodeTemplate = S_SchemaManager.getNode(m_ptr_Selected);
 
-    Result["iUuid"]     = m_ptr_Selected->value(ATTR_IUUID);
-    Result["title"]     = m_ptr_Selected->value(ATTR_TITLE);
+    QVariantMap instanceNodeMap;
+    instanceNodeMap["iUuid"]     = m_ptr_Selected->value(ATTR_IUUID);
+    instanceNodeMap["title"]     = m_ptr_Selected->value(ATTR_TITLE);
+    instanceNodeMap["canDelete"] = true; // To be done
+    Result["instance"] = instanceNodeMap;
 
-    //Result["properties"] = propertiesOf(m_ptr_Selected);
+    QVariantMap templateNodeMap;
+    if(nodeTemplate){
+        templateNodeMap["uuid"]        = nodeTemplate->Uuid.toString(QUuid::WithoutBraces);
+        templateNodeMap["title"]       = nodeTemplate->Title;
+        templateNodeMap["icon"]        = nodeTemplate->Icon;
+        templateNodeMap["description"] = nodeTemplate->Description;
+
+        QString menuName = nodeTemplate->MenuName;
+        if(!nodeTemplate->Children.isEmpty() && menuName.isEmpty())
+            menuName = tr("Add");
+        templateNodeMap["menuName"]    = menuName;
+
+        bool menuVisible = false;
+        QVariantList childList;
+        for(auto &childDef : nodeTemplate->Children){
+            const NodeType_s *childTemplate = S_SchemaManager.getNode(childDef.Uuid);
+            if(!childTemplate) continue;
+
+            QVariantMap childMap;
+            childMap["uuid"]        = childTemplate->Uuid.toString(QUuid::WithoutBraces);;
+            childMap["title"]       = childTemplate->Title;
+            childMap["icon"]        = childTemplate->Icon;
+            childMap["description"] = childTemplate->Description;
+            childMap["visible"]     = childDef.Visible;
+            if(childDef.Visible == false) //if we have invisible child
+                menuVisible = true;
+            childMap["enabled"]     = nodeTemplate->Max != -1 ? (m_ptr_Selected->children().size() < nodeTemplate->Max) : true;
+            childList.append(childMap);
+        }
+        templateNodeMap["menuVisible"] = menuVisible;
+        templateNodeMap["items"]       = childList;
+    }else{
+        templateNodeMap["uuid"]        = QUuid().toString(QUuid::WithoutBraces);
+        templateNodeMap["title"]       = tr("Missing config");
+        templateNodeMap["icon"]        = QStringLiteral("qrc:/icons/misc/unknown.svg");
+        templateNodeMap["description"] = "Signal not found in DB";
+        templateNodeMap["menuName"]    = QString();
+        templateNodeMap["menuVisible"] = false;
+        templateNodeMap["items"]       = QVariantList();
+    }
+    Result["template"] = templateNodeMap;
+
+    QVariantList propertiesList;
+    if(nodeTemplate){
+        for(auto &property : nodeTemplate->Properties){
+            QVariantMap propertyMap;
+            propertyMap["tag"]   = property.TagName;
+            propertyMap["name"]  = property.Title;
+            propertyMap["value"] = m_ptr_Selected->value(property.TagName);
+            propertiesList.append(propertyMap);
+        }
+    }else{
+        for(auto &attribute: m_ptr_Selected->attributes()){
+            QVariantMap propertyMap;
+            propertyMap["tag"]   = attribute->Name;
+            propertyMap["name"]  = attribute->Name;
+            propertyMap["value"] = attribute->Value;
+            propertiesList.append(propertyMap);
+        }
+    }
+    Result["properties"] = propertiesList;
     return Result;
 }
 
@@ -476,12 +555,6 @@ QString Project_class::getTitle() const{
     return tr("Unnamed");
 }
 
-QVariantMap Project_class::context() const{
-    QVariantMap Result;
-
-    return Result;
-}
-
 void Project_class::setPageActv(int index){
     if(index < 0 || index >= pageCount()){
         m_ptr_ActivePage = nullptr;
@@ -491,8 +564,13 @@ void Project_class::setPageActv(int index){
     emit pageActvChanged();
 }
 
-void Project_class::setSelectedIUuid(const QString &uuid){
-
+void Project_class::setSelectedIUuid(const QString &iUuid){
+    XmlNode_class *selected = getNode(iUuid);
+    if(selected == m_ptr_Selected) return;
+    m_ptr_Selected = selected;
+    emit selectionChanged();
+    emit selectedIUuidChanged();
+    emit selectedUuidChanged();
 }
 
 void Project_class::undo(){ m_UndoStack.undo(); }
@@ -525,6 +603,7 @@ void Project_class::cmdRemovePage(int index){
         setPageActv(qMin(index, pageCount() - 1));
     }
     emit pagesChanged();
+    emit pageActvChanged();
 }
 
 void Project_class::cmdMovePage(int From, int To){
@@ -535,7 +614,9 @@ void Project_class::cmdMovePage(int From, int To){
 
     XmlNode_class *takePage = m_ptr_Program->takeChild(pages().at(From));
     m_ptr_Program->insertChild(takePage, To);
+
     emit pagesChanged();
+    emit pageActvChanged();
 }
 
 void Project_class::cmdRenamePage(int index, const QString &title){
@@ -547,4 +628,48 @@ void Project_class::cmdRenamePage(int index, const QString &title){
 
     m_UndoStack.push(new SetAttributeCmd(this, selectedNode, ATTR_TITLE, newTitle, tr("Rename Page")));
     emit pagesChanged();
+}
+
+void Project_class::cmdAddChild(const QString &targetIUuid, const QString &templateUuid) {
+    const NodeType_s *templateNode   = S_SchemaManager.getNode(QUuid(templateUuid));
+    XmlNode_class    *parentNode   = getNode(targetIUuid);
+    const NodeType_s *templateParent = S_SchemaManager.getNode(parentNode);
+    if(targetIUuid.isEmpty() && m_ptr_Selected){
+        parentNode = m_ptr_Selected;
+    }
+    if(parentNode == nullptr || templateNode == nullptr)     return;
+    if(parentNode->children().size() >= templateParent->Max && templateParent->Max != -1) return;
+    XmlNode_class   *newNode = createNode(parentNode, templateNode);
+
+    m_UndoStack.push(new InsertNodeCmd(this, parentNode, -1, newNode, tr("Add %1").arg(newNode->TagName)));
+    setSelectedIUuid(newNode->value(ATTR_IUUID));
+    emit selectedIUuidChanged();
+}
+
+bool Project_class::cmdRemove(const QString &targetIUuid){
+    XmlNode_class *targetNode = getNode(targetIUuid);
+    if(targetNode == nullptr) return false;
+
+    m_UndoStack.push(new RemoveNodeCmd(this, targetNode, tr("Delete %1").arg(targetNode->value(ATTR_VALUE))));
+    return true;
+}
+
+void Project_class::cmdRename(const QString &targetIUuid, const QString &newTitle){
+    XmlNode_class *targetNode = getNode(targetIUuid);
+    if(targetNode == nullptr) return;
+    if(newTitle.isEmpty())    return;
+    m_UndoStack.push(new SetAttributeCmd(this, targetNode, ATTR_TITLE, newTitle.trimmed(), tr("Rename %1").arg(newTitle)));
+}
+
+void Project_class::cmdSetProperty(const QString &targetIUuid, const QString &name, const QVariant &value){
+    XmlNode_class *targetNode = getNode(targetIUuid);
+    if(targetNode == nullptr || name.isEmpty())
+        return;
+    QString strValue;
+    if(value.typeId() == QMetaType::Bool){
+        strValue = value.toBool() ? "true" : "false";
+    }else{
+        strValue = value.toString();
+    }
+    m_UndoStack.push(new SetAttributeCmd(this, targetNode, name, strValue));
 }

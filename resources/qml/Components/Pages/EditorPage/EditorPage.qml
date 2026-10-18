@@ -56,9 +56,13 @@ Item {
                     Layout.fillHeight: true
                     project: root.project
 
-                    //onBlockPicked:       (uuid) => projectView.addBlockAtCenter(uuid)
-                    //onContextItemPicked: (iUuid, item) => root.runContextItem(iUuid, item)
-                    //onDeleteRequested:   (iUuid) => root.project.cmdRemove(iUuid)
+                    onBlockPicked:       (uuid) => projectView.addBlockAtCenter(uuid)
+                    onContextPicked:     (uuid) => {
+                        if(root.project && root.project.selection){
+                            var iUuid = root.project.selection.instance.iUuid
+                            root.project.cmdAddChild(iUuid, uuid)
+                        }
+                    }
                 }
             }
         }
@@ -76,7 +80,7 @@ Item {
             ProjectTree {
                 id: projectTree
                 SplitView.preferredWidth: 240
-                //onContextItemPicked: (iUuid, item) => root.runContextItem(iUuid, item)
+                onContextItemPicked: (iUuid, item) => root.runContextItem(iUuid, item)
                 project: root.project
             }
 

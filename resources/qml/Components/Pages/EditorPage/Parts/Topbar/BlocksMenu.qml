@@ -16,6 +16,9 @@ Rectangle {
     readonly property int headerHeight: 24
     readonly property int listHeight:   Math.min(maxListHeight, Math.max(rowHeight, (blocks ? blocks.length : 0) * rowHeight))
 
+    signal blockPicked(string uuid)
+    signal dragEnd();
+
     implicitWidth: 250
     implicitHeight: headerHeight + listHeight + 10
 
@@ -94,10 +97,22 @@ Rectangle {
                             font.pixelSize: 9
                         }
                     }
-
-
-
                     Item { Layout.fillWidth: true }
+                }
+
+                Item {
+                    id: dragProxy
+                    width:  1
+                    height: 1
+                    Drag.active:    ma_BlockRow.drag.active
+                    Drag.dragType: Drag.Automatic
+                    Drag.supportedActions: Qt.CopyAction
+                    Drag.mimeData:         ({ "application/x-sti-block": modelData.uuid })
+                    Drag.onDragFinished:   {
+                        x = 0;
+                        y = 0;
+                        root.dragFinished()
+                    }
                 }
 
                 MouseArea {
@@ -105,8 +120,10 @@ Rectangle {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape:  Qt.PointingHandCursor
+                    drag.target:  dragProxy
+                    drag.threshold: 6
 
-                    onClicked: console.info(modelData.type)
+                    onClicked: root.blockPicked(modelData.uuid)
                 }
             }
         }

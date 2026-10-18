@@ -50,6 +50,7 @@ public: /* Typedef and enums */
         QString DataType;
         int     Max     = -1; // Max number of children (e.g. one protocol per port)
         bool    Section = false;
+        bool    Hidden  = false;
         QVector<Property_s> Properties;
         QVector<Child_s   > Children;
     };

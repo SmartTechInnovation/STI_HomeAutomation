@@ -150,7 +150,7 @@ QVariantList ProjectManager_class::openedTabs() const {
         QVariantMap projectMap;
         projectMap["path"]  = project->getDir();
         projectMap["title"] = project->getTitle();
-
+        projectMap["dirty"] = project->isModified();
         Result.push_back(projectMap);
     }
     return Result;
@@ -175,6 +175,7 @@ int ProjectManager_class::newProject(){
     Project_class *newProject = new Project_class();
 
     newProject->newDocument(tr("Unnamed"));
+    trackProject(newProject);
 
     m_vec_OpenedProjects.push_back(newProject);
     m_ptr_ActiveProject = newProject;
@@ -239,6 +240,8 @@ int ProjectManager_class::openProject(const QUrl &projectPath){
     if(!existingProject->load(projectXmlPath)){
         return -1;
     }
+
+    trackProject(existingProject);
 
     m_vec_OpenedProjects.push_back(existingProject);
     m_ptr_ActiveProject          = existingProject;

@@ -37,6 +37,7 @@ class Project_class : public QObject
     Q_PROPERTY(bool         canRedo       READ canRedo       NOTIFY undoStateChanged)
     Q_PROPERTY(QString      undoText      READ undoText      NOTIFY undoStateChanged)
     Q_PROPERTY(QString      redoText      READ redoText      NOTIFY undoStateChanged)
+    Q_PROPERTY(bool         modified      READ isModified    NOTIFY modifiedChanged )
     Q_PROPERTY(QVariantMap  info          READ info          NOTIFY infoChanged     )
     Q_PROPERTY(QVariantList pageList      READ pageList      NOTIFY pagesChanged    )
     Q_PROPERTY(int          pageCount     READ pageCount     NOTIFY pagesChanged    )
@@ -44,8 +45,7 @@ class Project_class : public QObject
     Q_PROPERTY(QObject      *tree         READ tree          NOTIFY treeChanged     )
     Q_PROPERTY(QString      selectedUuid  READ selectedUuid  NOTIFY selectedUuidChanged)
     Q_PROPERTY(QString      selectedIUuid READ selectedIUuid NOTIFY selectedIUuidChanged WRITE setSelectedIUuid)
-    Q_PROPERTY(QVariantMap  selection     READ selection     NOTIFY selectionDataChanged)
-    Q_PROPERTY(QVariantMap  context       READ context       NOTIFY contextChanged  )
+    Q_PROPERTY(QVariantMap  selection     READ selection     NOTIFY selectionChanged)
 
 
 private: /* Typedefs and enums */
@@ -92,6 +92,11 @@ public:
     explicit Project_class(QObject *parent = nullptr);
     ~Project_class();
 
+    /* ===== Document access (views / C++) ===== */
+    XmlNode_class   *getRoot()                     const;
+    XmlNode_class   *getNode(const QUuid   &iUuid) const;
+    XmlNode_class   *getNode(const QString &iUuid) const;
+
     /* ===== File ===== */
     bool newDocument(const QString &title);
     bool load(const QString &projectPath);
@@ -113,7 +118,6 @@ public:
     QString      selectedUuid()     const;
     QString      selectedIUuid()    const;
     QVariantMap  selection()        const;
-    QVariantMap  context()          const;
 
     QString      getPath()          const;
     QString      getDir()           const;
@@ -132,8 +136,11 @@ public:
     Q_INVOKABLE void cmdMovePage  (int from, int to);
     Q_INVOKABLE void cmdRenamePage(int index, const QString &title);
 
-    /* Tree */
-
+    /* Tree nodes and Properties */
+    Q_INVOKABLE void cmdAddChild   (const QString &targetIUuid, const QString &templateUuid);
+    Q_INVOKABLE bool cmdRemove     (const QString &targetIUuid);
+    Q_INVOKABLE void cmdRename     (const QString &targetIUuid, const QString &newTitle);
+    Q_INVOKABLE void cmdSetProperty(const QString &targetIUuid, const QString &name, const QVariant &value); // iUuid , name of property and value
 
 signals:
     /* ==== QML ==== */
@@ -147,13 +154,12 @@ signals:
     void treeChanged();
     void selectedUuidChanged();
     void selectedIUuidChanged();
-    void selectionDataChanged();
-    void contextChanged();
+    void selectionChanged();
     void saveAsRequested();
 
     /* ==== C++ Views ==== */
     void documentReset();
-    void nodeInserted(XmlNode_class *node);
+    void nodeInserted(XmlNode_class *parent, XmlNode_class *node);
     void nodeRemoved (XmlNode_class *parent, XmlNode_class *node);
     void attributeChanged(XmlNode_class *node, const QString &tag);
 };

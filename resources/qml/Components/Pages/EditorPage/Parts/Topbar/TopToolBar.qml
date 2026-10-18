@@ -11,15 +11,17 @@ Item {
     id: root
 
     property int currentTab: 0 // Blocks, 1 Monitor, 2 Diagnostics, 3 Context
-    property var project: null
-    property var context: (project && project.context && project.context.Title) ? project.context : null
+    property var project:    null
+    property var selection:  project ? project.selection : null
 
     readonly property var list_Categories:         BlockManager.categories
     readonly property var list_ShortcutCategories: BlockManager.shortcutCategories
 
-    onContextChanged: currentTab = context ? 3 : (currentTab === 3 ? 0 : currentTab)
+    onSelectionChanged: currentTab = (selection && selection.template !== undefined && selection.template.items.length > 0) ? 3 : (currentTab === 3 ? 0 : currentTab)
 
     signal blockPicked(string uuid)
+    signal contextPicked(string uuid)
+
 
     component TopTab: Rectangle {
         id: topTab
@@ -99,9 +101,9 @@ Item {
 
             TopTab {
                 id: topTab_Context
-                visible: root.context !== null
-                title:   root.context ? (root.context.Title ?? "") : ""
-                active: root.currentTab === 3
+                visible:   root.selection && root.selection.template !== undefined && root.selection.template.items.length > 0
+                title:    (root.selection && root.selection.template !== undefined) ? root.selection.template.title : ""
+                active:    root.currentTab === 3
                 onClicked: root.currentTab = 3
             }
         }
@@ -230,9 +232,9 @@ Item {
                     Layout.fillHeight: true
                     Layout.preferredWidth: height
 
-                    visible:      root.context ? (root.context.MenuName !== undefined ? true : false) : false
-                    firstRowText: root.context ? (root.context.MenuName !== undefined ? root.context.MenuName : "") : ""
-                    iconSrc:      root.context ? (root.context.MenuName !== undefined ? root.context.Icon : "") : ""
+                    visible:      (root.selection && root.selection.template !== undefined) ?  root.selection.template.menuVisible : false
+                    firstRowText: (root.selection && root.selection.template !== undefined) ?  root.selection.template.menuName : ""
+                    iconSrc:      (root.selection && root.selection.template !== undefined) ?  root.selection.template.icon     : ""
 
                     property bool wasOpen: false
 
@@ -266,7 +268,7 @@ Item {
                     orientation: ListView.Horizontal
                     clip:        true
                     spacing:     8
-                    model:       root.context ? root.context.Items : ({})
+                    model:       (root.selection && root.selection.template !== undefined) ? root.selection.template.items : ({})
                     boundsBehavior: Flickable.StopAtBounds
 
                     ScrollBar.horizontal: ScrollBar {
@@ -278,10 +280,12 @@ Item {
                         height: parent.height
                         width:  parent.height
 
-                        firstRowText: modelData.Title
-                        iconSrc:      modelData.Icon
+                        firstRowText: modelData.title
+                        iconSrc:      modelData.icon
 
-                        onPressed: console.log(modelData.Uuid)
+                        onPressed: {
+                            contextPicked(modelData.uuid)
+                        }
                     }
                 }
             }
@@ -407,14 +411,18 @@ Item {
                 categoryName: popup_FunctionBlocks.hoveredCategory ? popup_FunctionBlocks.hoveredCategory.name   : ""
                 blocks:       popup_FunctionBlocks.hoveredCategory ? popup_FunctionBlocks.hoveredCategory.blocks : []
 
-                //onBlockPicked: (category, type, title) => root.pickBlock(category, type, title)
+                onBlockPicked: (uuid) => {
+                    popup_ShortcutCategory.close()
+                    root.blockPicked(uuid)
+                }
+
+                onDragEnd: popup_ShortcutCategory.close()
             }
         }
     }
 
     Popup {
         id: popup_ShortcutContext
-
 
         padding: 0
         margins: 0
@@ -423,15 +431,15 @@ Item {
 
         background: Item {}
 
-        onClosed: {
-            context     = null
-        }
-
         contentItem: ShortcutsMenu {
             id: submenuShortcutsContext
 
-            title: root.context ? root.context.Title : ""
-            items: root.context ? root.context.Items : []
+            title: (root.selection && root.selection.template !== undefined) ? root.selection.template.title : ""
+            items: (root.selection && root.selection.template !== undefined) ? root.selection.template.items : []
+
+            onContextPicked: (uuid) => {
+                contextPicked(uuid)
+            }
         }
     }
 
@@ -457,6 +465,12 @@ Item {
             id: submenuShortcutsBlocks
             categoryName: popup_ShortcutCategory.category ? popup_ShortcutCategory.category.name   : ""
             blocks:       popup_ShortcutCategory.category ? popup_ShortcutCategory.category.blocks : []
+
+            onBlockPicked: (uuid) => {
+                popup_ShortcutCategory.close()
+                root.blockPicked(uuid)
+            }
+            onDragEnd: popup_ShortcutCategory.close()
         }
     }
 }

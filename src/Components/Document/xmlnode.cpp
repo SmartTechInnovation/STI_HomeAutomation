@@ -61,6 +61,10 @@ const QVector<XmlNode_class *> &XmlNode_class::children() const {
     return m_vec_Children;
 }
 
+const QVector<XmlNode_class::Attribute_s   *> &XmlNode_class::attributes() const{
+    return m_vec_Attributes;
+}
+
 int XmlNode_class::row() const{
     int index = 0;
     if(m_ptr_Parent){

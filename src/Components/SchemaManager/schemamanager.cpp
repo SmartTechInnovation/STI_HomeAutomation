@@ -88,6 +88,7 @@ bool SchemaManager_class::parse(const XmlNode_class *node, const QString &source
     newNode->IoType     = node->value(ATTR_IO_TYPE);
     newNode->Max        = node->value(ATTR_MAX,        "-1").toInt();
     newNode->Section    = node->value(ATTR_SECTION) == "true";
+    newNode->Hidden     = node->value(ATTR_HIDDEN)  == "true";
 
     for(auto &child : node->children()){
         if(child->TagName == TAG_DESCRIPTION){

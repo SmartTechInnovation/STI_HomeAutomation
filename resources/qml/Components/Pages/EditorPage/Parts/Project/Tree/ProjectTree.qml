@@ -7,16 +7,48 @@ import "../../../../../Theme"
 
 Item {
     id: root
-    property var project: null
-    property var projectTree: project ? project.tree : null
-    property string selectedUuid: ""
-    property string selectedIUuid: ""
+    property var project:   null
 
-    signal selected(string uuid, string iUuid)
+    readonly property var    treeModel:     project ? project.tree : null
+    readonly property string selectedIUuid: project ? project.selectedIUuid : ""
+    readonly property string mimeSignal:    "application/x-sti-signal"
 
-    onProjectTreeChanged: {
-        tree.expand(0)
+    signal contextItemPicked(string iUuid, var item)
+
+    /* Delete / Backspace removes the selected node (when the schema allows it) */
+    Keys.onPressed: (event) => {
+        if(event.key !== Qt.Key_Delete && event.key !== Qt.Key_Backspace)
+            return
+        if(root.project && root.project.selection.canDelete === true){
+            root.project.cmdRemove(root.selectedIUuid)
+            event.accepted = true
+        }
     }
+
+    function reveal(iUuid){
+        if(!treeModel || iUuid === "") return
+        const index = treeModel.indexOf(iUuid)
+        if(!index.valid) return
+        const parents = []
+        for(let p = treeModel.parent(index); p.valid; p = treeModel.parent(p)) parents.unshift(p)
+        for(const parentIndex of parents){
+            const parentRow = tree.rowAtIndex(parentIndex)
+            if(parentRow >= 0 && !tree.isExpanded(parentRow)) tree.expand(parentRow)
+        }
+        tree.forceLayout()
+        const row = tree.rowAtIndex(index)
+        if(row >= 0) tree.positionViewAtRow(row, TableView.Contain)
+    }
+
+    Connections {
+        target: root.treeModel
+        function onModelReset(){ tree.expand(0) }
+    }
+    Connections {
+        target: root.project
+        function onSelectionChanged(){ root.reveal(root.selectedIUuid) }
+    }
+    onTreeModelChanged: Qt.callLater(function(){ tree.expand(0) })
 
     // ======== Header =======
     Rectangle{
@@ -45,7 +77,7 @@ Item {
         anchors.topMargin:  4
         clip:            true
         boundsBehavior:  Flickable.StopAtBounds
-        model:           root.project ? root.project.tree : null
+        model:           root.treeModel
 
         ScrollBar.vertical: ScrollBar {}
 
@@ -61,26 +93,40 @@ Item {
             required property bool     hasChildren
             required property int      depth
             required property int      row
-            // Rol din model (Qt::DisplayRole)
-            required property string   display
+            /* roles of ProjectTree_class */
             required property string   title
             required property string   uuid
             required property string   iUuid
             required property string   icon
             required property color    color
-            required property bool     draggable
+            required property string   kind
+            required property bool     ioType
+            required property bool     dragEnabled
+            required property bool     description
 
 
-            readonly property int indent: 14
+            readonly property int   indent:     14
+            readonly property bool  selected:   iUuid !== "" && root.selectedIUuid === iUuid
+            readonly property bool  renamable:  kind === "node"
+
+            function select(){
+                if(!root.project || iUuid === "")
+                    return
+                if(kind === "ref")
+                    root.project.selectNode(iUuid)      // opens the page with the signal
+                else
+                    root.project.selectedIUuid = iUuid
+            }
 
             HoverHandler { id: hover }
 
             // ==== Hover Background ====
             Rectangle {
                 anchors.fill: parent
-                color: (hover.hovered || selectedIUuid == node.iUuid) ? Qt.lighter(Theme.bgPanel, 1.5) : "transparent"
+                color: node.selected ? Qt.lighter(Theme.bgPanel, 1.8)
+                                     : hover.hovered ? Qt.lighter(Theme.bgPanel, 1.4) : "transparent"
             }
-
+            // ==== Expand arrow ====
             Item {
                 id: arrow
                 x: 6 + node.depth * node.indent
@@ -101,7 +147,7 @@ Item {
                 id: rowIcon
                 x:  node.depth * node.indent + 24
                 anchors.verticalCenter: parent.verticalCenter
-                color:    node.color
+                color:    txt_Title.color
                 fillMode: Image.PreserveAspectFit
                 source:   node.icon
                 sourceSize.width:  16
@@ -109,27 +155,87 @@ Item {
             }
 
             Text{
-                x: node.depth * node.indent + 44
+                id: txt_Title
+                x: node.depth * node.indent + 46
                 anchors.verticalCenter: parent.verticalCenter
                 text: node.title
-                color: Theme.white
+                elide: Text.ElideRight
+                color: node.kind === "unknown" ? Theme.amber
+                     : node.kind === "ref"     ? Theme.gray
+                     : node.kind === "group"   ? Qt.darker(Theme.white, 1.2) : Theme.white
+                font.italic: node.kind === "ref"
+                visible: !edit_Title.visible
+            }
+
+            TextField {
+                id: edit_Title
+                x: txt_Title.x - 4
+                width:  parent.width  - x - 4
+                height: parent.height - 2
+                anchors.verticalCenter: parent.verticalCenter
+                visible: false
+                padding: 2
+                font.pixelSize: 13
+
+                function start(){
+                    text = node.title;
+                    visible = true;
+                    forceActiveFocus();
+                    selectAll()
+                }
+                function finish(apply){
+                    if(!visible)
+                        return
+                    visible = false
+                    if(apply)
+                        root.project.cmdRename(node.iUuid, text)
+                }
+                onAccepted: finish(true)
+                onActiveFocusChanged: if(!activeFocus) finish(true)
+                Keys.onEscapePressed: finish(false)
+            }
+
+            // ===== Drag source (Drag.Automatic -> the page shows the ghost) =====
+            Item {
+                id: dragProxy
+                width: 1; height: 1
+                Drag.active:            ma_Row.drag.active
+                Drag.dragType:          Drag.Automatic
+                Drag.supportedActions:  Qt.CopyAction
+                Drag.mimeData:          ({ "application/x-sti-signal": node.iUuid })
+                Drag.onDragFinished:    { x = 0; y = 0 }
             }
 
             MouseArea {
+                id: ma_Row
                 anchors.fill: parent
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                cursorShape: node.draggable ? Qt.OpenHandCursor : Qt.ArrowCursor
+                drag.target: node.draggable ? dragProxy : null
+                drag.threshold: 6
 
                 onClicked: (mouse) => {
-                    if(node.iUuid !== "{00000000-0000-0000-0000-000000000000}"){
-                        selectedUuid  = node.uuid
-                        selectedIUuid = node.iUuid
-                        root.selected(node.uuid, node.iUuid)
+                    if(mouse.button === Qt.LeftButton && mouse.x >= arrow.x && mouse.x <= arrow.x + arrow.width && node.hasChildren){
+                        node.treeView.toggleExpanded(node.row)
+                        return
                     }
-                    console.log("Element Selected ID: " + node.iUuid + " Model: " + node.uuid)
+                    node.select()
+                    root.forceActiveFocus()
                 }
-                onDoubleClicked: {
-                    if(node.hasChildren)
+                onDoubleClicked: (mouse) => {
+                    if(node.renamable && mouse.x >= txt_Title.x && node.selected)
+                        edit_Title.start()
+                    else if(node.hasChildren)
                         node.treeView.toggleExpanded(node.row)
                 }
+            }
+            //ToolTip.visible: hover.hovered && node.description !== "" && !ma_Row.drag.active
+            //ToolTip.delay:   900
+            //ToolTip.text:    node.description
+
+            Keys.onPressed: (event) => {
+                if(event.key === Qt.Key_F2 && node.renamable)
+                    edit_Title.start()
             }
         }
     }

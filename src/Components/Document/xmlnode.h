@@ -11,11 +11,11 @@
 
 class XmlNode_class {
 public:  /* Typedef and enums */
-private: /* Typedef and enums */
     struct Attribute_s {
         QString Name;
         QString Value;
     };
+private: /* Typedef and enums */
 
 public: /* Members    */
     QString TagName;
@@ -34,9 +34,10 @@ public: /* Functional */
     void                  write  (QXmlStreamWriter &xml);
 
     /* ==== Tree ==== */
-    XmlNode_class                  *parent()   const;
-    const QVector<XmlNode_class *> &children() const;
-    int                             row()      const;
+    XmlNode_class                  *parent()     const;
+    const QVector<XmlNode_class *> &children()   const;
+    const QVector<Attribute_s   *> &attributes() const;
+    int                             row()        const;
     void                            visit(const std::function<void(XmlNode_class *)> &callback);
 
 

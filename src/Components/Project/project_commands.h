@@ -118,13 +118,6 @@ public:
         : m_ptr_Project(project), m_ptr_Node(node), m_str_Key(key),
         m_str_Old(node->value(key)), m_str_New(value), m_b_HadOld(node->hasAttr(key)), m_int_MergeId(mergeId)
     {
-        m_ptr_Project   = project;
-        m_ptr_Node      = node;
-        m_str_Key       = key;
-        m_str_Old       = node->value(key);
-        m_str_New       = value;
-        m_b_HadOld      = node->hasAttr(key);
-        m_int_MergeId   = mergeId;
         setText(text);
     }
 
@@ -142,7 +135,6 @@ public:
 
     void redo() override {
         m_ptr_Project->setAttribute(m_ptr_Node, m_str_Key, m_str_New);
-        emit m_ptr_Project->selectionChanged();
     }
 
     void undo() override {
@@ -151,7 +143,6 @@ public:
         }else{
             m_ptr_Project->setAttribute(m_ptr_Node, m_str_Key, m_str_Old);
         }
-        emit m_ptr_Project->selectionChanged();
     }
 };
 

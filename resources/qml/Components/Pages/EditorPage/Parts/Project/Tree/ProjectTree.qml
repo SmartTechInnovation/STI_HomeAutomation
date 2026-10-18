@@ -25,6 +25,8 @@ Item {
         }
     }
 
+    function revealSelected(){ reveal(root.selectedIUuid) }
+
     function reveal(iUuid){
         if(!treeModel || iUuid === "") return
         const index = treeModel.indexOf(iUuid)
@@ -46,7 +48,8 @@ Item {
     }
     Connections {
         target: root.project
-        function onSelectionChanged(){ root.reveal(root.selectedIUuid) }
+        /* deferred: never touch the TreeView layout from inside a model change / ongoing layout */
+        function onSelectedIUuidChanged(){ Qt.callLater(root.revealSelected) }
     }
     onTreeModelChanged: Qt.callLater(function(){ tree.expand(0) })
 
@@ -191,7 +194,16 @@ Item {
                         root.project.cmdRename(node.iUuid, text)
                 }
                 onAccepted: finish(true)
-                onActiveFocusChanged: if(!activeFocus) finish(true)
+                /* focus is often lost while the TreeView is laying out (delegate reuse):
+                   capture the values now, push the command after the layout finished */
+                onActiveFocusChanged: {
+                    if(activeFocus || !visible)
+                        return
+                    visible = false
+                    const iUuid = node.iUuid
+                    const title = text
+                    Qt.callLater(function(){ if(root.project) root.project.cmdRename(iUuid, title) })
+                }
                 Keys.onEscapePressed: finish(false)
             }
 
@@ -214,16 +226,21 @@ Item {
                 drag.target: node.draggable ? dragProxy : null
                 drag.threshold: 6
 
+                /* was the row already selected before the first click of a double-click?
+                   (the first click selects it, so node.selected is always true at onDoubleClicked) */
+                property bool selectedBeforeClick: false
+
                 onClicked: (mouse) => {
                     if(mouse.button === Qt.LeftButton && mouse.x >= arrow.x && mouse.x <= arrow.x + arrow.width && node.hasChildren){
                         node.treeView.toggleExpanded(node.row)
                         return
                     }
+                    selectedBeforeClick = node.selected
                     node.select()
                     root.forceActiveFocus()
                 }
                 onDoubleClicked: (mouse) => {
-                    if(node.renamable && mouse.x >= txt_Title.x && node.selected)
+                    if(node.renamable && mouse.x >= txt_Title.x && selectedBeforeClick && node.selected)
                         edit_Title.start()
                     else if(node.hasChildren)
                         node.treeView.toggleExpanded(node.row)

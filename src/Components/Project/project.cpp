@@ -75,12 +75,16 @@ void Project_class::setAttribute(XmlNode_class *node,   const QString &tag, cons
         touchPage(node);
     }
     emit attributeChanged(node, tag);
+    if(node == m_ptr_Selected)
+        emit selectionChanged();    // refresh properties panel only when it shows this node
 }
 
 void Project_class::rmAttribute(XmlNode_class *node,   const QString &tag){
     node->removeAttr(tag);
 
     emit attributeChanged(node, tag);
+    if(node == m_ptr_Selected)
+        emit selectionChanged();
 }
 
 void Project_class::indexNode(XmlNode_class *node){

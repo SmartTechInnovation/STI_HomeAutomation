@@ -147,6 +147,12 @@ void ProjectTree_class::onRemoved(XmlNode_class *parent, XmlNode_class *node){
 }
 
 void ProjectTree_class::onAttributeChanged(XmlNode_class *node, const QString &key){
+    Q_UNUSED(key)
+    /* only refresh roles (title, icon, ...) - dataChanged does not force a re-layout */
+    if(TreeItem_class *item = m_hash_Items.value(node, nullptr)){
+        const QModelIndex index = indexFor(item);
+        emit dataChanged(index, index);
+    }
     //if(Item_s *item = m_hash_Items.value(node, nullptr)){
     //    const QModelIndex index = indexFor(item);
     //    emit dataChanged(index, index);

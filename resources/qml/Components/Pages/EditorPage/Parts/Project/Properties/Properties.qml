@@ -109,7 +109,7 @@ Item {
                         sourceSize.width: 28;
                         sourceSize.height: 28
                         source:  root.selectionData.template ? root.selectionData.template.icon : ""
-                        color:   Theme.white
+                        color:   Theme.iconColor(source, Theme.white)
                         visible: source.toString() !== ""
                     }
                     ColumnLayout {

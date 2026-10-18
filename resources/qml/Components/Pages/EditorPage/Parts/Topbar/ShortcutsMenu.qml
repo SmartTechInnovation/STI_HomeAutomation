@@ -74,7 +74,7 @@ Rectangle {
                         Layout.fillHeight: true
                         Layout.preferredWidth: height
                         visible: modelData.icon.length > 0
-                        color: Theme.white
+                        color: Theme.iconColor(modelData.icon, Theme.white)
                         fillMode: Image.PreserveAspectFit
                         source: modelData.icon
                         sourceSize.width:  width - 4

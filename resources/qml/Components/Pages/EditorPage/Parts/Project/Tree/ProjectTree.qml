@@ -151,7 +151,7 @@ Item {
                 id: rowIcon
                 x:  node.depth * node.indent + 24
                 anchors.verticalCenter: parent.verticalCenter
-                color:    txt_Title.color
+                color:    Theme.iconColor(node.icon, txt_Title.color)
                 fillMode: Image.PreserveAspectFit
                 source:   node.icon
                 sourceSize.width:  16

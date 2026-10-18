@@ -4,6 +4,7 @@
 #include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
+#include <QUrl>
 
 #include "../Logger/logger.h"
 #include "../Document/document_tokens.h"
@@ -79,6 +80,37 @@ void SchemaManager_class::loadFile(const QString &filePath){
     delete root;
 }
 
+/* Icon of a NodeType:
+ *  - "qrc:/..." that exists in the resources  -> used as is (svg, tinted by the UI)
+ *  - anything else ("icon.png", "icons/x.svg", or a qrc path missing from the resources)
+ *    -> looked up next to the descriptor file; found -> "file:///..." url
+ *  - not found -> empty (the UI shows its default icon) */
+static QString resolveIcon(const QString &icon, const QString &sourceFile){
+    if(icon.isEmpty())
+        return icon;
+    if(icon.startsWith(QStringLiteral("http:")) || icon.startsWith(QStringLiteral("https:")) || icon.startsWith(QStringLiteral("file:")))
+        return icon;
+
+    QString localName = icon;
+    if(icon.startsWith(QStringLiteral("qrc:"))){
+        if(QFile::exists(icon.mid(3)))          // "qrc:/icons/x.svg" -> ":/icons/x.svg"
+            return icon;
+        localName = QFileInfo(icon.mid(4)).fileName();
+    }else if(icon.startsWith(QStringLiteral(":/"))){
+        if(QFile::exists(icon))
+            return QStringLiteral("qrc") + icon;
+        localName = QFileInfo(icon).fileName();
+    }
+
+    const QDir    sourceDir = QFileInfo(sourceFile).absoluteDir();
+    const QString localPath = QDir::isAbsolutePath(localName) ? localName : sourceDir.filePath(localName);
+    if(QFile::exists(localPath))
+        return QUrl::fromLocalFile(QFileInfo(localPath).absoluteFilePath()).toString();
+
+    S_Logger.write(Log::Warning, SCHEMA_NAME, sourceFile + ": icon not found: " + icon);
+    return QString();
+}
+
 bool SchemaManager_class::parse(const XmlNode_class *node, const QString &source){
     bool Result = true;
     if(node->TagName != TAG_NODE_TYPE){
@@ -92,7 +124,7 @@ bool SchemaManager_class::parse(const XmlNode_class *node, const QString &source
     newNode->Uuid       = QUuid(node->value(ATTR_UUID));
     newNode->TagName    = node->value(ATTR_TAG_NAME);
     newNode->Title      = node->value(ATTR_TITLE,      newNode->TagName);
-    newNode->Icon       = node->value(ATTR_ICON);
+    newNode->Icon       = resolveIcon(node->value(ATTR_ICON), source);
     newNode->MenuName   = node->value(ATTR_MENU);
     newNode->IoType     = node->value(ATTR_IO_TYPE);
     newNode->Max        = node->value(ATTR_MAX,        "-1").toInt();

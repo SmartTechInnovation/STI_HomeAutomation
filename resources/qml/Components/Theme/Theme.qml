@@ -31,4 +31,14 @@ QtObject {
     readonly property color ink:        black
     readonly property color inkMuted:   gray
     readonly property color inkFaint:   "#D9DCE1"
+
+    // ======== Icons =========
+    /* svg icons are monochrome and get tinted; raster icons (png, jpg) already have their colors.
+       IconImage does not colorize when color is transparent. */
+    function iconColor(source, tint){
+        const path = source ? source.toString().toLowerCase() : ""
+        if(path.endsWith(".png") || path.endsWith(".jpg") || path.endsWith(".jpeg") || path.endsWith(".bmp") || path.endsWith(".webp"))
+            return "transparent"
+        return tint
+    }
 }

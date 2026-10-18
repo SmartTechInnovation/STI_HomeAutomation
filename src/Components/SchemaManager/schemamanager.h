@@ -51,6 +51,7 @@ public: /* Typedef and enums */
         int     Max     = -1; // Max number of children (e.g. one protocol per port)
         bool    Section = false;
         bool    Hidden  = false;
+        bool    Editable= true;
         QVector<Property_s> Properties;
         QVector<Child_s   > Children;
     };

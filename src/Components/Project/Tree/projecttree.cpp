@@ -236,6 +236,7 @@ QHash<int, QByteArray> ProjectTree_class::roleNames() const {
              { RoleIoType,       "ioType"      },
              { RoleDragEnabled,  "dragEnabled" },
              { RoleDescription,  "description" },
+             { RoleEditable,     "editable"    },
              };
 }
 
@@ -265,9 +266,12 @@ QVariant ProjectTree_class::data(const QModelIndex &index, int role) const {
         case RoleIoType:        return nodeTemplate ? nodeTemplate->IoType           : QString();
         case RoleDragEnabled:   return nodeTemplate ? nodeTemplate->IoType.isEmpty() : false;
         case RoleDescription:   return nodeTemplate ? nodeTemplate->Description      : QString();
+        case RoleEditable:      return nodeTemplate ? nodeTemplate->Editable         : false;
         }
     }else if(itemRef->Kind == TreeItem_class::KindGroup){
         switch(role){
+        case RoleEditable:
+            return false;
         case Qt::DisplayRole:
         case RoleTitle:
         case RoleUuid:
@@ -282,6 +286,8 @@ QVariant ProjectTree_class::data(const QModelIndex &index, int role) const {
         }
     }else if(itemRef->Kind == TreeItem_class::KindRef){
         switch(role){
+        case RoleEditable:
+            return false;
         case Qt::DisplayRole:
         case RoleTitle:
         case RoleUuid:
@@ -296,6 +302,8 @@ QVariant ProjectTree_class::data(const QModelIndex &index, int role) const {
         }
     }else if(itemRef->Kind == TreeItem_class::KindRoot){
         switch(role){
+        case RoleEditable:
+            return false;
         case Qt::DisplayRole:
         case RoleTitle:
         case RoleUuid:

@@ -478,7 +478,7 @@ QVariantMap Project_class::selection() const{ // Needed for properties menu
     QVariantMap instanceNodeMap;
     instanceNodeMap["iUuid"]     = m_ptr_Selected->value(ATTR_IUUID);
     instanceNodeMap["title"]     = m_ptr_Selected->value(ATTR_TITLE);
-    instanceNodeMap["canDelete"] = true; // To be done
+    instanceNodeMap["editable"]  = nodeTemplate ? nodeTemplate->Editable : false;
     Result["instance"] = instanceNodeMap;
 
     QVariantMap templateNodeMap;

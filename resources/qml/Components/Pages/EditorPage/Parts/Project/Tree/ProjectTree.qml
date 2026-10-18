@@ -19,7 +19,7 @@ Item {
     Keys.onPressed: (event) => {
         if(event.key !== Qt.Key_Delete && event.key !== Qt.Key_Backspace)
             return
-        if(root.project && root.project.selection.canDelete === true){
+        if(root.project?.selection?.instance?.editable === true){
             root.project.cmdRemove(root.selectedIUuid)
             event.accepted = true
         }
@@ -105,12 +105,13 @@ Item {
             required property string   kind
             required property bool     ioType
             required property bool     dragEnabled
-            required property bool     description
+            required property string   description
+            required property bool     editable
 
 
             readonly property int   indent:     14
             readonly property bool  selected:   iUuid !== "" && root.selectedIUuid === iUuid
-            readonly property bool  renamable:  kind === "node"
+            readonly property bool  renamable:  editable
 
             function select(){
                 if(!root.project || iUuid === "")

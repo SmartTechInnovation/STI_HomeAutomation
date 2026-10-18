@@ -43,6 +43,7 @@ public: /* Typedefs and enums */
         RoleIoType,         // in, out or empty
         RoleDragEnabled,    // output channels can be placed only once
         RoleDescription,    // Description of Node
+        RoleEditable,       // can be renamed / deleted (schema)
     };
     typedef SchemaManager_class::NodeType_s NodeType_s;
 

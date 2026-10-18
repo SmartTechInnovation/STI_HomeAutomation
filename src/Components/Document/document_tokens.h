@@ -67,6 +67,7 @@
 #define ATTR_GROUP      "Group"
 #define ATTR_READ_ONLY  "ReadOnly"
 #define ATTR_HIDDEN     "Hidden"
+#define ATTR_EDITABLE   "Editable"
 #define ATTR_DATA       "Data"
 #define ATTR_AUTO       "Auto"
 #define ATTR_MANDATORY  "Mandatory"

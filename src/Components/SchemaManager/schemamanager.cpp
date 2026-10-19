@@ -120,6 +120,29 @@ bool SchemaManager_class::parse(const XmlNode_class *node, const QString &source
         return true;
     }
 
+    auto getProperty = [this](XmlNode_class *node) -> Property_s {
+        Property_s  newProperty;
+        newProperty.TagName     = node->value(ATTR_TAG_NAME);
+        newProperty.Title       = node->value(ATTR_TITLE);
+        newProperty.Type        = node->value(ATTR_TYPE);
+        newProperty.Default     = node->value(ATTR_DEFAULT);
+        newProperty.Unit        = node->value(ATTR_UNIT);
+        newProperty.ReadOnly    = node->value(ATTR_READ_ONLY) == "true";
+        newProperty.Hidden      = node->value(ATTR_HIDDEN)    == "true";
+        for(auto &variant : node->children()){
+            if(variant->TagName == TAG_DOCS){
+                newProperty.Docs= variant->value(ATTR_TEXT);
+            }else if(variant->TagName == TAG_VARIANT){
+                Variant_s newVariant;
+                newVariant.Data = variant->value(ATTR_DATA);
+                newVariant.Text = variant->value(ATTR_TEXT);
+                newVariant.Icon = variant->value(ATTR_ICON);
+                newProperty.Variants.append(newVariant);
+            }
+        }
+        return newProperty;
+    };
+
     NodeType_s *newNode = new NodeType_s;
     newNode->Uuid       = QUuid(node->value(ATTR_UUID));
     newNode->TagName    = node->value(ATTR_TAG_NAME);
@@ -128,35 +151,26 @@ bool SchemaManager_class::parse(const XmlNode_class *node, const QString &source
     newNode->MenuName   = node->value(ATTR_MENU);
     newNode->IoType     = node->value(ATTR_IO_TYPE);
     newNode->Max        = node->value(ATTR_MAX,        "-1").toInt();
-    newNode->Section    = node->value(ATTR_SECTION) == "true";
-    newNode->Hidden     = node->value(ATTR_HIDDEN)  == "true";
+    newNode->Section    = node->value(ATTR_SECTION)   == "true";
+    newNode->Hidden     = node->value(ATTR_HIDDEN)    == "true";
     newNode->Editable   = !(node->value(ATTR_EDITABLE)== "false");
 
     for(auto &child : node->children()){
         if(child->TagName == TAG_DESCRIPTION){
-            newNode->Description    = child->value(ATTR_TEXT);
-        }else if(child->TagName == TAG_PROPERTY){
-            Property_s  newProperty;
-            newProperty.TagName     = child->value(ATTR_TAG_NAME);
-            newProperty.Title       = child->value(ATTR_TITLE);
-            newProperty.Type        = child->value(ATTR_TYPE);
-            newProperty.Default     = child->value(ATTR_DEFAULT);
-            newProperty.Unit        = child->value(ATTR_UNIT);
-            newProperty.ReadOnly    = child->value(ATTR_READ_ONLY) == "true";
-            newProperty.Hidden      = child->value(ATTR_HIDDEN)    == "true";
-            for(auto &variant : child->children()){
-                if(variant->TagName == TAG_DOCS){
-                    newProperty.Docs= variant->value(ATTR_TEXT);
-                }else if(variant->TagName == TAG_VARIANT){
-                    Variant_s newVariant;
-                    newVariant.Data = variant->value(ATTR_DATA);
-                    newVariant.Text = variant->value(ATTR_TEXT);
-                    newVariant.Icon = variant->value(ATTR_ICON);
-                    newProperty.Variants.append(newVariant);
-                }
+            newNode->Description   = child->value(ATTR_TEXT);
+        }else if(child->TagName == TAG_GROUP){
+            PropertyGroup_s newGroupProperty;
+            newGroupProperty.Title = child->value(ATTR_TITLE);
+            for(auto &property : child->children()){
+                newGroupProperty.Properties.append(getProperty(property));
             }
-            if(!newProperty.TagName.isEmpty())
-                newNode->Properties.append(newProperty);
+            newNode->PropertyGroups.append(newGroupProperty);
+        }else if(child->TagName == TAG_PROPERTY){
+            if(newNode->PropertyGroups.empty() || !newNode->PropertyGroups.last().Title.isEmpty()){
+                PropertyGroup_s newGroupProperty;
+                newNode->PropertyGroups.append(newGroupProperty);
+            }
+            newNode->PropertyGroups.last().Properties.append(getProperty(child));
         }else if(child->TagName == TAG_CHILD){
             Child_s newChildDef;
             newChildDef.Uuid        = QUuid(child->value(ATTR_UUID));

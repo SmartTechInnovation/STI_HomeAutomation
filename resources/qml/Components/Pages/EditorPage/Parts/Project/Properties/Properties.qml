@@ -142,19 +142,18 @@ Item {
                 }
                 // ==== End Of Header ====
 
-                // ==== Properties ====
+                // ==== Group Properties ====
                 Repeater {
                     model: root.selectionData.properties
 
                     delegate: ColumnLayout {
-                        id: row
+                        id: groupProperties
                         Layout.fillWidth: true
                         spacing:          4
 
                         required property int    index
-                        required property string tag
-                        required property string name
-                        required property string value
+                        required property string title
+                        required property var    items
 
                         function changeAttr(newValue){
                             if(root.project){
@@ -162,46 +161,83 @@ Item {
                             }
                         }
 
-                        RowLayout {
+                        Text {
                             Layout.fillWidth: true
-                            spacing: 6
-
-                            Text {
-                                Layout.preferredWidth: Math.round(contentLayout.width * 0.42)
-                                Layout.alignment: Qt.AlignVCenter
-
-                                color:            Theme.white
-                                elide:            Text.ElideRight
-                                text:             row.name
-                                font.pixelSize:   12
+                            Layout.topMargin: 8
+                            visible: {
+                                if(groupProperties.title === "")
+                                    return false
+                                return true
                             }
-
-                            Loader {
-                                Layout.fillWidth: true
-                                sourceComponent: {
-                                   return cmp_String
-                                }
-                            }
+                            text:  groupProperties.title
+                            color: Theme.green
+                            font.pixelSize: 10
+                            font.bold: true
+                            font.capitalization: Font.AllUppercase
+                            font.letterSpacing: 1
                         }
 
-                        Component {
-                            id: cmp_String
-                            DarkField {
-                                text: row.value
-                                validator: row.type === "Int"   ? intValidator
-                                         : row.type === "Float" ? floatValidator : null
-                                onEditingFinished: {
-                                    if(row.type === "Float")
-                                        text = text.replace(",", ".")
-                                    if(text !== row.value)
-                                        row.changeAttr(text)
+                        // ====== Properies List ====
+                        Repeater {
+                            model: groupProperties.items
+
+                            delegate: RowLayout {
+                                id: prop
+                                Layout.fillWidth: true
+                                spacing: 6
+
+                                required property int    index
+                                required property string tagName
+                                required property string title
+                                required property string value
+
+                                property string type
+                                property string defValue
+                                property string unit
+                                property string docs
+                                property bool   readOnly
+                                property bool   hidden
+                                property var    variants
+
+
+                                Text {
+                                    Layout.preferredWidth: Math.round(contentLayout.width * 0.42)
+                                    Layout.alignment: Qt.AlignVCenter
+
+                                    color:            Theme.white
+                                    elide:            Text.ElideRight
+                                    text:             prop.title
+                                    font.pixelSize:   12
                                 }
-                                IntValidator {
-                                    id: intValidator
+
+                                Loader {
+                                    Layout.fillWidth: true
+                                    sourceComponent: {
+                                       return cmp_String
+                                    }
                                 }
-                                RegularExpressionValidator {
-                                    id: floatValidator;
-                                    regularExpression: /^-?\d*([.,]\d*)?$/
+
+                                Component {
+                                    id: cmp_String
+                                    DarkField {
+                                        text: prop.value
+                                        validator: {
+                                            if(prop.type == "Int"  ) return intValidator;
+                                            if(prop.type == "Float") return floatValidator
+                                            return null
+                                        }
+                                        onEditingFinished: {
+                                            if(prop.type  === "Float") text = text.replace(",", ".")
+                                            if(prop.value !== text)    prop.changeAttr(text)
+                                        }
+                                        IntValidator {
+                                            id: intValidator
+                                        }
+                                        RegularExpressionValidator {
+                                            id: floatValidator;
+                                            regularExpression: /^-?\d*([.,]\d*)?$/
+                                        }
+                                    }
                                 }
                             }
                         }

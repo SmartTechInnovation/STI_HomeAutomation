@@ -183,11 +183,13 @@ XmlNode_class *Project_class::createNode(XmlNode_class *parent, const NodeType_s
     newNode->setValue(ATTR_IUUID,   QUuid().createUuidV7().toString(QUuid::WithoutBraces));
     newNode->setValue(ATTR_TITLE,   nodeTemplate->Title);
 
-    for(auto &property : nodeTemplate->Properties){
-        if(property.TagName == ATTR_TITLE){
-            newNode->setValue(ATTR_TITLE, uniqueTitle(parent, nodeTemplate->Title));
-        }else{
-            newNode->setValue(property.TagName, property.Default);
+    for(auto &propertyGroup : nodeTemplate->PropertyGroups){
+        for(auto &property : propertyGroup.Properties){
+            if(property.TagName == ATTR_TITLE){
+                newNode->setValue(ATTR_TITLE, uniqueTitle(parent, nodeTemplate->Title));
+            }else{
+                newNode->setValue(property.TagName, property.Default);
+            }
         }
     }
     for(auto &child    : nodeTemplate->Children){
@@ -435,35 +437,23 @@ QVariantMap Project_class::info()          const{
     Result["paperFormat"]= root->value(ATTR_PAPER_FORMAT, "A3");
     Result["paperSize"]  = paperFormatToSize(root->value(ATTR_PAPER_FORMAT, "A3")) * WORKSPACE_SCALE;
 
-    XmlNode_class *CompanyRef = nullptr;
-    XmlNode_class *ClientRef  = nullptr;
-    for(auto &child : root->children()){
-        if(child->TagName == TOKEN_COMPANY)
-            CompanyRef = child;
-        else if(child->TagName == TOKEN_CLIENT){
-            ClientRef  = child;
-        }
-        if(CompanyRef && ClientRef)
-            break;
-    }
     QVariantMap Company;
     QVariantMap Client;
-    if(CompanyRef){
-        Company["iUuid"]    = CompanyRef->value(ATTR_IUUID);
-        Company["name"]     = CompanyRef->value(ATTR_NAME);
-        Company["address"]  = CompanyRef->value(ATTR_ADDRESS);
-        Company["phone"]    = CompanyRef->value(ATTR_PHONE);
-        Company["email"]    = CompanyRef->value(ATTR_EMAIL);
-        Company["web"]      = CompanyRef->value(ATTR_WEB);
-        Company["logoUrl"]  = resolveUrl(CompanyRef->value(ATTR_LOGO_PATH));
-    }
-    if(ClientRef){
-        Client["iUuid"]    = ClientRef->value(ATTR_IUUID);
-        Client["name"]     = ClientRef->value(ATTR_NAME);
-        Client["address"]  = ClientRef->value(ATTR_ADDRESS);
-        Client["phone"]    = ClientRef->value(ATTR_PHONE);
-        Client["email"]    = ClientRef->value(ATTR_EMAIL);
-    }
+
+    Company["iUuid"]    = root->value(QString("Company") + ATTR_IUUID);
+    Company["name"]     = root->value(QString("Company") + ATTR_NAME);
+    Company["address"]  = root->value(QString("Company") + ATTR_ADDRESS);
+    Company["phone"]    = root->value(QString("Company") + ATTR_PHONE);
+    Company["email"]    = root->value(QString("Company") + ATTR_EMAIL);
+    Company["web"]      = root->value(QString("Company") + ATTR_WEB);
+    Company["logoUrl"]  = resolveUrl(root->value(QString("Company") + ATTR_LOGO_PATH));
+
+    Client["iUuid"]    = root->value(QString("Client") + ATTR_IUUID);
+    Client["name"]     = root->value(QString("Client") + ATTR_NAME);
+    Client["address"]  = root->value(QString("Client") + ATTR_ADDRESS);
+    Client["phone"]    = root->value(QString("Client") + ATTR_PHONE);
+    Client["email"]    = root->value(QString("Client") + ATTR_EMAIL);
+
     Result["company"]   = Company;
     Result["client"]    = Client;
     return Result;
@@ -545,23 +535,55 @@ QVariantMap Project_class::selection() const{ // Needed for properties menu
     }
     Result["template"] = templateNodeMap;
 
+    auto getPropertyMap = [this](Property_s property) -> QVariantMap {
+        QVariantMap propertyMap;
+        propertyMap["tagName"]   = property.TagName;
+        propertyMap["title"]     = property.Title;
+        propertyMap["type"]      = property.Type;
+        propertyMap["defValue"]  = property.Default;
+        propertyMap["unit"]      = property.Unit;
+        propertyMap["docs"]      = property.Docs;
+        propertyMap["readOnly"]  = property.ReadOnly;
+        propertyMap["hidden"]    = property.Hidden;
+        QVariantList variantsList;
+        for(auto &variant : property.Variants){
+            QVariantMap variantMap;
+            variantMap["data"]   = variant.Data;
+            variantMap["text"]   = variant.Text;
+            variantMap["icon"]   = variant.Icon;
+            variantsList.append(variantMap);
+        }
+        propertyMap["variants"]  = variantsList;
+        propertyMap["value"] = m_ptr_Selected->value(property.TagName);
+        return propertyMap;
+    };
+
     QVariantList propertiesList;
     if(nodeTemplate){
-        for(auto &property : nodeTemplate->Properties){
-            QVariantMap propertyMap;
-            propertyMap["tag"]   = property.TagName;
-            propertyMap["name"]  = property.Title;
-            propertyMap["value"] = m_ptr_Selected->value(property.TagName);
-            propertiesList.append(propertyMap);
+        for(auto &propertyGroup : nodeTemplate->PropertyGroups){
+            QVariantMap propertyGroupMap;
+            propertyGroupMap["title"] = propertyGroup.Title;
+            QVariantList propertyGroupList;
+            for(auto &property : propertyGroup.Properties){
+                propertyGroupList.append(getPropertyMap(property));
+            }
+            propertyGroupMap["items"] = propertyGroupList;
+            propertiesList.append(propertyGroupMap);
         }
     }else{
+        QVariantMap propertyGroupMap;
+        propertyGroupMap["title"] = QString();
+        QVariantList propertyGroupList;
         for(auto &attribute: m_ptr_Selected->attributes()){
             QVariantMap propertyMap;
-            propertyMap["tag"]   = attribute->Name;
-            propertyMap["name"]  = attribute->Name;
-            propertyMap["value"] = attribute->Value;
-            propertiesList.append(propertyMap);
+            propertyMap["tagName"] = attribute->Name;
+            propertyMap["title"]   = attribute->Name;
+            propertyMap["value"]   = attribute->Value;
+            if(attribute)
+                propertyGroupList.append(propertyMap);
         }
+        propertyGroupMap["items"] = propertyGroupList;
+        propertiesList.append(propertyGroupMap);
     }
     Result["properties"] = propertiesList;
     return Result;

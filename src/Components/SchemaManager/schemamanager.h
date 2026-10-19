@@ -26,10 +26,14 @@ public: /* Typedef and enums */
         QString Default;
         QString Unit;
         QString Docs;
-        QString Group;
         bool    ReadOnly = false;
         bool    Hidden   = false;
         QVector<Variant_s> Variants;
+    };
+
+    struct PropertyGroup_s{
+        QString Title;
+        QVector<Property_s> Properties;
     };
 
     struct Child_s {
@@ -52,8 +56,8 @@ public: /* Typedef and enums */
         bool    Section = false;
         bool    Hidden  = false;
         bool    Editable= true;
-        QVector<Property_s> Properties;
-        QVector<Child_s   > Children;
+        QVector<PropertyGroup_s> PropertyGroups;
+        QVector<Child_s        > Children;
     };
 
 private: /* Members   */

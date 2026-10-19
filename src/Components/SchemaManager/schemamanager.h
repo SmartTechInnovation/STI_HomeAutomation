@@ -26,6 +26,7 @@ public: /* Typedef and enums */
         QString Default;
         QString Unit;
         QString Docs;
+        QString Ref;            // Type="Ref": TagName of the nodes offered as variants
         bool    ReadOnly = false;
         bool    Hidden   = false;
         QVector<Variant_s> Variants;

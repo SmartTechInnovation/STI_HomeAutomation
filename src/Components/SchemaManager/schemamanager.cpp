@@ -127,6 +127,7 @@ bool SchemaManager_class::parse(const XmlNode_class *node, const QString &source
         newProperty.Type        = node->value(ATTR_TYPE);
         newProperty.Default     = node->value(ATTR_DEFAULT);
         newProperty.Unit        = node->value(ATTR_UNIT);
+        newProperty.Ref         = node->value(ATTR_REF);
         newProperty.ReadOnly    = node->value(ATTR_READ_ONLY) == "true";
         newProperty.Hidden      = node->value(ATTR_HIDDEN)    == "true";
         for(auto &variant : node->children()){

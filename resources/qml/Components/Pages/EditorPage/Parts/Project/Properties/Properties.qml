@@ -259,6 +259,7 @@ Item {
                                         case "Bool":     return cmp_Bool
                                         case "Int":      return cmp_Int
                                         case "Enum":     return cmp_Enum
+                                        case "Ref":      return cmp_Enum     // variants = nodes of a tag (IUuid / Title)
                                         case "Color":    return cmp_Color
                                         case "Password": return cmp_Password
                                         default:         return cmp_String   // String, Float, Date, Custom

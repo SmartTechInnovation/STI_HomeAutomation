@@ -585,19 +585,40 @@ QVariantMap Project_class::selection() const{ // Needed for properties menu
         QVariantMap propertyMap;
         propertyMap["tagName"]   = property.TagName;
         propertyMap["title"]     = property.Title;
-        propertyMap["type"]      = property.Type;
+        propertyMap["type"]      = resolveLink(property.Type);
         propertyMap["defValue"]  = property.Default;
         propertyMap["unit"]      = resolveLink(property.Unit);
         propertyMap["docs"]      = property.Docs;
         propertyMap["readOnly"]  = property.ReadOnly;
         propertyMap["hidden"]    = property.Hidden;
         QVariantList variantsList;
-        for(auto &variant : property.Variants){
-            QVariantMap variantMap;
-            variantMap["data"]   = variant.Data;
-            variantMap["text"]   = variant.Text;
-            variantMap["icon"]   = variant.Icon;
-            variantsList.append(variantMap);
+        if(property.Type == QLatin1String("Ref")){
+            /* variants = every node with TagName == Ref; data = its IUuid, text = its Title */
+            QVariantMap noneMap;
+            noneMap["data"] = QString();
+            noneMap["text"] = tr("— none —");
+            noneMap["icon"] = QString();
+            variantsList.append(noneMap);
+            if(m_ptr_Root && !property.Ref.isEmpty()){
+                m_ptr_Root->visit([&variantsList, &property](XmlNode_class *node){
+                    if(node->TagName != property.Ref)
+                        return;
+                    const NodeType_s *refTemplate = S_SchemaManager.getNode(node);
+                    QVariantMap variantMap;
+                    variantMap["data"] = node->value(ATTR_IUUID);
+                    variantMap["text"] = node->value(ATTR_TITLE);
+                    variantMap["icon"] = refTemplate ? refTemplate->Icon : QString();
+                    variantsList.append(variantMap);
+                });
+            }
+        }else{
+            for(auto &variant : property.Variants){
+                QVariantMap variantMap;
+                variantMap["data"]   = variant.Data;
+                variantMap["text"]   = variant.Text;
+                variantMap["icon"]   = variant.Icon;
+                variantsList.append(variantMap);
+            }
         }
         propertyMap["variants"]  = variantsList;
         propertyMap["value"] = m_ptr_Selected->value(property.TagName);

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a1008e-a1b1-75e9-9d48-df78aa175727" TagName="VirtualIn" Title="Virtual Inputs" MenuName="Add VI" Icon="qrc:/icons/hardware/network.svg" Section="true" Editable="false">
+        <Description Text="Inputs coming from the network or from the user interface."/>
+        <Child Uuid="01a100a0-3c4e-7526-beba-371b95879b78" Title="Vitual Input" Visible="true"/>
+        <Child Uuid="01a10094-51b7-70c7-accf-28be8e50c00e" Title="Udp Input"  Visible="true"/>
+        <Child Uuid="01a10094-361a-75dd-8120-4272ae2f2cde" Title="Http Input" Visible="true"/>
+    </NodeType>
+    <NodeType Uuid="01a1008f-0907-70a2-a103-edddd0409758" TagName="VirtualOut" Title="Virtual Outputs" MenuName="Add VO" Icon="qrc:/icons/action/send-receive.svg" Section="true" Editable="false">
+        <Description Text="Commands sent to other systems over the network."/>
+        <Child Uuid="01a100ad-33aa-758a-87fa-89ee28a7aa32" Title="Vitual Output" Visible="true"/>
+        <Child Uuid="01a10094-8fda-751b-a8a7-7f32b1db4821" Title="Udp Output"  Visible="true"/>
+        <Child Uuid="01a10094-6cc1-7292-9c69-789b697a2833" Title="Http Output" Visible="true"/>
+    </NodeType>
+    <NodeType Uuid="01a1008f-5b4d-7010-968e-b6bed4a97e28" TagName="DigitalIn" Title="Digital Inputs" MenuName="Add DI" Icon="qrc:/icons/hardware/DigitalIn.svg" Section="true" Editable="false">
+        <Description Text="Digital inputs available directly on the controller."/>
+        <Child Uuid="01a10094-ac05-76bc-b64c-f75be852c217" Title="Digital Input" Visible="true"/>
+    </NodeType>
+    <NodeType Uuid="01a1008f-967f-71cd-857c-f657f50ab79f" TagName="DigitalOut" Title="Digital Outputs" MenuName="Add DO" Icon="qrc:/icons/hardware/DigitalOut.svg" Section="true" Editable="false">
+        <Description Text="Relays / digital outputs available directly on the controller."/>
+        <Child Uuid="01a10094-c6fb-72e5-9b9f-910b31403357" Title="Digital Output" Visible="true"/>
+    </NodeType>
+    <NodeType Uuid="01a1008f-e7ed-7638-bf4e-6f884e732563" TagName="NetworkPeriphery" Title="Network Periphery" MenuName="Protocols" Icon="qrc:/icons/misc/globe.svg" Section="true" Editable="false">
+        <Description Text="Drivers for devices reached over the network (Modbus TCP, MQTT, marketplace drivers)."/>
+        <Child Uuid="01a10094-e4fe-755f-bae9-8cf6076b9518" Title="Modbus TCP"/>
+        <Child Uuid="01a10566-0d52-709c-b103-128c35f12b73" Title="Mqtt"/>
+    </NodeType>
+    <NodeType Uuid="01a10090-1a3b-75c0-b6f7-209fc88e6922" TagName="Messages" Title="Messages" MenuName="Messages" Icon="qrc:/icons/misc/bell.svg" Section="true" Editable="false">
+        <Description Text="Logging and notifications."/>
+        <Child Uuid="01a10095-19fa-750c-b874-a45074147be0" Title="Logger"       Visible="true"/>
+        <Child Uuid="01a10095-39e8-775c-b179-ae87999abb1b" Title="Notification" Visible="true"/>
+    </NodeType>
+    <NodeType Uuid="01a10090-717d-743d-9f30-b016ed79d585" TagName="Periphery" Title="Physical Periphery" MenuName="Periphery" Icon="qrc:/icons/hardware/cpu.svg" Section="true" Editable="false">
+        <Description Text='Physical interfaces of the controller. Interfaces that exist on the device model are added by "Apply device model"; others (I2C, SPI, 1-Wire, USB serial) can be added manually.'/>
+        <Child Uuid="01a10095-6031-74c2-b6c7-189ca9881633" Title="RS485"/>
+        <Child Uuid="01a10095-7836-70ee-b6c5-1419d6f3c2da" Title="RS232"/>
+        <Child Uuid="01a10095-9242-762a-af6f-b03b3e0a1cb6" Title="CAN"/>
+        <Child Uuid="01a10095-a854-743c-bf2a-ad41acc55b10" Title="I2C"/>
+        <Child Uuid="01a10095-c082-7789-9bd7-41f5ef502991" Title="SPI"/>
+        <Child Uuid="01a10095-e726-70af-8b47-fbd528b03881" Title="OneWire"/>
+        <Child Uuid="01a10096-0b77-7439-aa3b-682c8d2e43db" Title="UsbSerial"/>
+        <Child Uuid="01a10096-26c2-706a-aa9c-d972effd92db" Title="GSM"/>
+    </NodeType>
+</Periphery>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a105b1-d7a7-7199-9601-e026c87087c3" TagName="TreeValveActuator" Title="Valve Actuator Tree" Icon="qrc:/icons/hardware/server.svg">
+        <Description Text="Valve Actuator Tree."/>
+        <Property TagName="Online"    Title="Monitor online status" Type="Bool"   Default="true"/>
+        <Property TagName="Serial"    Title="Serial number"         Type="String" Default=""/>
+        <Property TagName="LedStatus" Title="Switch off LEDs"       Type="Bool"   Default="false"/>
+        <Child    Uuid="01a105bf-a468-768a-ae85-ad2adcbf96ef" Title="Online Status"    />
+        <Child    Uuid="01a105c1-8ba6-72c9-8408-5622caa6101f" Title="No Valve Detected"/>
+        <Child    Uuid="01a105c1-af34-7789-b6dd-63ef20c6eb81" Title="Valve is stuck"   />
+        <Child    Uuid="01a105c1-cbbb-766b-9192-f083402cef02" Title="Button input"     />
+        <Child    Uuid="01a105c4-ecfb-707b-8485-b298e7f353e1" Title="Actuator"         />
+    </NodeType>
+    <NodeType Uuid="01a105bf-a468-768a-ae85-ad2adcbf96ef" TagName="Online" Title="Online Status" Icon="qrc:/icons/navigation/jump.svg" IoType="In">
+        <Description Text="Valve Actuator online Monitor"/>
+        <Property TagName="Online" Title="Monito Online Status" Type="Bool" Default="true"/>
+    </NodeType>
+    <NodeType Uuid="01a105c4-ecfb-707b-8485-b298e7f353e1" TagName="Actuator" Title="Actuator" Icon="qrc:/icons/navigation/jump-over.svg" IoType="Out">
+        <Description Text="Value to control valve Actuator Tree"/>
+    </NodeType>
+</Periphery>

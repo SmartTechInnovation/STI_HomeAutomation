@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a107e0-440e-716c-8543-615c68b7c7ce" TagName="I2CDevice" Title="I2C device" Icon="qrc:/icons/hardware/memory.svg">
+        <Description Text="Device on the I2C bus."/>
+        <Property TagName="Address"      Title="Address"       Type="String" Default="0x48"/>
+        <Property TagName="PollInterval" Title="Poll interval" Type="Int"    Default="1000" Unit="ms"/>
+        <Child Uuid="01a107e3-f394-7768-b592-0abedc464123" Title="I2C Register In"  Visible="true"/>
+        <Child Uuid="01a107e4-375a-710f-aae0-e6f6c9d9dd0a" Title="I2C Register Out" Visible="true"/>
+    </NodeType>
+    <NodeType Uuid="01a107e3-f394-7768-b592-0abedc464123" TagName="I2cRegisterIn" Title="Register read" Icon="qrc:/icons/navigation/jump.svg" IoType="In">
+        <Description Text="Register value read from the device."/>
+        <Property TagName="Register" Title="Register" Type="String" Default="0x00"/>
+        <Property TagName="Format" Title="Format" Type="Enum" Default="U16">
+            <Variant Data="Bool" Text="Bool"/>
+            <Variant Data="U16" Text="U16"/>
+            <Variant Data="S16" Text="S16"/>
+            <Variant Data="U32" Text="U32"/>
+            <Variant Data="S32" Text="S32"/>
+            <Variant Data="Float32" Text="Float32"/>
+            <Variant Data="U64" Text="U64"/>
+            <Variant Data="S64" Text="S64"/>
+            <Variant Data="Float64" Text="Float64"/>
+        </Property>
+        <Property TagName="Scale" Title="Scale" Type="Float" Default="1"/>
+        <Property TagName="Offset" Title="Offset" Type="Float" Default="0"/>
+    </NodeType>
+    <NodeType Uuid="01a107e4-375a-710f-aae0-e6f6c9d9dd0a" TagName="I2cRegisterOut" Title="Register write" Icon="qrc:/icons/navigation/jump-over.svg" IoType="Out">
+        <Description Text="Register written when the input changes."/>
+        <Property TagName="Register" Title="Register" Type="String" Default="0x01"/>
+        <Property TagName="Format" Title="Format" Type="Enum" Default="U16">
+            <Variant Data="Bool" Text="Bool"/>
+            <Variant Data="U16" Text="U16"/>
+            <Variant Data="S16" Text="S16"/>
+            <Variant Data="U32" Text="U32"/>
+            <Variant Data="S32" Text="S32"/>
+            <Variant Data="Float32" Text="Float32"/>
+            <Variant Data="U64" Text="U64"/>
+            <Variant Data="S64" Text="S64"/>
+            <Variant Data="Float64" Text="Float64"/>
+        </Property>
+    </NodeType>
+</Periphery>

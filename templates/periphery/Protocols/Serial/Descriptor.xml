@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a10599-d09d-7025-a735-c9c68b35a1c0" TagName="SerialAscii" Title="ASCII protocol" Icon="qrc:/icons/software/command-line.svg">
+        <Description Text="Text commands over a serial line."/>
+        <Property TagName="LineEnding" Title="Line ending" Type="Enum" Default="CRLF">
+            <Variant Data="CR" Text="CR"/>
+            <Variant Data="LF" Text="LF"/>
+            <Variant Data="CRLF" Text="CRLF"/>
+            <Variant Data="None" Text="None"/>
+        </Property>
+        <Child Uuid="01a1059a-e17a-715b-90dd-7964f37c7882" Title="Serial Command In"/>
+        <Child Uuid="01a1059b-5f94-724d-bd62-3dbee7cb2ec8" Title="Serial Command Out"/>
+    </NodeType>
+    <NodeType Uuid="01a1059a-e17a-715b-90dd-7964f37c7882" TagName="SerialCommandIn" Title="Received command" Icon="qrc:/icons/navigation/jump.svg" IoType="In">
+        <Description Text="Value extracted from received text."/>
+        <Property TagName="Pattern" Title="Recognition" Type="String" Default="">
+            <Docs Text='Text before the value, e.g. "TEMP=\v"'/>
+        </Property>
+        <Property TagName="DataType" Title="Signal type" Type="Enum" Default="Float">
+            <Variant Data="Bool" Text="Bool"/>
+            <Variant Data="Int" Text="Int"/>
+            <Variant Data="Float" Text="Float"/>
+            <Variant Data="String" Text="String"/>
+        </Property>
+    </NodeType>
+    <NodeType Uuid="01a1059b-5f94-724d-bd62-3dbee7cb2ec8" TagName="SerialCommandOut" Title="Send command" Icon="qrc:/icons/navigation/jump-over.svg" IoType="Out">
+        <Description Text="Text sent when the input changes."/>
+        <Property TagName="Text" Title="Command" Type="String" Default="&lt;v&gt;">
+            <Docs Text="&lt;v&gt; is replaced by the input value"/>
+        </Property>
+    </NodeType>
+</Periphery>

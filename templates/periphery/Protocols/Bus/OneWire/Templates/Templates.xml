@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Templates>
+    <Template Name="DS18B20" Title="DS18B20 temperature sensor" Vendor="Maxim" For="OneWire">
+        <Description Text="Digital thermometer, -55..125 °C."/>
+        <OneWireSensor Title="Temperature" RomId="28-000000000000" Offset="0"/>
+    </Template>
+</Templates>

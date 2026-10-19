@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a10544-de7c-759a-b726-29c19d8438b0" TagName="VirtualHttpInCmd" Title="HTTP input command" Icon="qrc:/icons/navigation/jump.svg" IoType="In">
+        <Description Text="Value found in the HTTP response."/>
+        <Property TagName="Pattern" Title="Command recognition" Type="String" Default="\v">
+            <Docs Text="Loxone style: text before the value followed by \v; or JSON path when the response is JSON"/>
+        </Property>
+        <Property TagName="JsonPath" Title="JSON path" Type="String" Default=""/>
+        <Property TagName="DataType" Title="Signal type" Type="Enum" Default="Float">
+            <Variant Data="Bool" Text="Bool"/>
+            <Variant Data="Int" Text="Int"/>
+            <Variant Data="Float" Text="Float"/>
+            <Variant Data="String" Text="String"/>
+        </Property>
+    </NodeType>
+    <NodeType Uuid="01a10547-a1a3-7067-accb-67c6b1ee59a2" TagName="VirtualHttpOutCmd" Title="HTTP output command" Icon="qrc:/icons/navigation/jump-over.svg" IoType="Out">
+        <Description Text="Request sent when the input changes."/>
+        <Property TagName="Method" Title="Method" Type="Enum" Default="GET">
+            <Variant Data="GET" Text="GET"/>
+            <Variant Data="POST" Text="POST"/>
+            <Variant Data="PUT" Text="PUT"/>
+            <Variant Data="PATCH" Text="PATCH"/>
+            <Variant Data="DELETE" Text="DELETE"/>
+        </Property>
+        <Property TagName="CommandOn" Title="Command for ON / value" Type="String" Default="/api/set?value=&lt;v&gt;">
+            <Docs Text="&lt;v&gt; is replaced by the input value"/>
+        </Property>
+        <Property TagName="CommandOff" Title="Command for OFF" Type="String" Default=""/>
+        <Property TagName="Body"       Title="Body"            Type="String" Default=""/>
+        <Property TagName="ContentType" Title="Content type"   Type="String" Default="application/json"/>
+        <Property TagName="Headers"    Title="Extra headers"      Type="String" Default=""/>
+    </NodeType>
+</Periphery>

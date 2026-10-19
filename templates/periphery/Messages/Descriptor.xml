@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a10095-19fa-750c-b874-a45074147be0" TagName="Logger" Title="Logger" Icon="qrc:/icons/file/note.svg" IoType="Out">
+        <Description Text="Writes its input to a log file / database."/>
+        <Property TagName="Target" Title="Target" Type="Enum" Default="File">
+            <Variant Data="File" Text="File"/>
+            <Variant Data="Database" Text="Database"/>
+            <Variant Data="Syslog" Text="Syslog"/>
+        </Property>
+        <Property TagName="File" Title="File" Type="String" Default="/var/log/windctrl/app.log"/>
+        <Property TagName="OnChangeOnly" Title="Only on change" Type="Bool" Default="true"/>
+    </NodeType>
+    <NodeType Uuid="01a10095-39e8-775c-b179-ae87999abb1b" TagName="Notification" Title="Notification" Icon="qrc:/icons/misc/bell.svg" IoType="Out">
+        <Description Text="Sends a notification to the user devices when the input rises."/>
+        <Property TagName="Caption" Title="Notification title" Type="String" Default="Info"/>
+        <Property TagName="Text" Title="Text" Type="String" Default="&lt;v&gt;"/>
+        <Property TagName="Priority" Title="Priority" Type="Enum" Default="Normal">
+            <Variant Data="Info" Text="Info"/>
+            <Variant Data="Normal" Text="Normal"/>
+            <Variant Data="Alarm" Text="Alarm"/>
+        </Property>
+    </NodeType>
+</Periphery>

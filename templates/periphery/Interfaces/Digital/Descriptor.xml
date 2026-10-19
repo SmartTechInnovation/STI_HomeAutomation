@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a10094-ac05-76bc-b64c-f75be852c217" TagName="DigitalInput" Title="DI" Icon="qrc:/icons/hardware/DigitalIn.svg" IoType="In">
+        <Description Text="Digital input of the controller."/>
+        <Property TagName="Pin" Title="Pin (GPIO)" Type="Int" Default="0"/>
+        <Property TagName="Invert" Title="Invert" Type="Bool" Default="false"/>
+        <Property TagName="Debounce" Title="Debounce" Type="Int" Default="20" Unit="ms"/>
+    </NodeType>
+    <NodeType Uuid="01a10094-c6fb-72e5-9b9f-910b31403357" TagName="DigitalOutput" Title="DO" Icon="qrc:/icons/hardware/DigitalOut.svg" IoType="Out">
+        <Description Text="Relay / digital output of the controller."/>
+        <Property TagName="Pin" Title="Pin (GPIO)" Type="Int" Default="0"/>
+        <Property TagName="Invert" Title="Invert" Type="Bool" Default="false"/>
+        <Property TagName="SafeState" Title="State on error" Type="Enum" Default="Off">
+            <Variant Data="Off" Text="Off"/>
+            <Variant Data="On" Text="On"/>
+            <Variant Data="Keep" Text="Keep"/>
+        </Property>
+    </NodeType>
+</Periphery>

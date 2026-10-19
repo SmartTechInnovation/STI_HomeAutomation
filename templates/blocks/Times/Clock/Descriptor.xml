@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Block Name="Clock" Title="Clock" Color="#7D8491" Width="400" Category="Times" Vers="1.0" Icon="icon.svg" Uuid="01a0f27a-ee97-715a-872d-fb8051d9aab0">
+    <Description Text="Clock functions: hour, minutes, seconds.." />
+    
+    <Output ShortName="H"   Type="Int" Visible="true"  ExtName="Hour">
+        <Docs Text="H - Current Hour[0-23]"/>
+    </Output>
+    <Output ShortName="M"   Type="Int" Visible="true"  ExtName="Minutes">
+        <Docs Text="M - Current Minute[0-59]"/>
+    </Output>
+    <Output ShortName="S"   Type="Int" Visible="true"  ExtName="Seconds">
+        <Docs Text="S - Current Second[0-59]"/>
+    </Output>
+    <Output ShortName="Bs"   Type="Int" Visible="false"  ExtName="Boot Seconds">
+        <Docs Text="Bs - Number of seconds since last boot"/>
+    </Output>
+    <Output ShortName="Ux"   Type="Int" Visible="false" ExtName="Unix Timestamp (UTC)">
+        <Docs Text="Ux - Time in Unix timestamp format (UTC)"/>
+    </Output>
+    <Output ShortName="Phc"   Type="Bool" Visible="false" ExtName="Hour change">
+        <Docs Text="Phc - Pulse at hour change"/>
+    </Output>
+    <Output ShortName="Pmc"   Type="Bool" Visible="false" ExtName="Minute change">
+        <Docs Text="Phc - Pulse at minute change"/>
+    </Output>
+    <Output ShortName="Psc"   Type="Bool" Visible="false" ExtName="Second change">
+        <Docs Text="Phc - Pulse at second change"/>
+    </Output>
+</Block>

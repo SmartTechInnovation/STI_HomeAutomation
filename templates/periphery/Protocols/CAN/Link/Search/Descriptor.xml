@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a1082f-b65d-737e-ba8b-a50bbd5e91ce" TagName="LinkSearch" Title="Link Device Search" Icon="qrc:/icons/hardware/server.svg">
+        <Description Text="Search Link Devices"/>
+    </NodeType>
+</Periphery>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a1081e-77d9-7129-93e6-6afd3afdfeca" TagName="CANopen" Title="CANopen" Icon="qrc:/icons/misc/layers-2.svg">
+        <Description Text="CANopen master."/>
+        <Property TagName="SyncPeriod" Title="SYNC period" Type="Int" Default="100" Unit="ms"/>
+        <Child Uuid="01a1081f-11b5-747a-a491-792772fa7e4b" Title="CanOpenNode"/>
+    </NodeType>
+    <NodeType Uuid="01a1081f-11b5-747a-a491-792772fa7e4b" TagName="CanOpenNode" Title="CANopen node" Icon="qrc:/icons/hardware/server.svg">
+        <Description Text="CANopen slave node."/>
+        <Property TagName="NodeId" Title="Node ID" Type="Int" Default="1"/>
+        <Child Uuid="01a10820-1e6b-7669-9c63-ed42950b04c3" Title="CanOpen Read"/>
+        <Child Uuid="01a10820-47d2-72eb-8385-3a4ce4afc325" Title="CanOpen Write"/>
+    </NodeType>
+    <NodeType Uuid="01a10820-1e6b-7669-9c63-ed42950b04c3" TagName="CanOpenRead" Title="SDO / PDO read" Icon="qrc:/icons/navigation/jump.svg" IoType="In">
+        <Description Text="Object dictionary entry that is read."/>
+        <Property TagName="Index" Title="Index" Type="String" Default="0x6000"/>
+        <Property TagName="SubIndex" Title="Sub-index" Type="Int" Default="1"/>
+        <Property TagName="Format" Title="Format" Type="Enum" Default="U16">
+            <Variant Data="Bool" Text="Bool"/>
+            <Variant Data="U16" Text="U16"/>
+            <Variant Data="S16" Text="S16"/>
+            <Variant Data="U32" Text="U32"/>
+            <Variant Data="S32" Text="S32"/>
+            <Variant Data="Float32" Text="Float32"/>
+            <Variant Data="U64" Text="U64"/>
+            <Variant Data="S64" Text="S64"/>
+            <Variant Data="Float64" Text="Float64"/>
+        </Property>
+        <Property TagName="Scale" Title="Scale" Type="Float" Default="1"/>
+    </NodeType>
+    <NodeType Uuid="01a10820-47d2-72eb-8385-3a4ce4afc325" TagName="CanOpenWrite" Title="SDO / PDO write" Icon="qrc:/icons/navigation/jump-over.svg" IoType="Out">
+        <Description Text="Object dictionary entry that is written."/>
+        <Property TagName="Index" Title="Index" Type="String" Default="0x6200"/>
+        <Property TagName="SubIndex" Title="Sub-index" Type="Int" Default="1"/>
+        <Property TagName="Format" Title="Format" Type="Enum" Default="U16">
+            <Variant Data="Bool" Text="Bool"/>
+            <Variant Data="U16" Text="U16"/>
+            <Variant Data="S16" Text="S16"/>
+            <Variant Data="U32" Text="U32"/>
+            <Variant Data="S32" Text="S32"/>
+            <Variant Data="Float32" Text="Float32"/>
+            <Variant Data="U64" Text="U64"/>
+            <Variant Data="S64" Text="S64"/>
+            <Variant Data="Float64" Text="Float64"/>
+        </Property>
+        <Property TagName="Scale" Title="Scale" Type="Float" Default="1"/>
+    </NodeType>
+</Periphery>

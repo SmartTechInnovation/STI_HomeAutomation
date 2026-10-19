@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Templates>
+    <Template Name="TI_ADS1115" Title="ADS1115 4-channel ADC" Vendor="Texas Instruments" For="I2C">
+        <Description Text="16 bit ADC, conversion register 0x00. The channel is selected through the config register (0x01)."/>
+        <I2CDevice Title="ADS1115" Address="0x48" PollInterval="1000">
+            <I2cRegisterIn Title="Conversion" Register="0x00" Format="S16" Scale="1" Offset="0"/>
+            <I2cRegisterOut Title="Config" Register="0x01" Format="U16"/>
+        </I2CDevice>
+    </Template>
+    <Template Name="NXP_PCF8574" Title="PCF8574 8-bit I/O expander" Vendor="NXP" For="I2C">
+        <Description Text="Quasi-bidirectional 8 bit port."/>
+        <I2CDevice Title="PCF8574" Address="0x20" PollInterval="200">
+            <I2cRegisterIn Title="Port read" Register="0x00" Format="U16" Scale="1" Offset="0"/>
+            <I2cRegisterOut Title="Port write" Register="0x00" Format="U16"/>
+        </I2CDevice>
+    </Template>
+</Templates>

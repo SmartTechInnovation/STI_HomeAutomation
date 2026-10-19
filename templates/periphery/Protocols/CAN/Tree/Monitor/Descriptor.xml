@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a105ae-7506-74dc-b768-19c7f1e96e4f" TagName="TreeMonitor" Title="Tree Monitor" Icon="qrc:/icons/hardware/server.svg">
+        <Description Text="Monitor Tree Devices"/>
+    </NodeType>
+</Periphery>

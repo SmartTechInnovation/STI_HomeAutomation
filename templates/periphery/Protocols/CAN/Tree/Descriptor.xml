@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a105aa-5c87-76ca-b230-6988c889d865" TagName="Tree" Title="Tree" MenuName="Tree" Icon="qrc:/icons/misc/layers-2.svg">
+        <Description Text="Tree bus (compatibility with Loxone Tree devices)."/>
+        <Child Uuid="01a105ae-7506-74dc-b768-19c7f1e96e4f" Title="Tree Monitor"     Visible="true"/>
+        <Child Uuid="9740497c-c2de-42dd-bc11-e95d94b7d8e5" Title="Tree Diagnostics" Visible="true"/>
+        <Child Uuid="01a105af-a085-76f9-a715-30cbac6a2f87" Title="Tree Search"      Visible="true"/>
+        <Child Uuid="01a105b1-d7a7-7199-9601-e026c87087c3" Title="Valve Actuator Tree" />
+    </NodeType>
+</Periphery>

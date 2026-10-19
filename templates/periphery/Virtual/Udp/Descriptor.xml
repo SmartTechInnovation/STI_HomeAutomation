@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a100a4-97b4-733e-8170-363793c31c33" TagName="VirtualUdpInCmd" Title="UDP Input command" Icon="qrc:/icons/navigation/jump.svg" IoType="In">
+        <Description Text="Value found in a datagram."/>
+        <Property TagName="Pattern"  Title="Command recognition" Type="String" Default="\v"/>
+        <Property TagName="DataType" Title="Signal type" Type="Enum" Default="Float">
+            <Variant Data="Bool"   Text="Bool"/>
+            <Variant Data="Int"    Text="Int"/>
+            <Variant Data="Float"  Text="Float"/>
+            <Variant Data="String" Text="String"/>
+        </Property>
+    </NodeType>
+    <NodeType Uuid="01a100aa-7fe7-772b-a552-93c6b114da2d" TagName="VirtualUdpOutCmd" Title="UDP Output command" Icon="qrc:/icons/navigation/jump-over.svg" IoType="Out">
+        <Description Text="Datagram sent when the input changes."/>
+        <Property TagName="CommandOn"  Title="Command for ON / value" Type="String" Default="&lt;v&gt;"/>
+        <Property TagName="CommandOff" Title="Command for OFF"        Type="String" Default=""/>
+    </NodeType>
+</Periphery>

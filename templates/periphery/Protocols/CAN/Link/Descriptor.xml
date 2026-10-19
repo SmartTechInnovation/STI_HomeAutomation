@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a1081d-f532-72de-97d7-d3d4a457bdea" TagName="Link" Title="Link" MenuName="Link" Icon="qrc:/icons/misc/layers-2.svg">
+        <Description Text="Link bus (compatibility with Loxone Link devices)."/>
+        <Child Uuid="01a1082f-6bd8-72a9-a7d2-2e2810a4dbdf" Title="Link Monitor"     Visible="true"/>
+        <Child Uuid="01a1082f-9bcb-74ca-9227-150ace987df3" Title="Link Diagnostics" Visible="true"/>
+        <Child Uuid="01a1082f-b65d-737e-ba8b-a50bbd5e91ce" Title="Link Search"      Visible="true"/>
+        <Child Uuid="01a1082f-d131-7009-acfc-798042af81e3" Title="Modbus Extension" />
+    </NodeType>
+</Periphery>

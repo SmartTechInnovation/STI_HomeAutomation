@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a1082f-9bcb-74ca-9227-150ace987df3" TagName="LinkDiagnostics" Title="Link Diagnostics" Icon="qrc:/icons/hardware/server.svg">
+        <Description Text="Diagnostic Link Devices"/>
+    </NodeType>
+</Periphery>

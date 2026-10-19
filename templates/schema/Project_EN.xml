@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Schema>
+    <!-- ================= Project ================= -->
+    <NodeType Uuid="670dd8f6-aa49-4c23-bdc5-a643359abde8" TagName="Project" Title="Project" Icon="qrc:/icons/navigation/ui-panel-left.svg">
+        <Description Text="Project information, company and client."/>
+        <Property TagName="Title"      Title="Title"             Type="String" Default="New project"/>
+        <Property TagName="Author"     Title="Author"            Type="String"/>
+        <Property TagName="ConfigVers" Title="Config version"    Type="String" Default="1.0.0" ReadOnly="true"/>
+        <Property TagName="CDate"      Title="Created"           Type="String" ReadOnly="true"/>
+        <Property TagName="MDate"      Title="Modified"          Type="String" ReadOnly="true"/>
+        <Property TagName="Language"   Title="Language"          Type="Enum"   Default="EN" ReadOnly="true">
+            <Variant Data="EN" Text="EN" />
+            <Variant Data="RU" Text="RU" />
+        </Property>
+        <Group Title="Document">
+            <Property TagName="PaperFormat" Title="Paper format" Type="Enum"   Default="A3">
+                <Variant Data="A4" Text="A4 (297 x 210)"/>
+                <Variant Data="A3" Text="A3 (420 x 297)"/>
+                <Variant Data="A2" Text="A2 (594 x 420)"/>
+                <Variant Data="A1" Text="A1 (841 x 594)"/>
+                <Variant Data="A0" Text="A0 (1189 x 841)"/>
+            </Property>
+        </Group>
+        <Group Title="Location">
+            <Property TagName="Street"     Title="Street"        Type="String"/>
+            <Property TagName="Town"       Title="Town"          Type="String"/>
+            <Property TagName="PostCode"   Title="Post code"     Type="String"/>
+            <Property TagName="Country"    Title="Country"       Type="String"/>
+            <Property TagName="Latitude"   Title="Latitude"      Type="Float" />
+            <Property TagName="Longitude"  Title="Longitude"     Type="Float" />
+            <Property TagName="Timezone"   Title="Time zone"     Type="String" Default="Europe/Chisinau"/>
+        </Group>
+        <Group Title="Units">
+            <Property TagName="UElevation" Title="Elevation"     Type="Enum" Default="m">
+                <Variant Data="m"  Text="m"  />
+                <Variant Data="ft" Text="ft" />
+            </Property>
+            <Property TagName="UArea"      Title="Area"          Type="Enum" Default="m2">
+                <Variant Data="m2"   Text="m²"  />
+                <Variant Data="in2"  Text="in²" />
+                <Variant Data="ft2"  Text="ft²" />
+            </Property>
+            <Property TagName="UTemp"      Title="Temperature"   Type="Enum"   Default="C" >
+                <Variant Data="C" Text="°C"/>
+                <Variant Data="F" Text="°F"/>
+                <Variant Data="K" Text="K" />
+            </Property>
+            <Property TagName="UWind"          Title="Wind speed"    Type="Enum"  Default="ms">
+                <Variant Data="ms"  Text="m/s"  />
+                <Variant Data="kmh" Text="km/h" />
+                <Variant Data="mph" Text="mph"  />
+            </Property>
+            <Property TagName="UPrecipitation" Title="Precipitation" Type="Enum" Default="mm">
+                <Variant Data="mm"  Text="mm"   />
+                <Variant Data="in"  Text="in"   />
+                <Variant Data="lm2" Text="L/m²" />
+            </Property>
+            <Property TagName="UAirPressure"   Title="Air pressure"  Type="Enum" Default="hPa">
+                <Variant Data="Pa"  Text="Pa"   />
+                <Variant Data="Bar" Text="Bar"  />
+                <Variant Data="Atm" Text="Atm"  />
+                <Variant Data="Psi" Text="Psi"  />
+            </Property>
+            <Property TagName="Currency"   Title="Currency"          Type="Enum" Default="USD" >
+                <Variant Data="USD" Text="USD"  />
+                <Variant Data="EUR" Text="EUR"  />
+                <Variant Data="GBP" Text="GBP"  />
+                <Variant Data="AUD" Text="AUD"  />
+                <Variant Data="CAD" Text="CAD"  />
+                <Variant Data="JPY" Text="JPY"  />
+                <Variant Data="CNY" Text="CNY"  />
+                <Variant Data="CHF" Text="CHF"  />
+                <Variant Data="HKD" Text="HKD"  />
+                <Variant Data="SGD" Text="SGD"  />
+                <Variant Data="INR" Text="INR"  />
+                <Variant Data="KRW" Text="KRW"  />
+                <Variant Data="SEK" Text="SEK"  />
+                <Variant Data="MXN" Text="MXN"  />
+                <Variant Data="NZD" Text="NZD"  />
+                <Variant Data="NOK" Text="NOK"  />
+                <Variant Data="TWD" Text="TWD"  />
+                <Variant Data="BRL" Text="BRL"  />
+                <Variant Data="ZAR" Text="ZAR"  />
+                <Variant Data="PLN" Text="PLN"  />
+                <Variant Data="DKK" Text="DKK"  />
+                <Variant Data="IDR" Text="IDR"  />
+                <Variant Data="TRY" Text="TRY"  />
+                <Variant Data="THB" Text="THB"  />
+                <Variant Data="ILS" Text="ILS"  />
+                <Variant Data="HUF" Text="HUF"  />
+                <Variant Data="CZK" Text="CZK"  />
+                <Variant Data="CLP" Text="CLP"  />
+                <Variant Data="PHP" Text="PHP"  />
+                <Variant Data="COP" Text="COP"  />
+                <Variant Data="MYR" Text="MYR"  />
+                <Variant Data="AED" Text="AED"  />
+                <Variant Data="SAR" Text="SAR"  />
+                <Variant Data="RON" Text="RON"  />
+                <Variant Data="MDL" Text="MDL"  />
+                <Variant Data="PEN" Text="PEN"  />
+            </Property>
+            <Property TagName="Format24h"  Title="24h clock"         Type="Enum"   Default="24h"  >
+                <Variant Data="24h" Text="24h" />
+                <Variant Data="12h" Text="12h" />
+            </Property>
+            <Property TagName="Telemetry"  Title="Telemetry"         Type="Enum"   Default="false" >
+                <Variant Data="true"  Text="Enabled"  />
+                <Variant Data="false" Text="Disabled" />
+            </Property>
+        </Group>
+        <Group Title="Company">
+            <Property TagName="CompanyName"    Title="Name"    Type="String" />
+            <Property TagName="CompanyAddress" Title="Address" Type="String" />
+            <Property TagName="CompanyPhone"   Title="Phone"   Type="String" />
+            <Property TagName="CompanyEmail"   Title="Email"   Type="String" />
+            <Property TagName="CompanyWeb"     Title="Web"     Type="String" />
+            <Property TagName="CompanyLogo"    Title="Logo (file in project folder)" Type="String"/>
+        </Group>
+        <Group Title="Client">
+            <Property TagName="ClientName"    Title="Name"    Type="String" />
+            <Property TagName="ClientAddress" Title="Address" Type="String" />
+            <Property TagName="ClientPhone"   Title="Phone"   Type="String" />
+            <Property TagName="ClientEmail"   Title="Email"   Type="String" />
+        </Group>
+
+        <Child Uuid="01a11542-80d4-70ec-98a2-cbd8b0690e62" Title="Rooms"           Mandatory="true" />
+        <Child Uuid="01a11542-bcf6-745d-b600-c03415939587" Title="Categories"      Mandatory="true" />
+        <Child Uuid="01a11542-e944-72d8-bc5b-6b1a69123446" Title="Users"           Mandatory="true" />
+        <Child Uuid="01a11543-1e20-75d2-9911-27ff45f8149c" Title="Rights"          Mandatory="true" />
+        <Child Uuid="01a11543-3244-771a-8c7a-6267e0572540" Title="User groups"     Mandatory="true" />
+        <Child Uuid="01a11543-5501-76c8-98e8-3d75f5ec478d" Title="Managed tablets" Mandatory="true" />
+        <Child Uuid="01a11543-8ee0-714a-9554-cffe93c7f387" Title="Variables"       Mandatory="true" />
+        <Child Uuid="01a11544-6549-72c8-9920-bd92066db88e" Title="Root device"     Mandatory="true" />
+    </NodeType>
+
+    <!-- ================= Rooms ================= -->
+    <NodeType Uuid="01a11542-80d4-70ec-98a2-cbd8b0690e62" TagName="Rooms" Title="Rooms" Icon="qrc:/icons/misc/layers-3.svg" Editable="false">
+        <Description Text="Rooms of the building. Blocks and tablets are assigned to a room."/>
+        <Child Uuid="2e7fd549-7b6b-4604-8e5d-4bf936da4266" Title="Room" Visible="true"/>
+    </NodeType>
+    <NodeType Uuid="2e7fd549-7b6b-4604-8e5d-4bf936da4266" TagName="Room" Title="Room" Icon="qrc:/icons/misc/layer-1.svg" >
+        <Description Text="Room of the building."/>
+        <Property TagName="Title" Title="Name"     Type="String" Default="Room"/>
+        <Property TagName="Type"  Title="Type"     Type="Enum"   Default="Common">
+            <Variant Data="Common"  Text="Common"/>
+            <Variant Data="Bedroom" Text="Bedroom"/>
+            <Variant Data="Central" Text="Central"/>
+            <Variant Data="Outdoor" Text="Outdoor"/>
+            <Variant Data="Other"   Text="Other"/>
+        </Property>
+        <Property TagName="Area"  Title="Area"     Type="Int"    Default="0" Unit="Project@UArea"/>
+        <Property TagName="Color" Title="Color"    Type="Color"                       />
+        <Property TagName="Order" Title="Order"    Type="Int"    Default="0"          />
+        <Property TagName="Fav"   Title="Favorite" Type="Bool"   Default="false"      />
+        <Property TagName="Docs"  Title="Notes"    Type="Text"/>
+    </NodeType>
+
+    <!-- ================= Categories ================= -->
+    <NodeType Uuid="01a11542-bcf6-745d-b600-c03415939587" TagName="Categories" Title="Categories" Icon="qrc:/icons/misc/library.svg" Editable="false">
+        <Description Text="Categories group the functions in the user interface (Lighting, Heating, ...)."/>
+        <Child Uuid="1ebde366-0db4-45b9-9abc-0e47c02e57af" Title="Category" Visible="true"/>
+    </NodeType>
+    <NodeType Uuid="1ebde366-0db4-45b9-9abc-0e47c02e57af" TagName="Category" Title="Category" Icon="qrc:/icons/misc/tag.svg">
+        <Property TagName="Title" Title="Name"     Type="String" Default="Category"/>
+        <Property TagName="Color" Title="Color"    Type="Color"/>
+        <Property TagName="Order" Title="Order"    Type="Int"    Default="0"/>
+        <Property TagName="Fav"   Title="Favorite" Type="Bool"   Default="false"/>
+        <Property TagName="Docs"  Title="Notes"    Type="Text"/>
+    </NodeType>
+
+    <!-- ================= Users ================= -->
+    <NodeType Uuid="01a11542-e944-72d8-bc5b-6b1a69123446" TagName="Users" Title="Users" Icon="qrc:/icons/misc/users.svg" Editable="false">
+        <Child Uuid="6e05dfc3-7144-4881-8eca-406d5bcafd42" Title="User" Visible="true"/>
+    </NodeType>
+
+    <NodeType Uuid="6e05dfc3-7144-4881-8eca-406d5bcafd42" TagName="User" Title="User" Icon="qrc:/icons/misc/user_shield.svg">
+        <Property TagName="Username" Title="Username"      Type="String"   Default="Admin" />
+        <Property TagName="PswH"     Title="Password"      Type="Password" Default="Admin" />
+        <Property TagName="UserType" Title="User Type"     Type="Enum"     Default="User" >
+            <Variant Data="Admin" Text="Administrator" />
+            <Variant Data="User"  Text="User"          />
+        </Property>
+        <Property TagName="Group"    Title="User group"    Type="Ref"      Ref="UserGroup" />
+    </NodeType>
+    <!-- ================= Rights ================= -->
+    <NodeType Uuid="01a11543-1e20-75d2-9911-27ff45f8149c" TagName="Rights" Title="Rights" Icon="qrc:/icons/misc/password.svg" Editable="false">
+        <Child Uuid="f8c55295-220b-4eac-9a97-b675f6ac5807" Title="Permission" Visible="true"/>
+    </NodeType>
+    <NodeType Uuid="f8c55295-220b-4eac-9a97-b675f6ac5807" TagName="Permission" Title="Permission" Icon="qrc:/icons/misc/password.svg">
+        <Property TagName="Title" Title="Name"          Type="String" Default="Permission"/>
+        <Property TagName="Uid"   Title="Permission id" Type="Int"    Default="0"/>
+    </NodeType>
+
+    <!-- ================= User Groups ================= -->
+    <NodeType Uuid="01a11543-3244-771a-8c7a-6267e0572540" TagName="UserGroups" Title="User groups" Icon="qrc:/icons/misc/users.svg" Editable="false">
+        <Child Uuid="5ebd63fd-a996-4c0c-98a1-656debc59af8" Title="User group" Visible="true"/>
+    </NodeType>
+    <NodeType Uuid="5ebd63fd-a996-4c0c-98a1-656debc59af8" TagName="UserGroup" Title="User group" Icon="qrc:/icons/misc/users.svg">
+        <Property TagName="Title"       Title="Name"                 Type="String" Default="Group"/>
+        <Property TagName="Permissions" Title="Permissions (bitmask)" Type="Int"   Default="0"/>
+    </NodeType>
+
+    <!-- ================= Managed tablets ================= -->
+    <NodeType Uuid="01a11543-5501-76c8-98e8-3d75f5ec478d" TagName="ManagedTablets" Title="Managed tablets" Icon="qrc:/icons/software/desktop.svg" Editable="false">
+        <Child Uuid="c55ff0d3-b3f8-40d9-b45c-93966c641cfc" Title="Tablet" Visible="true"/>
+    </NodeType>
+    <NodeType Uuid="c55ff0d3-b3f8-40d9-b45c-93966c641cfc" TagName="Tablet" Title="Tablet" Icon="qrc:/icons/software/desktop.svg">
+        <Property TagName="Title" Title="Name" Type="String" Default="Tablet"/>
+        <Property TagName="Room"  Title="Room" Type="Ref"    Ref="Room"/>
+    </NodeType>
+
+    <!-- ================= Variables ================= -->
+    <NodeType Uuid="01a11543-8ee0-714a-9554-cffe93c7f387" TagName="Variables" Title="Variables" Icon="qrc:/icons/misc/variable.svg" Max="7" Editable="false">
+        <Description Text="Global values of the program. Drag a variable on a page and choose Read or Write."/>
+        <Child Uuid="01a1463e-f683-776e-b5fc-273878699e2a" Title="Bool"   Visible="true" Mandatory="true" />
+        <Child Uuid="01a14661-a8c6-727e-8d3a-dd70321817d7" Title="Int"    Visible="true" Mandatory="true" />
+        <Child Uuid="01a14661-d142-733c-876d-44e51cb86b68" Title="Float"  Visible="true" Mandatory="true" />
+        <Child Uuid="01a14661-fafc-718c-87b7-aad2d28205d7" Title="String" Visible="true" Mandatory="true" />
+        <Child Uuid="01a14662-1bb6-748e-87dd-7b6ccae7e40f" Title="Enum"                  Mandatory="true" />
+        <Child Uuid="01a14662-3f09-739f-8377-a6757082a766" Title="Date"                  Mandatory="true" />
+        <Child Uuid="01a14662-6373-770e-96ca-4dbb3fca2718" Title="Custom"                Mandatory="true" />
+    </NodeType>
+
+    <NodeType Uuid="01a1463e-f683-776e-b5fc-273878699e2a" TagName="CatBool" Title="Bool" Icon="qrc:/icons/software/bool.svg" Editable="false">
+        <Description Text="Global bool values of the program. Drag a variable on a page and choose Read or Write."/>
+        <Child Uuid="01a14643-3623-7767-9494-90d3a442b3c1" Title="Bool" Visible="true" />
+    </NodeType>
+    <NodeType Uuid="01a14661-a8c6-727e-8d3a-dd70321817d7" TagName="CatInt" Title="Int" Icon="qrc:/icons/signals/wave-square.svg" Editable="false">
+        <Description Text="Global bool values of the program. Drag a variable on a page and choose Read or Write."/>
+        <Child Uuid="01a14643-3623-7767-9494-90d3a442b3c1" Title="Int" Visible="true" />
+    </NodeType>
+    <NodeType Uuid="01a14661-d142-733c-876d-44e51cb86b68" TagName="CatFloat" Title="Float" Icon="qrc:/icons/signals/wave-sine.svg" Editable="false">
+        <Description Text="Global bool values of the program. Drag a variable on a page and choose Read or Write."/>
+        <Child Uuid="01a14643-3623-7767-9494-90d3a442b3c1" Title="Float" Visible="true" />
+    </NodeType>
+    <NodeType Uuid="01a14661-fafc-718c-87b7-aad2d28205d7" TagName="CatString" Title="String" Icon="qrc:/icons/software/text.svg" Editable="false">
+        <Description Text="Global bool values of the program. Drag a variable on a page and choose Read or Write."/>
+        <Child Uuid="01a14643-3623-7767-9494-90d3a442b3c1" Title="String" Visible="true" />
+    </NodeType>
+    <NodeType Uuid="01a14662-1bb6-748e-87dd-7b6ccae7e40f" TagName="CatEnum" Title="Enum" Icon="qrc:/icons/misc/library.svg" Editable="false">
+        <Description Text="Global bool values of the program. Drag a variable on a page and choose Read or Write."/>
+        <Child Uuid="01a14643-3623-7767-9494-90d3a442b3c1" Title="Enum" Visible="true" />
+    </NodeType>
+    <NodeType Uuid="01a14662-3f09-739f-8377-a6757082a766" TagName="CatDate" Title="Date" Icon="qrc:/icons/misc/calendar.svg" Editable="false">
+        <Description Text="Global bool values of the program. Drag a variable on a page and choose Read or Write."/>
+        <Child Uuid="01a14643-3623-7767-9494-90d3a442b3c1" Title="Date" Visible="true" />
+    </NodeType>
+    <NodeType Uuid="01a14662-6373-770e-96ca-4dbb3fca2718" TagName="CatCustom" Title="Custom" Icon="qrc:/icons/misc/blocks.svg" Editable="false">
+        <Description Text="Global bool values of the program. Drag a variable on a page and choose Read or Write."/>
+        <Child Uuid="01a14643-3623-7767-9494-90d3a442b3c1" Title="Custom" Visible="true" />
+    </NodeType>
+    <NodeType Uuid="01a14643-3623-7767-9494-90d3a442b3c1" TagName="Variable" Title="Variable"    Icon="qrc:/icons/misc/variable.svg" Max="1">
+        <Property TagName="Title"    Title="Name"          Type="String" Default="Variable"/>
+        <Property TagName="Category" Title="Category"      Type="Ref"    Ref="Category" />
+        <Property TagName="Type"     Title="Data type"     Type="Enum"   Default="Bool">
+            <Variant Data="Bool"     Text="Bool"     />
+            <Variant Data="Int"      Text="Int"      />
+            <Variant Data="Float"    Text="Float"    />
+            <Variant Data="String"   Text="String"   />
+            <Variant Data="Enum"     Text="Enum"     />
+            <Variant Data="Date"     Text="Date"     />
+            <Variant Data="Custom"   Text="Custom"   />
+        </Property >
+        <Property TagName="Default"  Title="Default value" Type="Variable@Type" Default="" />
+        
+        <Child Uuid="01a12c7d-17c1-73a9-8b4d-09d9e12ee318" Title="Add Reference" Visible="true"/>
+    </NodeType>
+
+    <NodeType Uuid="01a12c7d-17c1-73a9-8b4d-09d9e12ee318" TagName="Reference" Title="Add Reference" IoType="Out" Icon="qrc:/icons/action/source.svg" >
+        <Property TagName="Ref" Title="Reference" Type="String" />
+    </NodeType>
+
+    <!-- ================= Root device ================= -->
+    <!-- Its children are the periphery sections (NodeTypes with Section="true" in the Periphery library) -->
+    <NodeType Uuid="01a11544-6549-72c8-9920-bd92066db88e" TagName="RootDevice" Title="Controller" Icon="qrc:/icons/hardware/server.svg">
+        <Description Text="Controller running the program."/>
+        <Property TagName="Title"       Title="Name"         Type="String" Default="Miniserver"/>
+        <Property TagName="IpAddress"   Title="IP address"   Type="String"/>
+        <Property TagName="PortHttp"    Title="HTTP port"    Type="Int"    Default="80"/>
+        <Property TagName="PortHttps"   Title="HTTPS port"   Type="Int"    Default="443"/>
+        <Property TagName="Serial"      Title="Serial number" Type="String"/>
+        <Property TagName="DeviceModel" Title="Device model" Type="String" ReadOnly="true"/>
+    </NodeType>
+</Schema>

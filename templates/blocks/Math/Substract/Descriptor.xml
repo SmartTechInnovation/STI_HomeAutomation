@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Block Name="Substract" Title="Substract" Color="#7D8491" Width="400" Category="Math" Vers="1.0" Icon="icon.svg" Uuid="01a0f27a-2395-75bf-8bfc-9dfc17f00f47">
+    <Description Text="Substract analog values." />
+    <Input  ShortName="I1" ExtName="First  Number" Type="Float" Visible="true" />
+    <Input  ShortName="I2" ExtName="Second Number" Type="Float" Visible="true" />
+    <Output ShortName="O"  ExtName="Result"        Type="Float" Visible="true" />
+</Block>

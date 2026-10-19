@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Block Name="And" Title="And" Color="#7D8491" Width="400" Category="Logic" Vers="1.0" Icon="icon.svg" Uuid="7f1dc73a-6f01-4c57-96fe-2d41baeddacf">
+    <Description Text="Logical AND operation of inputs." />
+    <Input  ShortName="I1" ExtName="First  Value" Type="Bool" Visible="true" />
+    <Input  ShortName="I2" ExtName="Second Value" Type="Bool" Visible="true" />
+    <Output ShortName="O"  ExtName="Result"       Type="Bool" Visible="true" />
+</Block>

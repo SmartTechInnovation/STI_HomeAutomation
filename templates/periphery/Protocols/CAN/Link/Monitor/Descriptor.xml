@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a1082f-6bd8-72a9-a7d2-2e2810a4dbdf" TagName="LinkMonitor" Title="Link Monitor" Icon="qrc:/icons/hardware/server.svg">
+        <Description Text="Monitor Link Devices"/>
+    </NodeType>
+</Periphery>

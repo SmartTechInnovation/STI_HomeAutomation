@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Block Name="Operating Time" Title="Operating Time" Color="#7D8491" Width="400" Category="Times" Vers="1.0" Icon="icon.svg" Uuid="01a0f27b-f3fc-7408-a3b6-ef87a5b28c7f">
+    <Description Text="Create opearting time interval" />
+
+    <Output ShortName="Actv"   Type="Bool" Visible="true"  ExtName="Active Operating Time">
+        <Docs Text="Actv - Operating Time Active"/>
+    </Output>
+    <Property ShortName="Ey"  Type="Bool" Visible="false" ExtName="Every Year" Default="true">
+        <Docs Text="Ey - Operating Time occurs every year"/>
+    </Property>
+    <Property ShortName="Start"  Type="Date" Visible="false" ExtName="Start Time" Default="1/1/2000">
+        <Docs Text="Start - Start Time of operating time"/>
+    </Property>
+    <Property ShortName="End"  Type="Date" Visible="false" ExtName="Start Time" Default="1/1/2000">
+        <Docs Text="End - End Time of operating time"/>
+    </Property>
+</Block>

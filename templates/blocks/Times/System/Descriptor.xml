@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Block Name="System" Title="System" Color="#7D8491" Width="400" Category="Times" Vers="1.0" Icon="icon.svg" Uuid="01a0f27c-353a-708a-8085-5f8ea0ad079b">
+    <Description Text="System time functions: Startup, Power On" />
+    
+    <Output ShortName="St" Type="Bool" Visible="true"  ExtName="Startup">
+        <Docs Text="St - Pulse at the start of the program, Warm Start"/>
+    </Output>
+    <Output ShortName="Pw" Type="Bool" Visible="true"  ExtName="Power On">
+        <Docs Text="Pw - Pulse at the powering on device, Cold Start"/>
+    </Output>
+</Block>

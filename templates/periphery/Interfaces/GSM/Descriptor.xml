@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a10096-26c2-706a-aa9c-d972effd92db" TagName="GSM" Title="GSM modem" MenuName="Signals" Icon="qrc:/icons/hardware/network.svg">
+        <Description Text="Cellular modem: SMS, calls, USSD, mobile data fallback."/>
+        <Property TagName="Port" Title="Control port" Type="String" Default="/dev/ttyUSB2"/>
+        <Property TagName="DataInterface" Title="Data interface" Type="String" Default="wwan0"/>
+        <Property TagName="Apn" Title="APN" Type="String" Default="internet"/>
+        <Property TagName="Pin" Title="SIM PIN" Type="String" Default=""/>
+        <Property TagName="DataFallback" Title="Use as data fallback" Type="Bool" Default="true"/>
+        <Child Uuid="01a107fd-23b8-72b0-8266-5c5e0459bc66" Title="GsmSmsOut"/>
+        <Child Uuid="01a107fe-7df5-7541-8142-02bfe8f2f2d5" Title="GsmSmsIn"/>
+        <Child Uuid="01a107fe-97f9-730e-b2ee-c2eebd722e4a" Title="GsmCall"/>
+        <Child Uuid="01a107fe-b16d-7220-afd6-f27ca381f10c" Title="GsmUssd"/>
+        <Child Uuid="01a107fe-c6f7-72e0-89bd-2d0be8225432" Title="GsmUssdReply"/>
+        <Child Uuid="01a107fe-e118-763d-b577-c1b9416cc3a5" Title="GsmSignal"/>
+    </NodeType>
+    <NodeType Uuid="01a107fd-23b8-72b0-8266-5c5e0459bc66" TagName="GsmSendSms" Title="Send SMS" Icon="qrc:/icons/misc/inbox.svg" IoType="Out">
+        <Description Text="Sends the text on its input as SMS."/>
+        <Property TagName="Number" Title="Phone number" Type="String" Default="+373"/>
+    </NodeType>
+    <NodeType Uuid="01a107fe-7df5-7541-8142-02bfe8f2f2d5" TagName="GsmRecvSms" Title="Received SMS" Icon="qrc:/icons/misc/inbox.svg" IoType="In">
+        <Description Text="Text of the last received SMS."/>
+        <Property TagName="AllowedNumbers" Title="Allowed senders" Type="String" Default="">
+            <Docs Text="Comma separated, empty = everybody"/>
+        </Property>
+    </NodeType>
+    <NodeType Uuid="01a107fe-97f9-730e-b2ee-c2eebd722e4a" TagName="GsmCall" Title="Call" Icon="qrc:/icons/misc/bell.svg" IoType="Out">
+        <Description Text="Rings a number on a rising edge."/>
+        <Property TagName="Number" Title="Phone number" Type="String" Default="+373"/>
+        <Property TagName="Duration" Title="Ring duration" Type="Int" Default="20" Unit="s"/>
+    </NodeType>
+    <NodeType Uuid="01a107fe-b16d-7220-afd6-f27ca381f10c" TagName="GsmUssdRq" Title="USSD request" Icon="qrc:/icons/software/command-line.svg" IoType="Out">
+        <Description Text="Sends a USSD code (e.g. account balance) on a rising edge."/>
+        <Property TagName="Code" Title="USSD code" Type="String" Default="*100#"/>
+    </NodeType>
+    <NodeType Uuid="01a107fe-c6f7-72e0-89bd-2d0be8225432" TagName="GsmUssdRs" Title="USSD reply" Icon="qrc:/icons/software/command-line.svg" IoType="In">
+        <Description Text="Text of the last USSD reply."/>
+        <Property TagName="Pattern" Title="Value extraction (regex)" Type="String" Default=""/>
+    </NodeType>
+    <NodeType Uuid="01a107fe-e118-763d-b577-c1b9416cc3a5" TagName="GsmSignal" Title="Signal quality" Icon="qrc:/icons/hardware/network.svg" IoType="In">
+        <Description Text="Signal quality 0..31 (99 = unknown)."/>
+    </NodeType>
+</Periphery>

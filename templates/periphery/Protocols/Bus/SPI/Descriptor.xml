@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a107ec-759a-76ab-a8e6-de2614f3eaef" TagName="SpiDevice" Title="SPI device" Icon="qrc:/icons/hardware/memory.svg">
+        <Description Text="Device on the SPI bus."/>
+        <Property TagName="ChipSelect" Title="Chip select" Type="Int" Default="0"/>
+    </NodeType>
+</Periphery>

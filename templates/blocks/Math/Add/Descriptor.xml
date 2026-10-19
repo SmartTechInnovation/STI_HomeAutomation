@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Block Name="Add" Title="Add" Color="#7D8491" Width="400" Category="Math" Vers="1.0" Icon="icon.svg" Uuid="01a0f279-8fe2-70d8-8e72-30fec646dffa">
+    <Description Text="Adds two or more analog values." />
+    <Input  ShortName="I1" ExtName="First  Number" Type="Float" Visible="true" />
+    <Input  ShortName="I2" ExtName="Second Number" Type="Float" Visible="true" />
+    <Output ShortName="O"  ExtName="Result"        Type="Float" Visible="true" />
+</Block>

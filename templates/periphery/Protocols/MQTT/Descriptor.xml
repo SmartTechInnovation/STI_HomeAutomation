@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a10566-0d52-709c-b103-128c35f12b73" TagName="MQTT" Title="MQTT" MenuName="Topic" Icon="qrc:/icons/misc/globe.svg">
+        <Description Text="MQTT broker connection."/>
+        <Property TagName="Host" Title="Broker" Type="String" Default="192.168.1.10"/>
+        <Property TagName="Port" Title="Port" Type="Int" Default="1883"/>
+        <Property TagName="User" Title="User" Type="String" Default=""/>
+        <Property TagName="Password" Title="Password" Type="String" Default=""/>
+        <Property TagName="ClientId" Title="Client ID" Type="String" Default=""/>
+        <Property TagName="Tls" Title="TLS" Type="Bool" Default="false"/>
+        <Child Uuid="01a10566-5db2-70cd-a205-e7ec21df345a" Title="Mqtt In"/>
+        <Child Uuid="01a1056f-715a-7189-bb98-46280a098042" Title="MqttOut"/>
+    </NodeType>
+    <NodeType Uuid="01a10566-5db2-70cd-a205-e7ec21df345a" TagName="MqttSubscribe" Title="Subscribe" Icon="qrc:/icons/navigation/jump.svg" IoType="In">
+        <Description Text="Value received on a topic."/>
+        <Property TagName="Topic" Title="Topic" Type="String" Default="home/sensor"/>
+        <Property TagName="JsonPath" Title="JSON path" Type="String" Default="">
+            <Docs Text="Empty = whole payload"/>
+        </Property>
+        <Property TagName="DataType" Title="Signal type" Type="Enum" Default="Float">
+            <Variant Data="Bool" Text="Bool"/>
+            <Variant Data="Int" Text="Int"/>
+            <Variant Data="Float" Text="Float"/>
+            <Variant Data="String" Text="String"/>
+        </Property>
+    </NodeType>
+    <NodeType Uuid="01a1056f-715a-7189-bb98-46280a098042" TagName="MqttPublish" Title="Publish" Icon="qrc:/icons/navigation/jump-over.svg" IoType="Out">
+        <Description Text="Value published on a topic when the input changes."/>
+        <Property TagName="Topic" Title="Topic" Type="String" Default="home/actuator"/>
+        <Property TagName="Retain" Title="Retain" Type="Bool" Default="false"/>
+        <Property TagName="Qos" Title="QoS" Type="Enum" Default="0">
+            <Variant Data="0" Text="0"/>
+            <Variant Data="1" Text="1"/>
+            <Variant Data="2" Text="2"/>
+        </Property>
+        <Property TagName="Payload" Title="Payload" Type="String" Default="&lt;v&gt;"/>
+    </NodeType>
+</Periphery>

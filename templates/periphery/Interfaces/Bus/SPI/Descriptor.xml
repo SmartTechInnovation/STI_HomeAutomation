@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a10095-c082-7789-9bd7-41f5ef502991" TagName="SPI" Title="SPI" Icon="qrc:/icons/hardware/memory.svg">
+        <Description Text="SPI bus."/>
+        <Property TagName="Bus"   Title="Bus device" Type="String" Default="/dev/spidev0.0"/>
+        <Property TagName="Speed" Title="Clock" Type="Int" Default="1000000" Unit="Hz"/>
+        <Property TagName="Mode"  Title="Mode"  Type="Enum" Default="0">
+            <Variant Data="0" Text="0"/>
+            <Variant Data="1" Text="1"/>
+            <Variant Data="2" Text="2"/>
+            <Variant Data="3" Text="3"/>
+        </Property>
+        <Child Uuid="01a107ec-759a-76ab-a8e6-de2614f3eaef" Title="Spi Device"/>
+    </NodeType>
+</Periphery>

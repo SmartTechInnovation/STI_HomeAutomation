@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Block Name="Day Period" Title="Day Period" Color="#7D8491" Width="400" Category="Times" Vers="1.0" Icon="icon.svg" Uuid="01a0f27b-861f-719d-844c-4a5343776f0f">
+    <Description Text="Period of day: Sunrise, Sunset, Dawn, Dusk.." />
+
+    <Input  ShortName="Br" Type="Int" Visible="false" ExtName="Brightness">
+        <Docs Text="Br - Outdoor Brightness (optional)"/>
+    </Input>
+    
+    <Output ShortName="Dl" Type="Bool" Visible="true"  ExtName="Daylight">
+        <Docs Text="Dl - Value on by daylight (sunrise til sunset)"/>
+    </Output>
+    <Output ShortName="Ni"   Type="Bool" Visible="true"  ExtName="Night">
+        <Docs Text="Ni - Value on between Dusk and Dawn"/>
+    </Output>
+    <Output ShortName="Pda"   Type="Bool" Visible="true"  ExtName="Pulse at Dawn">
+        <Docs Text="Pda - Pulse at the Dawn. End of darkness, sun 6° bellow the horizon"/>
+    </Output>
+    <Output ShortName="Pdu"   Type="Bool" Visible="true"  ExtName="Pulse at Dusk">
+        <Docs Text="Pdu - Pulse at the Dusk. Beginning of darkness, sun 6° bellow the horizon"/>
+    </Output>
+    <Output ShortName="Psu"   Type="Bool" Visible="true"  ExtName="Pulse at Sunrise">
+        <Docs Text="Psu - Pulse at sunrise"/>
+    </Output>
+    <Output ShortName="Pss"   Type="Bool" Visible="true"  ExtName="Pulse at Sunset">
+        <Docs Text="Pss - Pulse at sunset"/>
+    </Output>
+    <Output ShortName="Sd"   Type="Float" Visible="false"  ExtName="Sun Dirrection">
+        <Docs Text="Sd - Sun direction in °(0 = north, 90 = east, 180 = south, 270 = west)"/>
+    </Output>
+    <Output ShortName="Se"   Type="Float" Visible="false"  ExtName="Sun Elevation">
+        <Docs Text="Se - Sun elevation in °"/>
+    </Output>
+    <Output ShortName="Tdw"   Type="Int" Visible="false"  ExtName="Time of Dawn">
+        <Docs Text="Tdw - Time of down in minutes from midnight"/>
+    </Output>
+    <Output ShortName="Tsr"   Type="Int" Visible="false"  ExtName="Time of Sunrise">
+        <Docs Text="Tdw - Time of Sunrise in minutes from midnight"/>
+    </Output>
+    <Output ShortName="Tss"   Type="Int" Visible="false"  ExtName="Time of Sunset">
+        <Docs Text="Tdw - Time of Sunset in minutes from midnight"/>
+    </Output>
+</Block>

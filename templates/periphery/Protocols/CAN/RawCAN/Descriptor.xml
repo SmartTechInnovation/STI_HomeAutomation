@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a1081d-c387-727e-b102-e67344bf9547" TagName="RawCAN" Title="Raw CAN" Icon="qrc:/icons/misc/layers-2.svg">
+        <Description Text="Plain CAN frames."/>
+        <Child Uuid="01a10825-0e70-744e-af14-5e53b5f79fa9" Title="CanFrame In"/>
+        <Child Uuid="01a10825-3b74-773d-bac2-ab579d0fccc7" Title="CanFrame Out"/>
+    </NodeType>
+    <NodeType Uuid="01a10825-0e70-744e-af14-5e53b5f79fa9" TagName="CanFrameIn" Title="Received frame" Icon="qrc:/icons/navigation/jump.svg" IoType="In">
+        <Description Text="Value taken from a received frame."/>
+        <Property TagName="CanId" Title="CAN ID" Type="String" Default="0x100"/>
+        <Property TagName="Extended" Title="Extended ID" Type="Bool" Default="false"/>
+        <Property TagName="ByteOffset" Title="Byte offset" Type="Int" Default="0"/>
+        <Property TagName="Format" Title="Format" Type="Enum" Default="U16">
+            <Variant Data="Bool" Text="Bool"/>
+            <Variant Data="U16" Text="U16"/>
+            <Variant Data="S16" Text="S16"/>
+            <Variant Data="U32" Text="U32"/>
+            <Variant Data="S32" Text="S32"/>
+            <Variant Data="Float32" Text="Float32"/>
+            <Variant Data="U64" Text="U64"/>
+            <Variant Data="S64" Text="S64"/>
+            <Variant Data="Float64" Text="Float64"/>
+        </Property>
+        <Property TagName="Scale" Title="Scale" Type="Float" Default="1"/>
+    </NodeType>
+    <NodeType Uuid="01a10825-3b74-773d-bac2-ab579d0fccc7" TagName="CanFrameOut" Title="Sent frame" Icon="qrc:/icons/navigation/jump-over.svg" IoType="Out">
+        <Description Text="Frame sent when the input changes."/>
+        <Property TagName="CanId" Title="CAN ID" Type="String" Default="0x200"/>
+        <Property TagName="Extended" Title="Extended ID" Type="Bool" Default="false"/>
+        <Property TagName="ByteOffset" Title="Byte offset" Type="Int" Default="0"/>
+        <Property TagName="Format" Title="Format" Type="Enum" Default="U16">
+            <Variant Data="Bool" Text="Bool"/>
+            <Variant Data="U16" Text="U16"/>
+            <Variant Data="S16" Text="S16"/>
+            <Variant Data="U32" Text="U32"/>
+            <Variant Data="S32" Text="S32"/>
+            <Variant Data="Float32" Text="Float32"/>
+            <Variant Data="U64" Text="U64"/>
+            <Variant Data="S64" Text="S64"/>
+            <Variant Data="Float64" Text="Float64"/>
+        </Property>
+        <Property TagName="Scale" Title="Scale" Type="Float" Default="1"/>
+    </NodeType>
+</Periphery>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a10095-6031-74c2-b6c7-189ca9881633" TagName="RS485" Title="RS485" MenuName="Protocols" Icon="qrc:/icons/hardware/ethernet.svg" Max="1">
+        <Description Text="Half duplex serial bus. One protocol per port."/>
+        <Property TagName="Port" Title="Device port"   Type="String" Default="/dev/ttyAMA1"/>
+        <Property TagName="Baud" Title="Baud rate"     Type="Enum" Default="9600">
+            <Variant Data="1200" Text="1200"/>
+            <Variant Data="2400" Text="2400"/>
+            <Variant Data="4800" Text="4800"/>
+            <Variant Data="9600" Text="9600"/>
+            <Variant Data="19200" Text="19200"/>
+            <Variant Data="38400" Text="38400"/>
+            <Variant Data="57600" Text="57600"/>
+            <Variant Data="115200" Text="115200"/>
+        </Property>
+        <Property TagName="DataBits" Title="Data bits" Type="Enum" Default="8">
+            <Variant Data="7" Text="7"/>
+            <Variant Data="8" Text="8"/>
+        </Property>
+        <Property TagName="Parity" Title="Parity" Type="Enum" Default="None">
+            <Variant Data="None" Text="None"/>
+            <Variant Data="Even" Text="Even"/>
+            <Variant Data="Odd" Text="Odd"/>
+        </Property>
+        <Property TagName="StopBits" Title="Stop bits" Type="Enum" Default="1">
+            <Variant Data="1" Text="1"/>
+            <Variant Data="2" Text="2"/>
+        </Property>
+        <Property TagName="Termination" Title="Termination resistor" Type="Bool" Default="false"/>
+        <Child Uuid="01a1055f-cd6a-7295-9bc0-f80b574214b9" Title="Modbus RTU"/>
+        <Child Uuid="01a1057b-22c2-77b2-9a26-204e793cb156" Title="DMX"       />
+        <Child Uuid="01a10599-d09d-7025-a735-c9c68b35a1c0" Title="SerialAscii"/>
+    </NodeType>
+    <NodeType Uuid="01a10095-7836-70ee-b6c5-1419d6f3c2da" TagName="RS232" Title="RS232" MenuName="Protocols" Icon="qrc:/icons/hardware/ethernet.svg" Max="1">
+        <Description Text="Point to point serial port."/>
+        <Property TagName="Port" Title="Device port" Type="String" Default="/dev/ttyAMA5"/>
+        <Property TagName="Baud" Title="Baud rate"   Type="Enum" Default="9600">
+            <Variant Data="1200" Text="1200"/>
+            <Variant Data="2400" Text="2400"/>
+            <Variant Data="4800" Text="4800"/>
+            <Variant Data="9600" Text="9600"/>
+            <Variant Data="19200" Text="19200"/>
+            <Variant Data="38400" Text="38400"/>
+            <Variant Data="57600" Text="57600"/>
+            <Variant Data="115200" Text="115200"/>
+        </Property>
+        <Property TagName="DataBits" Title="Data bits" Type="Enum" Default="8">
+            <Variant Data="7" Text="7"/>
+            <Variant Data="8" Text="8"/>
+        </Property>
+        <Property TagName="Parity" Title="Parity" Type="Enum" Default="None">
+            <Variant Data="None" Text="None"/>
+            <Variant Data="Even" Text="Even"/>
+            <Variant Data="Odd" Text="Odd"/>
+        </Property>
+        <Property TagName="StopBits" Title="Stop bits" Type="Enum" Default="1">
+            <Variant Data="1" Text="1"/>
+            <Variant Data="2" Text="2"/>
+        </Property>
+        <Child Uuid="01a1055f-cd6a-7295-9bc0-f80b574214b9" Title="Modbus RTU"/>
+        <Child Uuid="01a10599-d09d-7025-a735-c9c68b35a1c0" Title="SerialAscii"/>
+    </NodeType>
+    <NodeType Uuid="01a10096-0b77-7439-aa3b-682c8d2e43db" TagName="UsbSerial" Title="USB serial" MenuIcon="Protocol" Icon="qrc:/icons/hardware/usb-key.svg" Max="1">
+        <Description Text="USB serial adapter (RS485 / RS232 converter)."/>
+        <Property TagName="Port" Title="Device port" Type="String" Default="/dev/ttyUSB0"/>
+        <Property TagName="Baud" Title="Baud rate"   Type="Enum" Default="9600">
+            <Variant Data="1200" Text="1200"/>
+            <Variant Data="2400" Text="2400"/>
+            <Variant Data="4800" Text="4800"/>
+            <Variant Data="9600" Text="9600"/>
+            <Variant Data="19200" Text="19200"/>
+            <Variant Data="38400" Text="38400"/>
+            <Variant Data="57600" Text="57600"/>
+            <Variant Data="115200" Text="115200"/>
+        </Property>
+        <Property TagName="DataBits" Title="Data bits" Type="Enum" Default="8">
+            <Variant Data="7" Text="7"/>
+            <Variant Data="8" Text="8"/>
+        </Property>
+        <Property TagName="Parity" Title="Parity" Type="Enum" Default="None">
+            <Variant Data="None" Text="None"/>
+            <Variant Data="Even" Text="Even"/>
+            <Variant Data="Odd" Text="Odd"/>
+        </Property>
+        <Property TagName="StopBits" Title="Stop bits" Type="Enum" Default="1">
+            <Variant Data="1" Text="1"/>
+            <Variant Data="2" Text="2"/>
+        </Property>
+        <Child Uuid="01a1055f-cd6a-7295-9bc0-f80b574214b9" Title="Modbus RTU"/>
+        <Child Uuid="01a1057b-22c2-77b2-9a26-204e793cb156" Title="DMX"       />
+        <Child Uuid="01a10599-d09d-7025-a735-c9c68b35a1c0" Title="SerialAscii"/>
+    </NodeType>
+</Periphery>

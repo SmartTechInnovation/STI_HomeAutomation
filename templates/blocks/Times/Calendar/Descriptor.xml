@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Block Name="Calendar" Title="Calendar" Color="#7D8491" Width="400" Category="Times" Vers="1.0" Icon="icon.svg" Uuid="01a0f27a-96fe-7338-a32f-08c747254eab">
+    <Description Text="All function of calendar, day, month year.." />   
+    
+    <Output ShortName="D"   Type="Int" Visible="true"  ExtName=" Day">
+        <Docs Text="D - Current Day of the month 1 to 31"/>
+    </Output>
+    <Output ShortName="M"   Type="Int" Visible="true"  ExtName="Month">
+        <Docs Text="Mo - Current Month of the year 1 to 12"/>
+    </Output>
+    <Output ShortName="Y"   Type="Int" Visible="true"  ExtName="Year">
+        <Docs Text="Year - Current Calendar Year"/>
+    </Output>
+    <Output ShortName="Pdc"   Type="Bool" Visible="false"  ExtName="Day Change">
+        <Docs Text="Pdc - Pulse at day change"/>
+    </Output>
+    <Output ShortName="Pmc"   Type="Bool" Visible="false"  ExtName="Month Change">
+        <Docs Text="Pdc - Pulse at month change"/>
+    </Output>
+    <Output ShortName="Pyc"   Type="Bool" Visible="false"  ExtName="Year Change">
+        <Docs Text="Pdc - Pulse at year change"/>
+    </Output>
+</Block>

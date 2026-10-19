@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a10095-a854-743c-bf2a-ad41acc55b10" TagName="I2C" Title="I2C" MenuName="Devices" Icon="qrc:/icons/hardware/memory.svg">
+        <Description Text="I2C bus. Pins are selected in the properties when the bus is added manually."/>
+        <Property TagName="Bus"    Title="Bus device"     Type="String" Default="/dev/i2c-1"/>
+        <Property TagName="SdaPin" Title="SDA pin (GPIO)" Type="Int"    Default="2"/>
+        <Property TagName="SclPin" Title="SCL pin (GPIO)" Type="Int"    Default="3"/>
+        <Property TagName="Speed"  Title="Speed"          Type="Enum"   Default="100000">
+            <Variant Data="100000" Text="100 kHz"/>
+            <Variant Data="400000" Text="400 kHz"/>
+        </Property>
+        <Child Uuid="01a107e0-440e-716c-8543-615c68b7c7ce" Title="I2c Device" />
+    </NodeType>
+</Periphery>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a10095-e726-70af-8b47-fbd528b03881" TagName="OneWire" Title="1-Wire" Icon="qrc:/icons/hardware/memory.svg">
+        <Description Text="1-Wire bus on a GPIO pin."/>
+        <Property TagName="Pin" Title="Data pin (GPIO)" Type="Int" Default="4"/>
+        <Child Uuid="01a107f7-9ac4-74bc-ba82-8b58b4708601" Title="OneWireSensor"/>
+    </NodeType>
+</Periphery>

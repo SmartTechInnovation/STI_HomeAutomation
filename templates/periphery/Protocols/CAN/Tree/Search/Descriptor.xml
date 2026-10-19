@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a105af-a085-76f9-a715-30cbac6a2f87" TagName="TreeSearch" Title="Tree Device Search" Icon="qrc:/icons/hardware/server.svg">
+        <Description Text="Search Tree Devices"/>
+    </NodeType>
+</Periphery>

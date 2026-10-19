@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Templates>
+    <Template Name="Eastron_SDM630" Title="Eastron SDM630 energy meter" Vendor="Eastron" For="ModbusRTU,ModbusTCP">
+        <Description Text="Three phase meter, input registers (FC04), Float32. Check the register map against your meter datasheet."/>
+        <ModbusDevice Title="SDM630" UnitId="1" ByteOrder="ABCD" PollInterval="0">
+            <ModbusInput Title="Voltage L1" Function="4" Register="0" Format="Float32" Scale="1" Offset="0" Unit="V" DataType="Float"/>
+            <ModbusInput Title="Voltage L2" Function="4" Register="2" Format="Float32" Scale="1" Offset="0" Unit="V" DataType="Float"/>
+            <ModbusInput Title="Voltage L3" Function="4" Register="4" Format="Float32" Scale="1" Offset="0" Unit="V" DataType="Float"/>
+            <ModbusInput Title="Current L1" Function="4" Register="6" Format="Float32" Scale="1" Offset="0" Unit="A" DataType="Float"/>
+            <ModbusInput Title="Current L2" Function="4" Register="8" Format="Float32" Scale="1" Offset="0" Unit="A" DataType="Float"/>
+            <ModbusInput Title="Current L3" Function="4" Register="10" Format="Float32" Scale="1" Offset="0" Unit="A" DataType="Float"/>
+            <ModbusInput Title="Total power" Function="4" Register="52" Format="Float32" Scale="1" Offset="0" Unit="W" DataType="Float"/>
+            <ModbusInput Title="Frequency" Function="4" Register="70" Format="Float32" Scale="1" Offset="0" Unit="Hz" DataType="Float"/>
+            <ModbusInput Title="Import energy" Function="4" Register="72" Format="Float32" Scale="1" Offset="0" Unit="kWh" DataType="Float"/>
+            <ModbusInput Title="Export energy" Function="4" Register="74" Format="Float32" Scale="1" Offset="0" Unit="kWh" DataType="Float"/>
+        </ModbusDevice>
+    </Template>
+    <Template Name="Generic_Relay8" Title="8-channel relay module (coils 0..7)" Vendor="Generic" For="ModbusRTU,ModbusTCP">
+        <Description Text="Common RS485 relay boards: relays on coils 0..7 (FC05)."/>
+        <ModbusDevice Title="Relay module" UnitId="1" ByteOrder="ABCD" PollInterval="0">
+            <ModbusOutput Title="Relay 1" Function="5" Register="0" Format="Bool" Scale="1" DataType="Bool"/>
+            <ModbusOutput Title="Relay 2" Function="5" Register="1" Format="Bool" Scale="1" DataType="Bool"/>
+            <ModbusOutput Title="Relay 3" Function="5" Register="2" Format="Bool" Scale="1" DataType="Bool"/>
+            <ModbusOutput Title="Relay 4" Function="5" Register="3" Format="Bool" Scale="1" DataType="Bool"/>
+            <ModbusOutput Title="Relay 5" Function="5" Register="4" Format="Bool" Scale="1" DataType="Bool"/>
+            <ModbusOutput Title="Relay 6" Function="5" Register="5" Format="Bool" Scale="1" DataType="Bool"/>
+            <ModbusOutput Title="Relay 7" Function="5" Register="6" Format="Bool" Scale="1" DataType="Bool"/>
+            <ModbusOutput Title="Relay 8" Function="5" Register="7" Format="Bool" Scale="1" DataType="Bool"/>
+        </ModbusDevice>
+    </Template>
+    <Template Name="Generic_Holding" Title="Generic device - 1 holding register" Vendor="Generic" For="ModbusRTU,ModbusTCP">
+        <Description Text="Starting point for a new device."/>
+        <ModbusDevice Title="Modbus device" UnitId="1" ByteOrder="ABCD" PollInterval="0">
+            <ModbusInput Title="Register 0" Function="3" Register="0" Format="U16" Scale="1" Offset="0" Unit="" DataType="Float"/>
+        </ModbusDevice>
+    </Template>
+</Templates>

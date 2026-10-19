@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a107f7-9ac4-74bc-ba82-8b58b4708601" TagName="OneWireSensor" Title="1-Wire sensor" Icon="qrc:/icons/misc/test.svg" IoType="In">
+        <Description Text="1-Wire temperature sensor."/>
+        <Property TagName="RomId" Title="ROM ID" Type="String" Default="28-000000000000">
+            <Docs Text="Found in /sys/bus/w1/devices"/>
+        </Property>
+        <Property TagName="Offset" Title="Offset" Type="Float" Default="0" Unit="°C"/>
+    </NodeType>
+</Periphery>

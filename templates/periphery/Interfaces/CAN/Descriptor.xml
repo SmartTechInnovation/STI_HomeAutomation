@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a10095-9242-762a-af6f-b03b3e0a1cb6" TagName="CAN" Title="CAN" MenuName="Protocols" Icon="qrc:/icons/hardware/ethernet.svg" Max="1">
+        <Description Text="CAN controller. One protocol per bus."/>
+        <Property TagName="Port"    Title="Interface" Type="String" Default="can0"/>
+        <Property TagName="Bitrate" Title="Bitrate"   Type="Enum"   Default="125000" Unit="bit/s">
+            <Variant Data="50000" Text="50000"/>
+            <Variant Data="125000" Text="125000"/>
+            <Variant Data="250000" Text="250000"/>
+            <Variant Data="500000" Text="500000"/>
+            <Variant Data="1000000" Text="1000000"/>
+        </Property>
+        <Property TagName="Termination" Title="Termination resistor" Type="Bool" Default="false"/>
+        <Child Uuid="01a105aa-5c87-76ca-b230-6988c889d865" Title="Tree"/>
+        <Child Uuid="01a1081d-f532-72de-97d7-d3d4a457bdea" Title="Link"/>
+        <Child Uuid="01a1081d-49c0-76cf-9a69-b1a565678fb0" Title="CANopen"/>
+        <Child Uuid="01a1081d-c387-727e-b102-e67344bf9547" Title="RawCAN"/>
+    </NodeType>
+</Periphery>

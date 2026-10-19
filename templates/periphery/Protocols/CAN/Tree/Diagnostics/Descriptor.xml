@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="9740497c-c2de-42dd-bc11-e95d94b7d8e5" TagName="TreeDiagnostics" Title="Tree Diagnostics" Icon="qrc:/icons/hardware/server.svg">
+        <Description Text="Diagnostic Tree Devices"/>
+    </NodeType>
+</Periphery>

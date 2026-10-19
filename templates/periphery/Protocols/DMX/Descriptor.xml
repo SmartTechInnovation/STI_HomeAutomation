@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a1057b-22c2-77b2-9a26-204e793cb156" TagName="DMX" Title="DMX512" Icon="qrc:/icons/misc/layers-2.svg">
+        <Description Text="DMX512 transmitter on this port (250 kbit/s)."/>
+        <Property TagName="Universe" Title="Universe" Type="Int" Default="1"/>
+        <Property TagName="RefreshRate" Title="Refresh rate" Type="Int" Default="30" Unit="Hz"/>
+        <Child Uuid="01a1057c-b8bc-727f-9ad0-119e73da05c7" Title="DmxChannel"/>
+    </NodeType>
+    <NodeType Uuid="01a1057c-b8bc-727f-9ad0-119e73da05c7" TagName="DmxChannel" Title="DMX channel" Icon="qrc:/icons/navigation/jump-over.svg" IoType="Out">
+        <Description Text="Channel value 0..255 (16 bit: 0..65535)."/>
+        <Property TagName="Channel" Title="Channel" Type="Int" Default="1"/>
+        <Property TagName="Width" Title="Width" Type="Enum" Default="8">
+            <Variant Data="8" Text="8 bit"/>
+            <Variant Data="16" Text="16 bit"/>
+        </Property>
+        <Property TagName="Type" Title="Channel Type" Type="Enum" Default="">
+            <Variant Data="1CH" Text="DMX 1 Channel" />
+            <Variant Data="2CH" Text="DMX CCT Channel" />
+            <Variant Data="3CH" Text="DMX RGB Channel" />
+            <Variant Data="4CH" Text="DMX RGBW Channel" />
+        </Property>
+        <Property TagName="FadeTime" Title="Fade time" Type="Int" Default="0" Unit="ms"/>
+    </NodeType>
+</Periphery>

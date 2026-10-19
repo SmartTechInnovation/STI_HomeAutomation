@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a1082f-d131-7009-acfc-798042af81e3" TagName="ExtModbus" Title="Modbus Extension" Icon="qrc:/icons/hardware/server.svg">
+        <Description Text="Modbus Extension"/>
+        
+    </NodeType>
+</Periphery>

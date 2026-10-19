@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a10094-e4fe-755f-bae9-8cf6076b9518" TagName="ModbusTcp" Title="Modbus TCP" Icon="icon.png">
+        <Description Text="Modbus TCP client connection."/>
+        <Property TagName="Host" Title="Host" Type="String" Default="192.168.1.10"/>
+        <Property TagName="Port" Title="Port" Type="Int" Default="502"/>
+        <Property TagName="PollInterval" Title="Poll interval" Type="Int" Default="1000" Unit="ms"/>
+        <Property TagName="Timeout" Title="Timeout" Type="Int" Default="500" Unit="ms"/>
+        <Child Uuid="01a10560-938d-72a8-83e7-8d10e7cd8dd9" Title="ModbusDevice"/>
+    </NodeType>
+    <NodeType Uuid="01a1055f-cd6a-7295-9bc0-f80b574214b9" TagName="ModbusRtu" Title="Modbus RTU" Icon="qrc:/icons/misc/layers-2.svg">
+        <Description Text="Modbus RTU master on this port."/>
+        <Property TagName="PollInterval" Title="Poll interval" Type="Int" Default="1000" Unit="ms"/>
+        <Property TagName="Timeout" Title="Timeout" Type="Int" Default="300" Unit="ms"/>
+        <Property TagName="Retries" Title="Retries" Type="Int" Default="2"/>
+        <Child Uuid="01a10560-938d-72a8-83e7-8d10e7cd8dd9" Title="ModbusDevice"/>
+    </NodeType>
+    <NodeType Uuid="01a10560-938d-72a8-83e7-8d10e7cd8dd9" TagName="ModbusDevice" Title="Modbus device" Icon="qrc:/icons/hardware/server.svg">
+        <Description Text="Modbus slave. Inputs are read, outputs are written."/>
+        <Property TagName="UnitId" Title="Unit ID" Type="Int" Default="1"/>
+        <Property TagName="ByteOrder" Title="Word / byte order" Type="Enum" Default="ABCD">
+            <Variant Data="ABCD" Text="ABCD (big endian)"/>
+            <Variant Data="CDAB" Text="CDAB (word swap)"/>
+            <Variant Data="BADC" Text="BADC (byte swap)"/>
+            <Variant Data="DCBA" Text="DCBA (little endian)"/>
+        </Property>
+        <Property TagName="PollInterval" Title="Poll interval (0 = protocol)" Type="Int" Default="0" Unit="ms"/>
+        <Child Uuid="01a10561-e21b-75bb-9fef-05575e75d60c" Title="Modbus Input"/>
+        <Child Uuid="1b552fe7-3b81-4782-9489-86d77eb16b04" Title="Modbus Output"/>
+    </NodeType>
+    <NodeType Uuid="01a10561-e21b-75bb-9fef-05575e75d60c" TagName="ModbusInput" Title="Modbus input" Icon="qrc:/icons/navigation/jump.svg" IoType="In">
+        <Description Text="Value read from a register / coil."/>
+        <Property TagName="Function" Title="Function" Type="Enum" Default="3">
+            <Variant Data="1" Text="01 Read coils"/>
+            <Variant Data="2" Text="02 Read discrete inputs"/>
+            <Variant Data="3" Text="03 Read holding registers"/>
+            <Variant Data="4" Text="04 Read input registers"/>
+        </Property>
+        <Property TagName="Register" Title="Register address" Type="Int" Default="0"/>
+        <Property TagName="Format" Title="Format" Type="Enum" Default="U16">
+            <Variant Data="Bool" Text="Bool"/>
+            <Variant Data="U16" Text="U16"/>
+            <Variant Data="S16" Text="S16"/>
+            <Variant Data="U32" Text="U32"/>
+            <Variant Data="S32" Text="S32"/>
+            <Variant Data="Float32" Text="Float32"/>
+            <Variant Data="U64" Text="U64"/>
+            <Variant Data="S64" Text="S64"/>
+            <Variant Data="Float64" Text="Float64"/>
+        </Property>
+        <Property TagName="Scale" Title="Scale" Type="Float" Default="1"/>
+        <Property TagName="Offset" Title="Offset" Type="Float" Default="0"/>
+        <Property TagName="Unit" Title="Unit" Type="String" Default=""/>
+        <Property TagName="DataType" Title="Signal type" Type="Enum" Default="Float">
+            <Variant Data="Bool" Text="Bool"/>
+            <Variant Data="Int" Text="Int"/>
+            <Variant Data="Float" Text="Float"/>
+            <Variant Data="String" Text="String"/>
+        </Property>
+    </NodeType>
+    <NodeType Uuid="1b552fe7-3b81-4782-9489-86d77eb16b04" TagName="ModbusOutput" Title="Modbus output" Icon="qrc:/icons/navigation/jump-over.svg" IoType="Out">
+        <Description Text="Value written to a register / coil when the input changes."/>
+        <Property TagName="Function" Title="Function" Type="Enum" Default="6">
+            <Variant Data="5" Text="05 Write single coil"/>
+            <Variant Data="6" Text="06 Write single register"/>
+            <Variant Data="15" Text="15 Write multiple coils"/>
+            <Variant Data="16" Text="16 Write multiple registers"/>
+        </Property>
+        <Property TagName="Register" Title="Register address" Type="Int" Default="0"/>
+        <Property TagName="Format" Title="Format" Type="Enum" Default="U16">
+            <Variant Data="Bool" Text="Bool"/>
+            <Variant Data="U16" Text="U16"/>
+            <Variant Data="S16" Text="S16"/>
+            <Variant Data="U32" Text="U32"/>
+            <Variant Data="S32" Text="S32"/>
+            <Variant Data="Float32" Text="Float32"/>
+            <Variant Data="U64" Text="U64"/>
+            <Variant Data="S64" Text="S64"/>
+            <Variant Data="Float64" Text="Float64"/>
+        </Property>
+        <Property TagName="Scale" Title="Scale" Type="Float" Default="1"/>
+        <Property TagName="DataType" Title="Signal type" Type="Enum" Default="Float">
+            <Variant Data="Bool" Text="Bool"/>
+            <Variant Data="Int" Text="Int"/>
+            <Variant Data="Float" Text="Float"/>
+            <Variant Data="String" Text="String"/>
+        </Property>
+    </NodeType>
+</Periphery>

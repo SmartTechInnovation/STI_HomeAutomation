@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Periphery>
+    <NodeType Uuid="01a100a0-3c4e-7526-beba-371b95879b78" TagName="VirtualInput" Title="Virtual Input" Icon="qrc:/icons/navigation/sliders-horizontal.svg" IoType="In">
+        <Description Text="Value set from the user interface / app."/>
+        <Property TagName="DataType" Title="Signal type" Type="Enum" Default="Bool">
+            <Variant Data="Bool" Text="Bool"/>
+            <Variant Data="Int" Text="Int"/>
+            <Variant Data="Float" Text="Float"/>
+            <Variant Data="String" Text="String"/>
+        </Property>
+        <Property TagName="Visualization" Title="Control" Type="Enum" Default="Switch">
+            <Variant Data="Switch" Text="Switch"/>
+            <Variant Data="Button" Text="Button"/>
+            <Variant Data="Slider" Text="Slider"/>
+            <Variant Data="Value" Text="Value"/>
+        </Property>
+        <Property TagName="Min" Title="Minimum" Type="Float" Default="0"/>
+        <Property TagName="Max" Title="Maximum" Type="Float" Default="100"/>
+        <Property TagName="Step" Title="Step"   Type="Float" Default="1"/>
+    </NodeType>
+    <NodeType Uuid="01a10094-51b7-70c7-accf-28be8e50c00e" TagName="VirtualUdpIn" Title="Virtual Udp Input" Icon="qrc:/icons/hardware/network.svg" IoType="In">
+        <Description Text="Listens for UDP datagrams."/>
+        <Property TagName="Port"     Title="UDP port"                Type="Int"    Default="7000"/>
+        <Property TagName="SenderIp" Title="Sender IP (empty = any)" Type="String" Default=""/>
+        <Child Uuid="01a100a4-97b4-733e-8170-363793c31c33" Title="Udp Command" Visible="true"/>
+    </NodeType>
+    <NodeType Uuid="01a10094-361a-75dd-8120-4272ae2f2cde" TagName="VirtualHttpIn" Title="Virtual HTTP input" Icon="qrc:/icons/misc/globe.svg">
+        <Description Text="Polls a URL and extracts values from the response."/>
+        <Property TagName="Url" Title="URL" Type="String" Default="http://192.168.1.20/status"/>
+        <Property TagName="PollInterval" Title="Poll interval" Type="Int" Default="60" Unit="s"/>
+        <Property TagName="Timeout" Title="Timeout" Type="Int" Default="5" Unit="s"/>
+        <Child Uuid="01a10544-de7c-759a-b726-29c19d8438b0" Title="HttpInputCommand"/>
+    </NodeType>
+    <NodeType Uuid="01a100ad-33aa-758a-87fa-89ee28a7aa32" TagName="VirtualOutput" Title="Virtual Output" Icon="qrc:/icons/misc/globe.svg" IoType="Out">
+        <Description Text="This command could be readed from api."/>
+        <Property TagName="DataType" Title="Signal type" Type="Enum" Default="Bool">
+            <Variant Data="Bool" Text="Bool"/>
+            <Variant Data="Int" Text="Int"/>
+            <Variant Data="Float" Text="Float"/>
+            <Variant Data="String" Text="String"/>
+        </Property>
+        <Property TagName="Visualization" Title="Control" Type="Enum" Default="Switch">
+            <Variant Data="Switch" Text="Switch"/>
+            <Variant Data="Button" Text="Button"/>
+            <Variant Data="Slider" Text="Slider"/>
+            <Variant Data="Value" Text="Value"/>
+        </Property>
+        <Property TagName="Min" Title="Minimum" Type="Float" Default="0"/>
+        <Property TagName="Max" Title="Maximum" Type="Float" Default="100"/>
+    </NodeType>
+    <NodeType Uuid="01a10094-6cc1-7292-9c69-789b697a2833" TagName="VirtualHttpOut" Title="Virtual HTTP output" Icon="qrc:/icons/misc/globe.svg">
+        <Description Text="HTTP server that receives commands."/>
+        <Property TagName="Address" Title="Address" Type="String" Default="http://192.168.1.30"/>
+        <Property TagName="User" Title="User" Type="String" Default=""/>
+        <Property TagName="Password" Title="Password" Type="String" Default=""/>
+        <Property TagName="Timeout" Title="Timeout" Type="Int" Default="5" Unit="s"/>
+        <Child Uuid="01a10547-a1a3-7067-accb-67c6b1ee59a2" Title="Http Output Command"/>
+    </NodeType>
+    <NodeType Uuid="01a10094-8fda-751b-a8a7-7f32b1db4821" TagName="VirtualUdpOut" Title="Virtual UDP output" Icon="qrc:/icons/hardware/network.svg">
+        <Description Text="Sends UDP datagrams."/>
+        <Property TagName="Host" Title="Host" Type="String" Default="192.168.1.30"/>
+        <Property TagName="Port" Title="UDP port" Type="Int" Default="7001"/>
+        <Child Uuid="01a100aa-7fe7-772b-a552-93c6b114da2d" Title="Udp Output Command"/>
+    </NodeType>
+
+</Periphery>

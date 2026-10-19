@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Legacy>
+    <Category Name="Analog"      Visible="false" Icon="Icons/Analog.svg"         />
+    <Category Name="Math"        Visible="true"  Icon="Icons/calculator.svg"     />
+    <Category Name="Comparisons" Visible="false" Icon="Icons/comparisons.svg"    />
+    <Category Name="Logic"       Visible="true"  Icon="Icons/Logic.svg"          />
+    <Category Name="Controllers" Visible="false" Icon="Icons/Controllers.svg"    />
+    <Category Name="Central"     Visible="true"  Icon="Icons/home.svg"           />
+    <Category Name="Access"      Visible="false" Icon="Icons/password.svg"       />
+    <Category Name="Alarm Clock" Visible="false" Icon="Icons/clock.svg"          />
+    <Category Name="Climate"     Visible="true"  Icon="Icons/temperature.svg"    />
+    <Category Name="Lighting"    Visible="true"  Icon="Icons/light-bulb-on.svg"  />
+    <Category Name="Shading"     Visible="true"  Icon="Icons/ui-panel-top.svg"   />
+    <Category Name="Multimedia"  Visible="false" Icon="Icons/audio-interface.svg"/>
+    <Category Name="Energy"      Visible="false" Icon="Icons/Energy.svg"         />
+    <Category Name="Counters"    Visible="false" Icon="Icons/meter-middle.svg"   />
+    <Category Name="General"     Visible="false" Icon="Icons/blocks.svg"         />
+    <Category Name="Monitor"     Visible="true"  Icon="Icons/system-monitor.svg" />
+    <Category Name="Times"       Visible="false" Icon="Icons/task-soon.svg"      />
+    <Category Name="Wellness"    Visible="false" Icon="Icons/wellness.svg"       />
+    <Category Name="Window"      Visible="false" Icon="Icons/window.svg"         />
+</Legacy>

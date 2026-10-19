@@ -75,8 +75,10 @@ void Project_class::setAttribute(XmlNode_class *node,   const QString &tag, cons
         touchPage(node);
     }
     emit attributeChanged(node, tag);
-    if(node == m_ptr_Selected)
-        emit selectionChanged();    // refresh properties panel only when it shows this node
+    /* refresh the properties panel when it shows this node, or when the project changed
+       (other nodes link to project attributes, e.g. Unit="Project@UArea") */
+    if(node == m_ptr_Selected || node == m_ptr_Root)
+        emit selectionChanged();
 }
 
 void Project_class::rmAttribute(XmlNode_class *node,   const QString &tag){
@@ -489,7 +491,7 @@ QVariantMap Project_class::selection() const{ // Needed for properties menu
     QVariantMap instanceNodeMap;
     instanceNodeMap["iUuid"]     = m_ptr_Selected->value(ATTR_IUUID);
     instanceNodeMap["title"]     = m_ptr_Selected->value(ATTR_TITLE);
-    instanceNodeMap["editable"]  = nodeTemplate ? nodeTemplate->Editable : false;
+    instanceNodeMap["editable"]  = nodeTemplate ? nodeTemplate->Editable : true;
     Result["instance"] = instanceNodeMap;
 
     QVariantMap templateNodeMap;
@@ -535,13 +537,57 @@ QVariantMap Project_class::selection() const{ // Needed for properties menu
     }
     Result["template"] = templateNodeMap;
 
-    auto getPropertyMap = [this](Property_s property) -> QVariantMap {
+    /* "Tag@Attr" -> value of attribute Attr on the node Tag (e.g. Unit="Project@UArea").
+     * Node lookup: the selected node, its ancestors, then the first node with that tag in the document.
+     * Enum values are shown with their variant text; an empty value falls back to the property default.
+     * Anything without '@' is returned as is. */
+    auto resolveLink = [this](const QString &text) -> QString {
+        const int at = text.indexOf(QLatin1Char('@'));
+        if(at <= 0 || at == text.size() - 1)
+            return text;
+        const QString tag  = text.left(at);
+        const QString attr = text.mid(at + 1);
+
+        XmlNode_class *source = nullptr;
+        if(m_ptr_Selected->TagName == tag)
+            source = m_ptr_Selected;
+        else
+            source = m_ptr_Selected->ancestor(tag);
+        if(source == nullptr && m_ptr_Root){
+            m_ptr_Root->visit([&source, &tag](XmlNode_class *node){
+                if(source == nullptr && node->TagName == tag)
+                    source = node;
+            });
+        }
+        if(source == nullptr)
+            return QString();
+
+        QString value = source->value(attr);
+        if(const NodeType_s *sourceTemplate = S_SchemaManager.getNode(source)){
+            for(auto &group : sourceTemplate->PropertyGroups){
+                for(auto &property : group.Properties){
+                    if(property.TagName != attr)
+                        continue;
+                    if(value.isEmpty())
+                        value = property.Default;
+                    for(auto &variant : property.Variants){
+                        if(variant.Data == value)
+                            return variant.Text.isEmpty() ? value : variant.Text;
+                    }
+                    return value;
+                }
+            }
+        }
+        return value;
+    };
+
+    auto getPropertyMap = [this, &resolveLink](Property_s property) -> QVariantMap {
         QVariantMap propertyMap;
         propertyMap["tagName"]   = property.TagName;
         propertyMap["title"]     = property.Title;
         propertyMap["type"]      = property.Type;
         propertyMap["defValue"]  = property.Default;
-        propertyMap["unit"]      = property.Unit;
+        propertyMap["unit"]      = resolveLink(property.Unit);
         propertyMap["docs"]      = property.Docs;
         propertyMap["readOnly"]  = property.ReadOnly;
         propertyMap["hidden"]    = property.Hidden;

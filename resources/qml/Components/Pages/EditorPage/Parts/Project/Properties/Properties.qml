@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import QtQuick.Dialogs
 
 import "../../../../../Theme"
+import "../Pages/Parts"            // CheckBoxCustom
 
 Item {
     id: root
@@ -27,6 +28,49 @@ Item {
             radius: 3
             color: field.readOnly ? "transparent" : Theme.bgCanvas
             border.color: field.activeFocus ? Theme.green : Theme.bgHover
+        }
+    }
+    /* Int: text box with up / down arrows */
+    component DarkSpin: SpinBox {
+        id: spin
+        editable:       true
+        from:           -2147483647
+        to:             2147483647
+        font.pixelSize: 12
+        implicitHeight: 26
+        leftPadding:    4
+        rightPadding:   20
+
+        contentItem: TextInput {
+            text:              spin.displayText
+            font:              spin.font
+            color:             Theme.white
+            selectionColor:    Theme.blue
+            selectedTextColor: Theme.white
+            selectByMouse:     true
+            verticalAlignment: Qt.AlignVCenter
+            readOnly:          !spin.editable
+            validator:         spin.validator
+            inputMethodHints:  Qt.ImhFormattedNumbersOnly
+        }
+        up.indicator: Rectangle {
+            x: spin.width - width - 1
+            y: 1
+            width: 18; height: spin.height / 2 - 1
+            color: spin.up.pressed ? Theme.bgElevated : (spin.up.hovered ? Theme.bgHover : "transparent")
+            Text { anchors.centerIn: parent; text: "\u25B4"; color: Theme.gray; font.pixelSize: 10 }
+        }
+        down.indicator: Rectangle {
+            x: spin.width - width - 1
+            y: spin.height / 2
+            width: 18; height: spin.height / 2 - 1
+            color: spin.down.pressed ? Theme.bgElevated : (spin.down.hovered ? Theme.bgHover : "transparent")
+            Text { anchors.centerIn: parent; text: "\u25BE"; color: Theme.gray; font.pixelSize: 10 }
+        }
+        background: Rectangle {
+            radius: 3
+            color: Theme.bgCanvas
+            border.color: spin.activeFocus ? Theme.green : Theme.bgHover
         }
     }
     component DarkCombo: ComboBox {
@@ -155,20 +199,15 @@ Item {
                         required property string title
                         required property var    items
 
-                        function changeAttr(newValue){
-                            if(root.project){
-                                root.project.cmdSetProperty(root.selectionData.instance.iUuid, tag, newValue);
-                            }
+                        function changeAttr(tagName, newValue){
+                            if(root.project && root.selectionData.instance)
+                                root.project.cmdSetProperty(root.selectionData.instance.iUuid, tagName, newValue)
                         }
 
                         Text {
                             Layout.fillWidth: true
                             Layout.topMargin: 8
-                            visible: {
-                                if(groupProperties.title === "")
-                                    return false
-                                return true
-                            }
+                            visible: groupProperties.title !== ""
                             text:  groupProperties.title
                             color: Theme.green
                             font.pixelSize: 10
@@ -177,7 +216,7 @@ Item {
                             font.letterSpacing: 1
                         }
 
-                        // ====== Properies List ====
+                        // ====== Properties List ====
                         Repeater {
                             model: groupProperties.items
 
@@ -185,35 +224,85 @@ Item {
                                 id: prop
                                 Layout.fillWidth: true
                                 spacing: 6
+                                visible: !hidden
 
-                                required property int    index
-                                required property string tagName
-                                required property string title
-                                required property string value
+                                /* all from modelData: nodes without a template only have tagName/title/value */
+                                required property var modelData
+                                readonly property string tagName:  modelData.tagName  ?? ""
+                                readonly property string title:    modelData.title    ?? tagName
+                                readonly property string value:    modelData.value    ?? ""
+                                readonly property string type:     modelData.type     ?? "String"
+                                readonly property string defValue: modelData.defValue ?? ""
+                                readonly property string unit:     modelData.unit     ?? ""
+                                readonly property string docs:     modelData.docs     ?? ""
+                                readonly property bool   readOnly: modelData.readOnly === true
+                                readonly property bool   hidden:   modelData.hidden   === true
+                                readonly property var    variants: modelData.variants ?? []
 
-                                property string type
-                                property string defValue
-                                property string unit
-                                property string docs
-                                property bool   readOnly
-                                property bool   hidden
-                                property var    variants
-
+                                function commit(newValue){ groupProperties.changeAttr(prop.tagName, newValue) }
 
                                 Text {
                                     Layout.preferredWidth: Math.round(contentLayout.width * 0.42)
                                     Layout.alignment: Qt.AlignVCenter
-
-                                    color:            Theme.white
-                                    elide:            Text.ElideRight
-                                    text:             prop.title
-                                    font.pixelSize:   12
+                                    color:          Theme.white
+                                    elide:          Text.ElideRight
+                                    text:           prop.title
+                                    font.pixelSize: 12
                                 }
 
                                 Loader {
                                     Layout.fillWidth: true
                                     sourceComponent: {
-                                       return cmp_String
+                                        if(prop.readOnly)
+                                            return cmp_ReadOnly
+                                        switch(prop.type){
+                                        case "Bool":     return cmp_Bool
+                                        case "Int":      return cmp_Int
+                                        case "Enum":     return cmp_Enum
+                                        case "Color":    return cmp_Color
+                                        case "Password": return cmp_Password
+                                        default:         return cmp_String   // String, Float, Date, Custom
+                                        }
+                                    }
+                                }
+
+                                Text {
+                                    visible: prop.unit !== ""
+                                    text:    prop.unit
+                                    color:   Theme.gray
+                                    font.pixelSize: 11
+                                }
+
+                                Component {
+                                    id: cmp_ReadOnly
+                                    DarkField {
+                                        text:     prop.value
+                                        readOnly: true
+                                        color:    Theme.gray
+                                    }
+                                }
+
+                                Component {
+                                    id: cmp_Bool
+                                    Item {
+                                        implicitHeight: 26
+                                        CheckBoxCustom {
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            colorText: Theme.white            // hover border on the dark panel
+                                            checked:   prop.value === "true"
+                                            onToggled: prop.commit(checked)
+                                        }
+                                    }
+                                }
+
+                                Component {
+                                    id: cmp_Int
+                                    DarkSpin {
+                                        value: parseInt(prop.value !== "" ? prop.value : prop.defValue) || 0
+                                        onValueModified: {
+                                            if(value.toString() !== prop.value)
+                                                prop.commit(value.toString())
+                                        }
                                     }
                                 }
 
@@ -221,22 +310,101 @@ Item {
                                     id: cmp_String
                                     DarkField {
                                         text: prop.value
-                                        validator: {
-                                            if(prop.type == "Int"  ) return intValidator;
-                                            if(prop.type == "Float") return floatValidator
-                                            return null
-                                        }
+                                        placeholderText: prop.type === "Date" ? "YYYY-MM-DD" : prop.defValue
+                                        validator: prop.type === "Int"   ? intValidator
+                                                 : prop.type === "Float" ? floatValidator : null
                                         onEditingFinished: {
-                                            if(prop.type  === "Float") text = text.replace(",", ".")
-                                            if(prop.value !== text)    prop.changeAttr(text)
+                                            if(prop.type === "Float")
+                                                text = text.replace(",", ".")
+                                            if(prop.value !== text)
+                                                prop.commit(text)
                                         }
-                                        IntValidator {
-                                            id: intValidator
-                                        }
+                                        IntValidator { id: intValidator }
                                         RegularExpressionValidator {
-                                            id: floatValidator;
+                                            id: floatValidator
                                             regularExpression: /^-?\d*([.,]\d*)?$/
                                         }
+                                    }
+                                }
+
+                                Component {
+                                    id: cmp_Enum
+                                    DarkCombo {
+                                        model:        prop.variants
+                                        textRole:     "text"
+                                        valueRole:    "data"
+                                        currentIndex: prop.variants.findIndex(v => v.data === prop.value)
+                                        onActivated:  (i) => { if(prop.variants[i].data !== prop.value) prop.commit(prop.variants[i].data) }
+                                    }
+                                }
+
+                                Component {
+                                    id: cmp_Color
+                                    Flow {
+                                        id: colorFlow
+                                        spacing: 6
+
+                                        /* pale default palette; the 9th dot opens the color dialog */
+                                        readonly property var  swatches: ["#8dff70", "#ff0054", "#ff7d30", "#ffe647",
+                                                                         "#a470ff"]
+                                        readonly property string current: prop.value.toUpperCase()
+                                        readonly property bool   isCustom: current !== "" && swatches.indexOf(current) < 0
+
+                                        Repeater {
+                                            model: colorFlow.swatches
+                                            delegate: Rectangle {
+                                                required property string modelData
+                                                readonly property bool selected: colorFlow.current === modelData
+
+                                                width: 20; height: 20
+                                                radius: width / 2
+                                                color: modelData
+                                                border.width: selected ? 2 : (ma_Dot.containsMouse ? 1 : 0)
+                                                border.color: Theme.white
+
+                                                MouseArea {
+                                                    id: ma_Dot
+                                                    anchors.fill: parent
+                                                    hoverEnabled: true
+                                                    cursorShape:  Qt.PointingHandCursor
+                                                    onClicked: if(!parent.selected) prop.commit(parent.modelData)
+                                                }
+                                            }
+                                        }
+
+                                        /* custom: "+" when empty, filled with the custom color when one is set */
+                                        Rectangle {
+                                            width: 20; height: 20
+                                            radius: width / 2
+                                            color: colorFlow.isCustom ? prop.value : "transparent"
+                                            border.width: colorFlow.isCustom ? 2 : 1
+                                            border.color: colorFlow.isCustom ? Theme.white
+                                                                             : (ma_Custom.containsMouse ? Theme.white : Theme.gray)
+                                            Text {
+                                                anchors.centerIn: parent
+                                                visible: !colorFlow.isCustom
+                                                text:  "+"
+                                                color: ma_Custom.containsMouse ? Theme.white : Theme.gray
+                                                font.pixelSize: 14
+                                                font.bold: true
+                                            }
+                                            MouseArea {
+                                                id: ma_Custom
+                                                anchors.fill: parent
+                                                hoverEnabled: true
+                                                cursorShape:  Qt.PointingHandCursor
+                                                onClicked: dlg_Color.openFor(root.selectionData.instance.iUuid, prop.tagName, prop.value)
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Component {
+                                    id: cmp_Password
+                                    DarkField {
+                                        echoMode: TextInput.Password
+                                        placeholderText: prop.value !== "" ? "••••••••" : qsTr("not set")
+                                        onAccepted: { if(text !== "") prop.commit(text); text = "" }
                                     }
                                 }
                             }
@@ -244,6 +412,46 @@ Item {
                     }
                 }
             }
+        }
+    }
+
+    /* One dialog for the whole panel (not inside the delegates): the delegates are destroyed when the
+       selection changes, and a dialog living inside one of them crashed on Set / Cancel.
+       The target (node + attribute) is captured when the dialog opens. */
+    ColorDialog {
+        id: dlg_Color
+
+        property string targetIUuid: ""
+        property string targetTag:   ""
+
+        modality: Qt.ApplicationModal
+
+        function openFor(iUuid, tagName, current){
+            targetIUuid   = iUuid
+            targetTag     = tagName
+            selectedColor = current !== "" ? current : "white"
+            open()
+        }
+
+        onAccepted: {
+            if(root.project && targetIUuid !== "" && targetTag !== "")
+                root.project.cmdSetProperty(targetIUuid, targetTag, selectedColor.toString().toUpperCase())
+            targetIUuid = ""
+            targetTag   = ""
+        }
+        onRejected: {
+            targetIUuid = ""
+            targetTag   = ""
+        }
+    }
+
+    /* another element selected -> the picker belongs to the old one, close it */
+    Connections {
+        target: root.project
+        ignoreUnknownSignals: true
+        function onSelectedIUuidChanged(){
+            if(dlg_Color.visible)
+                dlg_Color.reject()
         }
     }
 }

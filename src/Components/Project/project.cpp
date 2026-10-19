@@ -592,11 +592,10 @@ QVariantMap Project_class::selection() const{ // Needed for properties menu
         propertyMap["readOnly"]  = property.ReadOnly;
         propertyMap["hidden"]    = property.Hidden;
         QVariantList variantsList;
-        if(property.Type == QLatin1String("Ref")){
-            /* variants = every node with TagName == Ref; data = its IUuid, text = its Title */
+        if(property.Type == ATTR_REF){
             QVariantMap noneMap;
             noneMap["data"] = QString();
-            noneMap["text"] = tr("— none —");
+            noneMap["text"] = tr("- none -");
             noneMap["icon"] = QString();
             variantsList.append(noneMap);
             if(m_ptr_Root && !property.Ref.isEmpty()){

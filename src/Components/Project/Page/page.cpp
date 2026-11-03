@@ -160,6 +160,8 @@ QVariantList Page_class::getBlocks() const{
 QVariantMap Page_class::getBlockGhost(const QString &uuid) const{
     QVariantMap BlockGhost;
     BlockManager_class::BlockType_s *blockRef = S_BlockManager.getBlockTypeByUuid(QUuid(uuid));
+    if(blockRef == nullptr)
+        return BlockGhost;
 
     BlockGhost["tagName"] = TOKEN_BLOCK_INST;
     BlockGhost["iUuid"]   = QUuid();

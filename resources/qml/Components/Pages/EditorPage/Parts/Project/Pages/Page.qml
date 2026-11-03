@@ -24,6 +24,7 @@ Item {
     readonly property int workPageWidth:  project ? project.info.paperSize.width  : 4200
     readonly property int workPageHeight: project ? project.info.paperSize.height : 2970
     readonly property int snap:           10 // 1mm grid
+    readonly property string mimeBlock:   "application/x-sti-block"
 
     function snapped(value){
         return Math.round(value / snap) * snap
@@ -62,7 +63,7 @@ Item {
     function beginBlockPlacement(uuid){
         if(!project || coverPage)  return
         const blockGhost = root.pageRef.getBlockGhost(uuid)
-        if(!blockGhost) return
+        if(!blockGhost || !blockGhost.uuid) return
         pendingPlacement.kind      = blockGhost.tagName
         pendingPlacement.reference = blockGhost
         root.forceActiveFocus()
@@ -71,6 +72,8 @@ Item {
     function cancelPlacement(){
         pendingPlacement.kind      = ""
         pendingPlacement.reference = null
+        pendingPlacement.fromDrag  = false
+        pendingPlacement.overPage  = false
     }
 
     function commitPlacement(pagePoint){
@@ -80,7 +83,7 @@ Item {
             cancelPlacement()
             return
         }
-        if(reference.kind === "BlockInstance"){
+        if(pendingPlacement.kind === "BlockInstance"){
             const position = itemPosition(pagePoint, placementBlockGhost.width, placementBlockGhost.height)
             root.project.cmdPlaceBlock(reference.uuid, position.x, position.y)
         }else{
@@ -306,6 +309,25 @@ Item {
 
         onEntered: (drag) => {
             root.beginSignalPlacement(drag.getDataAsString(root.mimeSignal))
+            root.movePlacement(mapToItem(world, drag.x, drag.y))
+        }
+        onPositionChanged: (drag) => root.movePlacement(mapToItem(world, drag.x, drag.y))
+        onExited:          root.cancelPlacement()
+        onDropped: (drop) => {
+            root.commitPlacement(mapToItem(world, drop.x, drop.y))
+            drop.acceptProposedAction()
+        }
+    }
+
+    // ===== Placement of a block dragged from the top toolbar =====
+    DropArea {
+        anchors.fill: parent
+        enabled:      !root.coverPage
+        keys:         [ root.mimeBlock ]
+
+        onEntered: (drag) => {
+            root.beginBlockPlacement(drag.getDataAsString(root.mimeBlock))
+            pendingPlacement.fromDrag = true
             root.movePlacement(mapToItem(world, drag.x, drag.y))
         }
         onPositionChanged: (drag) => root.movePlacement(mapToItem(world, drag.x, drag.y))

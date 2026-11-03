@@ -1,72 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Block Name="Garage / Gate" Title="Garage / Gate" Color="#7D8491" Width="400" Category="Access" Vers="1.0" Icon="icon.svg" Uuid="42764a08-e037-4d17-a2ab-52fff0eed2a8">
+<Block Title="Garage / Gate" Type="Garage / Gate" Color="#7D8491" Width="400" Category="Access" Vers="1.0" Icon="icon.svg" Uuid="42764a08-e037-4d17-a2ab-52fff0eed2a8">
     <Description Text="Garage door or gate controller." />
-    <Input  ShortName="Tg"    Type="Bool" Visible="true"  ExtName="Toggle">
+    <Input  Title="Toggle"     ShortTitle="Tg"    Type="Bool" Visible="true"  >
         <Docs Text="Toggles between open, stop, close.\n
                     For single button control."/>
     </Input>
-    <Input  ShortName="Co"    Type="Bool" Visible="false" ExtName="Complete open">
+    <Input  Title="Complete open" ShortTitle="Co" Type="Bool" Visible="false" >
         <Docs Text="Co - Complete open [Digital] \n
                     If in motion, stops."/>
     </Input>
-    <Input  ShortName="Cc"    Type="Bool" Visible="false" ExtName="Complete close">
+    <Input  Title="Complete close" ShortTitle="Cc" Type="Bool" Visible="false" >
         <Docs Text="Cc - Complete close [Digital]\n
                     If in motion, stops."/>
     </Input>
-    <Input  ShortName="Io"    Type="Bool" Visible="false" ExtName="Is open">
+    <Input  Title="Is open" ShortTitle="Io" Type="Bool" Visible="false" >
         <Docs Text="Io - Is open [Digital]\n
                     Input is used to report the 'fully opened' position via a limit switch or similar."/>
     </Input>
-    <Input  ShortName="Ic"    Type="Bool" Visible="false" ExtName="Is closed">
+    <Input  Title="Is closed" ShortTitle="Ic" Type="Bool" Visible="false" >
         <Docs Text="Ic - Is Closed [Digital]\n
                     Input is used to report the 'fully closed' position via a limit switch or similar." />
     </Input>
-    <Input  ShortName="Off"   Type="Bool" Visible="false" ExtName="Off / Lock">
+    <Input  Title="Off / Lock" ShortTitle="Off"   Type="Bool" Visible="false" T>
         <Docs Text="Off- Off/Lock[Digital]\n
                     Pulse (&lt; 200 ms): Stops movement. Pulse (&gt; 200 ms): Block is locked\n" />
     </Input>
-    <Input  ShortName="Po"    Type="Bool" Visible="false" ExtName="Partially Open">
+    <Input  Title="Partially Open" ShortTitle="Po" Type="Bool" Visible="false" >
         <Docs Text="Po - Partially Open [Digital]\n
                     Moves Gate to partially open position if current position is different."/>
     </Input>
-    <Input  ShortName="Spo"   Type="Bool" Visible="false" ExtName="Sensor prevent opening">
+    <Input  Title="Sensor prevent opening" ShortTitle="Spo"   Type="Bool" Visible="false" >
         <Docs Text="Spo - Sensor prevent opening[Digital]\n
                     If active, opening is prevented but closing is still possible. Used to connect a photoelectric sensor or similar."/>
     </Input>
-    <Input  ShortName="Spc"   Type="Bool" Visible="false" ExtName="Sensor prevent closing">
+    <Input  Title="Sensor prevent closing" ShortTitle="Spc"   Type="Bool" Visible="false" >
         <Docs Text="Spc - Sensor prevent closing[Digital]\n
                     If active, closing is prevented but opening is still possible. Used to connect a photoelectric sensor or similar."/>
     </Input>
-    <Input  ShortName="DisPc" Type="Bool" Visible="false" ExtName="Disable periphery control">
+    <Input  Title="Disable periphery control" ShortTitle="DisPc" Type="Bool" Visible="false" >
         <Docs Text="DisPc - Disable periphery control [Digital]\n
                     Disables inputs Tg, Co, Cc, T5 when On (eg. Child lock, cleaning)\n
                     Control via user interface is still possible."/>
     </Input>
     
-    <Output ShortName="Tg"   Type="Bool" Visible="true"  ExtName="Pulse to Open/Stop/Close">
+    <Output Title="Pulse to Open/Stop/Close" ShortTitle="Tg"   Type="Bool" Visible="true"  >
         <Docs Text="Tg - Pulse to Open/Stop/Close [Digital]"/>
     </Output>
-    <Output ShortName="Op"   Type="Bool" Visible="true"  ExtName="Open">
+    <Output Title="Open" ShortTitle="Op"   Type="Bool" Visible="true"  >
         <Docs Text="Op - Open[Digital]"/>
     </Output>
-    <Output ShortName="Cl"   Type="Bool" Visible="true"  ExtName="Close">
+    <Output Title="Close" ShortTitle="Cl"   Type="Bool" Visible="true"  >
         <Docs Text="Cl - Close[Digital]"/>
     </Output>
-    <Output ShortName="Im"   Type="Bool" Visible="true"  ExtName="In motion">
+    <Output Title="In motion" ShortTitle="Im"   Type="Bool" Visible="true"  >
         <Docs Text="Im - In motion[Digital]"/>
     </Output>
-    <Output ShortName="Pos"   Type="Bool" Visible="true"  ExtName="Position">
+    <Output Title="Position" ShortTitle="Pos"   Type="Bool" Visible="true"  >
         <Docs Text="Pos - Position\n
                     0 = Closed, 100 = Open\n
                     Value Range: 0...1"/>
     </Output>
-    <Output ShortName="Wl"   Type="Bool" Visible="true"  ExtName="Warning light">
+    <Output Title="Warning light" ShortTitle="Wl"   Type="Bool" Visible="true"  >
         <Docs Text="Wl - Warning light[Digital]\n
                     For activating a flashing warning light when the gate is moving.\n
                     On/Off is defined via parameters (Wlon) and (Wloff)."/>
     </Output>
 
-    <Property ShortName="Rem"  Type="Bool" Visible="false" ExtName="Remanence (retain state after restart)" Default="false">
+    <Property Title="Remanence (retain state after restart)" ShortTitle="Rem"  Type="Bool" Visible="false"  Default="false">
         <Docs Text="Rem - Remanence input[Digital]\n
                     Remanence input: If active, the function block retains its previous state after a program reboot\n
                     The state of the function block is saved:\n
@@ -76,7 +76,7 @@
                     -Once per hour\n
                     The data is saved on internal memory"/>
     </Property>
-    <Property ShortName="Type" Type="Int"  Visible="false" ExtName="Type" Default="0">
+    <Property Title="Type" ShortTitle="Type" Type="Int"  Visible="false"  Default="0">
         <Docs Text="Type - Type\n
                     Animation Type\n
                     0 = Garage Door\n
@@ -93,40 +93,40 @@
         <Variant Data="4" Text = "4 = Sliding door opening to the left"  />
         <Variant Data="5" Text = "5 = Sliding door opening to the right" />
     </Property>
-    <Property ShortName="Opd"   Type="Float" Visible="false" ExtName="Opening Duration"           Default="60.0" Unit="s">
+    <Property Title="Opening Duration" ShortTitle="Opd"   Type="Float" Visible="false"            Default="60.0" Unit="s">
         <Docs Text="Opd - Opening Duration[s]\n
                     Value Range: 0...inf, Default Value: 60"/>
     </Property>
-    <Property ShortName="Cld"   Type="Float" Visible="false" ExtName="Closing Duration"           Default="60.0" Unit="s">
+    <Property Title="Closing Duration" ShortTitle="Cld"   Type="Float" Visible="false"            Default="60.0" Unit="s">
         <Docs Text="Cld - Closing Duration[s]\n
                     Value Range: 0...inf, Default Value: 60"/>
     </Property>
-    <Property ShortName="PoPos" Type="Float" Visible="false" ExtName="Partially Open Position"    Default="20 " Unit="%">
+    <Property Title="Partially Open Position" ShortTitle="PoPos" Type="Float" Visible="false"     Default="20 " Unit="%">
         <Docs Text="PoPos - Partially Open Position\n
                     Target Position for Input Po."/>
     </Property>
-    <Property ShortName="Pd"    Type="Float" Visible="false" ExtName="Pulse duration"             Default="0.5"  Unit="s">
+    <Property Title="Pulse duration" ShortTitle="Pd"    Type="Float" Visible="false"              Default="0.5"  Unit="s">
         <Docs Text="Pd - Pulse duration [s]\n
                     Pulse duration of outputs Tg, Op, Cl.\n
                     This parameter is only visible in certain configurations.\n
                     Value Range: 0...inf, Default Value: 0.5"/>
     </Property>
-    <Property ShortName="Ppd"   Type="Float" Visible="false" ExtName="Pulse pause duration"       Default="0.5"  Unit="s">
+    <Property Title="Pulse pause duration" ShortTitle="Ppd"   Type="Float" Visible="false"        Default="0.5"  Unit="s">
         <Docs Text="Pdp - Pulse pause duration[s]\n
                     Pause duration between two subsequent pulses of outputs Tg, Op, Cl.\n
                     This parameter is only visible in certain configurations.\n
                     Value Range: 0...inf, Default Value: 0.5"/>
     </Property>
-    <Property ShortName="Mld"   Type="Float" Visible="false" ExtName="Motor lock duration"        Default="0.5"  Unit="s">
+    <Property Title="Motor lock duration" ShortTitle="Mld"   Type="Float" Visible="false"         Default="0.5"  Unit="s">
         <Docs Text="Mld - Motor lock duration[s]\n
                     Duration of motor lock between direction changes.\n
                     Value RangeL 0...inf. Default Value: 0.5"/>
     </Property>
-    <Property ShortName="Wlon"  Type="Float" Visible="false" ExtName="Warning light on duration"  Default="1.0"  Unit="s">
+    <Property Title="Warning light on duration" ShortTitle="Wlon"  Type="Float" Visible="false"   Default="1.0"  Unit="s">
         <Docs Text="Wlon - Warning light on duration[s]\n
                     Value Range: 0...inf, Default Value: 1"/>
     </Property>
-    <Property ShortName="Wloff" Type="Float" Visible="false" ExtName="Warning light off duration" Default="1.0"  Unit="s">
+    <Property Title="Warning light off duration" ShortTitle="Wloff" Type="Float" Visible="false"  Default="1.0"  Unit="s">
         <Docs Text="Wloff - Warning light off duration[s]\n
                     Value Range: 0...inf, Default Value: 1"/>
     </Property>

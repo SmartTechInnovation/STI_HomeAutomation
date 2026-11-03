@@ -9,7 +9,7 @@ Item {
 
     property var   portModel: null
     property Item  blockRef:  null
-    property bool  connected: portModel.connected
+    property bool  connected: false//portModel.connected
     property real  worldScale: 1
 
     readonly property bool hovered: ma_Port.containsMouse
@@ -66,7 +66,7 @@ Item {
         id: port_Tip
         visible: root.hovered
         delay: 500
-        text:  root.portModel.extName + " [" + root.portModel.type + "]"
+        text:  root.portModel.title + " [" + root.portModel.dataType + "]"
         scale: worldScale
 
         contentItem: Rectangle {

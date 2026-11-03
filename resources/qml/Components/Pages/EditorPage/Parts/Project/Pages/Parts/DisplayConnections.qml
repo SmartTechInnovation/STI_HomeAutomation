@@ -63,21 +63,21 @@ Popup {
                     spacing: 4
 
                     CheckBoxCustom {
-                        checked: modelData.visible || modelData.connected
-                        enabled: !modelData.connected
+                        checked: modelData.visible //|| modelData.connected
+                        enabled: true //!modelData.connected
                         onToggled: root.toggleVisible(index)
                     }
 
                     Text{
                         Layout.preferredWidth: 40
-                        text: modelData.name
+                        text: modelData.shortName
                         font.pixelSize: 12
                         color: "black"
                     }
 
                     Text{
                         Layout.preferredWidth: 40
-                        text: modelData.extName
+                        text: modelData.title !== undefined ? modelData.title : ""
                         font.pixelSize: 12
                         font.bold:      true
                         color: "black"

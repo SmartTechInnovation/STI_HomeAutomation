@@ -12,7 +12,7 @@ Item {
 
     property var project: null
 
-    readonly property var selectionData: project ? project.selection : ({})
+    readonly property var properties: project ? project.properties : ({})
 
     /* ===== Styled controls ===== */
     component DarkField: TextField {
@@ -113,7 +113,7 @@ Item {
         Text{
             Layout.fillWidth: true
             Layout.fillHeight: true
-            visible: root.selectionData.instance ? false : true
+            visible: root.properties.instance ? false : true
             text:  qsTr("Select an element in the tree or on a page")
             color: Theme.gray
             font.pixelSize: 12
@@ -127,7 +127,7 @@ Item {
             id: flick
             Layout.fillWidth:  true
             Layout.fillHeight: true
-            visible: root.selectionData.instance ? true : false
+            visible: root.properties.instance ? true : false
 
             clip:           true
             contentHeight:  contentLayout.implicitHeight + 20
@@ -152,7 +152,7 @@ Item {
                         Layout.preferredHeight: 28
                         sourceSize.width: 28;
                         sourceSize.height: 28
-                        source:  root.selectionData.template ? root.selectionData.template.icon : ""
+                        source:  root.properties.template ? root.properties.template.icon : ""
                         color:   Theme.iconColor(source, Theme.white)
                         visible: source.toString() !== ""
                     }
@@ -161,7 +161,7 @@ Item {
                         spacing: 0
                         Text {
                             Layout.fillWidth: true
-                            text:  root.selectionData.instance ? root.selectionData.instance.title : ""
+                            text:  root.properties.instance ? root.properties.instance.title : ""
                             color: Theme.white
                             font.pixelSize: 15
                             font.bold: true
@@ -169,7 +169,7 @@ Item {
                         }
                         Text {
                             Layout.fillWidth: true
-                            text:  root.selectionData.template ? root.selectionData.template.title : ""
+                            text:  root.properties.template ? root.properties.template.title : ""
                             color: Theme.gray
                             font.pixelSize: 11
                             elide: Text.ElideRight
@@ -179,7 +179,7 @@ Item {
                 Text {
                     Layout.fillWidth: true
                     visible: text !== ""
-                    text:  root.selectionData.template ? root.selectionData.template.description : ""
+                    text:  root.properties.template ? root.properties.template.description : ""
                     color: Theme.gray
                     font.pixelSize: 11
                     wrapMode: Text.WordWrap
@@ -188,7 +188,7 @@ Item {
 
                 // ==== Group Properties ====
                 Repeater {
-                    model: root.selectionData.properties
+                    model: root.properties.properties
 
                     delegate: ColumnLayout {
                         id: groupProperties
@@ -200,8 +200,8 @@ Item {
                         required property var    items
 
                         function changeAttr(tagName, newValue){
-                            if(root.project && root.selectionData.instance)
-                                root.project.cmdSetProperty(root.selectionData.instance.iUuid, tagName, newValue)
+                            if(root.project && root.properties.instance)
+                                root.project.cmdSetProperty(root.properties.instance.iUuid, tagName, newValue)
                         }
 
                         Text {
@@ -394,7 +394,7 @@ Item {
                                                 anchors.fill: parent
                                                 hoverEnabled: true
                                                 cursorShape:  Qt.PointingHandCursor
-                                                onClicked: dlg_Color.openFor(root.selectionData.instance.iUuid, prop.tagName, prop.value)
+                                                onClicked: dlg_Color.openFor(root.properties.instance.iUuid, prop.tagName, prop.value)
                                             }
                                         }
                                     }

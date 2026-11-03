@@ -6,51 +6,37 @@ import QtQuick.Window
 Item {
     id: root
 
-    property string blockInstUuid: ""
-    property string blockTypeUuid: ""
-    property string blockType:     ""
-    property string blockTitle:    ""
-    property string blockIcon:     ""
-    property color  blockColor:    "#FF7D30"
-    property real   defaultWidth:  400
+    property var    blockRef:      null
+    property string blockInstUuid: blockRef ? blockRef.iUuid : ""
+    property string blockTypeUuid: blockRef ? blockRef.uuid  : ""
+    property string blockType:     blockRef ? blockRef.type  : ""
+    property string blockTitle:    blockRef ? blockRef.title : ""
+    property string blockIcon:     blockRef ? blockRef.icon  : ""
+    property color  blockColor:    blockRef ? blockRef.color : "#FF7D30"
+    property real   defaultWidth:  blockRef ? blockRef.width : 400
     property real   worldScale:    1
+    property int    snap:          10
+    property bool   ghost:         false
 
-    property var    inputs:     ({})
-    property var    outputs:    ({})
-    property var    properties: ({})
+    property var    inputs:     blockRef ? blockRef.inputs    : []
+    property var    outputs:    blockRef ? blockRef.outputs   : []
 
     property bool   b_Selected: false
-    property bool   b_Compact:  false
+    property bool   b_Compact:  blockRef ? blockRef.compact : false
 
     readonly property real rowSpacing: 30
-
-    readonly property var allInputs: {
-        var res = []
-        for (var i = 0; i < root.inputs.length; ++i) {
-            res.push(Object.assign({}, root.inputs[i],
-                                   { src: "input", srcIndex: i }))
-        }
-        for (var j = 0; j < root.properties.length; ++j) {
-            // default-uri pentru proprietati; ce e in properties[j] le suprascrie
-            res.push(Object.assign({ visible: false, connected: false, color: root.propertyPortColor },
-                                   root.properties[j],
-                                   { src: "property", srcIndex: j }))
-        }
-        return res
-    }
-
-    readonly property var allOutputs: root.outputs.map(function(o, i) {
-        return Object.assign({}, o, { src: "output", srcIndex: i })
-    })
-
-    readonly property var visibleInputs:  root.allInputs.filter (function(e) { return e.visible || e.connected })
-    readonly property var visibleOutputs: root.allOutputs.filter(function(e) { return e.visible || e.connected })
-
 
     implicitWidth:  body.implicitWidth
     implicitHeight: body.implicitHeight
     width:  implicitWidth
     height: implicitHeight
+
+    opacity: ghost ? 0.6 : 1
+    layer.enabled: ghost
+
+    x: blockRef ? blockRef.pX : 0
+    y: blockRef ? blockRef.pY : 0
+    z: b_Selected ? 3 : 2
 
     signal blockPressed(real wx, real wy)
     signal blockDragged(real wx, real wy)
@@ -60,23 +46,23 @@ Item {
     signal portReleased(real wx, real wy)
 
     function toggleInputVisible(fullIndex) {
-        var e = root.allInputs[fullIndex]
-        if (!e || e.connected) return
+        var item = root.inputs[fullIndex]
+        if (!item || item.connected)
+            return
 
-        if (e.src === "property") {
-            var parr = root.properties.map(function(o) { return Object.assign({}, o) })
-            parr[e.srcIndex].visible = !(parr[e.srcIndex].visible === true)
-            root.properties = parr
-        } else {
-            var arr = root.inputs.map(function(o) { return Object.assign({}, o) })
-            arr[e.srcIndex].visible = !arr[e.srcIndex].visible
-            root.inputs = arr
-        }
+        var arr = root.inputs.map(function(o) {
+            return Object.assign({}, o)
+        })
+        arr[fullIndex].visible = !arr[fullIndex].visible
+        root.inputs = arr
     }
 
     function toggleOutputVisible(fullIndex) {
-        if (root.outputs[fullIndex].connected) return
-        var arr = root.outputs.map(function(o) { return Object.assign({}, o) })
+        if (root.outputs[fullIndex].connected)
+            return
+        var arr = root.outputs.map(function(o) {
+            return Object.assign({}, o)
+        })
         arr[fullIndex].visible = !arr[fullIndex].visible
         root.outputs = arr
     }
@@ -102,6 +88,8 @@ Item {
                 if(nY < 0) nY = 0
                 if(nX > (root.parent.width - root.width))   nX = root.parent.width - root.width
                 if(nY > (root.parent.height - root.height)) nY = root.parent.height - root.height
+                nX     = Math.round(nX / snap) * snap
+                nY     = Math.round(nY / snap) * snap
                 root.x = nX
                 root.y = nY
                 root.blockDragged(root.x, root.y)
@@ -120,7 +108,7 @@ Item {
         radius:       10
         color:        root.blockColor
         border.width: 2
-        border.color: root.b_Selected ? "#000000" : root.blockColor
+        border.color: root.b_Selected ? Qt.darker(root.blockColor) : root.blockColor
 
         implicitWidth:  Math.max(root.defaultWidth, mainColumn.implicitWidth  + 2 * mainColumn.anchors.margins)
         implicitHeight: mainColumn.implicitHeight + 2 * mainColumn.anchors.margins
@@ -183,7 +171,7 @@ Item {
                         spacing: 2
 
                         Repeater{
-                            model: root.visibleInputs
+                            model: root.inputs.filter (function(e) { return e.visible || e.connected })
                             delegate: Item {
                                 required property int index
                                 required property var modelData
@@ -193,7 +181,7 @@ Item {
                                 Text {
                                     x: 28
                                     anchors.verticalCenter: parent.verticalCenter
-                                    text:  modelData.name
+                                    text:  modelData.shortName
                                     color: "black"
                                     font.pixelSize: 14
                                 }
@@ -237,9 +225,11 @@ Item {
 
                             DisplayConnections {
                                 id: inputsMenu
-                                items: root.allInputs
+                                items: root.inputs
                                 onToggleVisible: (fullIndex) => toggleInputVisible(fullIndex)
                                 y: parent.width
+
+                                //scale: root.worldScale
                             }
                         }
                     }
@@ -252,7 +242,7 @@ Item {
                         spacing: 2
 
                         Repeater{
-                            model: root.visibleOutputs
+                            model: root.outputs.filter(function(e) { return e.visible || e.connected })
                             delegate: Item {
                                 required property int index
                                 required property var modelData
@@ -263,7 +253,7 @@ Item {
                                     anchors.right: parent.right
                                     anchors.rightMargin: 25
                                     anchors.verticalCenter: parent.verticalCenter
-                                    text:  modelData.name
+                                    text:  modelData.shortName
                                     color: "black"
                                     font.pixelSize: 14
                                 }
@@ -308,9 +298,11 @@ Item {
 
                             DisplayConnections {
                                 id: outputsMenu
-                                items: root.allOutputs
+                                items: root.outputs
                                 onToggleVisible: (fullIndex) => toggleOutputVisible(fullIndex)
                                 y: parent.width
+
+                                //scale: root.worldScale
                             }
                         }
                     }

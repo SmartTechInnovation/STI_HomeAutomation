@@ -45,8 +45,8 @@ qt_add_qml_module(appSTIx_Config
         resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/Parts/Port.qml
         resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/Parts/DisplayConnections.qml
         resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/Parts/CheckBoxCustom.qml
-        resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/Parts/OutputSignal.qml
-        resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/Parts/InputSignal.qml
+
+
         resources/qml/Components/Pages/EditorPage/Parts/Topbar/TopToolBar.qml
         resources/qml/Components/Pages/EditorPage/Parts/Topbar/ToolBtn.qml
         resources/qml/Components/Pages/EditorPage/Parts/Topbar/BlocksMenu.qml
@@ -70,10 +70,6 @@ qt_add_qml_module(appSTIx_Config
         src/Components/ProjectManager/projectmanager.cpp
         src/Components/BlockManager/blockmanager.h
         src/Components/BlockManager/blockmanager.cpp
-        src/Components/BlockManager/Block/blockbase.h
-        src/Components/BlockManager/Block/blockbase.cpp
-        src/Components/BlockManager/Block/Ports/port.h
-        src/Components/BlockManager/Block/Ports/port.cpp
         src/Components/SchemaManager/schemamanager.h
         src/Components/SchemaManager/schemamanager.cpp
         src/Components/Document/document_tokens.h
@@ -84,6 +80,9 @@ qt_add_qml_module(appSTIx_Config
 
     RESOURCES
         resources/qml/Components/Theme/qmldir
+        QML_FILES
+        SOURCES src/Components/Document/resourceurl.h
+        SOURCES src/Components/DataTypes/datatypes.h src/Components/DataTypes/datatypes.cpp
 )
 
 # Theme.qml e singleton — calea trebuie sa fie EXACT ca in QML_FILES de mai sus

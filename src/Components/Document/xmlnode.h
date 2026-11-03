@@ -23,6 +23,7 @@ private: /* Members   */
     XmlNode_class                 *m_ptr_Parent = nullptr;
     QHash<QString, Attribute_s *>  m_hash_Attributes;
     QVector<Attribute_s   *>       m_vec_Attributes;
+    QHash<XmlNode_class *, XmlNode_class *> m_hash_Children;
     QVector<XmlNode_class *>       m_vec_Children;
 public: /* Functional */
     explicit XmlNode_class(const QString &tag = QString());
@@ -45,6 +46,7 @@ public: /* Functional */
     void           appendChild(XmlNode_class *node);
     XmlNode_class *takeChild  (XmlNode_class *node);
     XmlNode_class *ancestor   (const QString &parentTag);
+    bool           hasChild   (XmlNode_class *child);
 
     /* Attributes */
     bool    hasAttr   (const QString &name) const;

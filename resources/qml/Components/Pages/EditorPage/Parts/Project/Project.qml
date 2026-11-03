@@ -17,6 +17,17 @@ Item {
 
     property int menuIndex: -1
 
+    function beginBlockPlacement(blockTypeUuuid){
+        if(!project || pageList.length === 0)
+            return
+        if(pageActv < 0){
+            return
+        }
+        const page = rep_Pages.itemAt(pageActv)
+        if(page)
+            page.beginBlockPlacement(blockTypeUuuid)
+    }
+
     ColumnLayout {
         anchors.fill: parent
         spacing:      0

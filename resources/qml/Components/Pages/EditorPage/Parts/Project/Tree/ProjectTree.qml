@@ -10,7 +10,7 @@ Item {
     property var project:   null
 
     readonly property var    treeModel:     project ? project.tree : null
-    readonly property string selectedIUuid: project ? project.selectedIUuid : ""
+    readonly property var    selectedItems: project ? project.selectedItems : ({})
     readonly property string mimeSignal:    "application/x-sti-signal"
 
     signal contextItemPicked(string iUuid, var item)
@@ -19,7 +19,7 @@ Item {
     Keys.onPressed: (event) => {
         if(event.key !== Qt.Key_Delete && event.key !== Qt.Key_Backspace)
             return
-        if(root.project?.selection?.instance?.editable === true){
+        if(root.project?.properties?.instance?.editable === true){
             root.project.cmdRemove(root.selectedIUuid)
             event.accepted = true
         }
@@ -49,9 +49,13 @@ Item {
     Connections {
         target: root.project
         /* deferred: never touch the TreeView layout from inside a model change / ongoing layout */
-        function onSelectedIUuidChanged(){ Qt.callLater(root.revealSelected) }
+        function onSelectedItemsChanged(){
+            Qt.callLater(root.revealSelected)
+        }
     }
-    onTreeModelChanged: Qt.callLater(function(){ tree.expand(0) })
+    onTreeModelChanged: Qt.callLater(function(){
+        tree.expand(0)
+    })
 
     // ======== Header =======
     Rectangle{
@@ -109,17 +113,28 @@ Item {
             required property bool     editable
 
 
+                     property bool  selected: false
             readonly property int   indent:     14
-            readonly property bool  selected:   iUuid !== "" && root.selectedIUuid === iUuid
             readonly property bool  renamable:  editable
+
+
 
             function select(){
                 if(!root.project || iUuid === "")
                     return
                 if(kind === "ref")
                     root.project.selectNode(iUuid)      // opens the page with the signal
-                else
-                    root.project.selectedIUuid = iUuid
+                else{
+                    root.project.setSelectedItem(iUuid)
+                }
+            }
+
+            Connections {
+                target: root.project
+                /* deferred: never touch the TreeView layout from inside a model change / ongoing layout */
+                function onSelectedItemsChanged(){
+                    selected = root.project.isSelectedItem(iUuid);
+                }
             }
 
             HoverHandler { id: hover }

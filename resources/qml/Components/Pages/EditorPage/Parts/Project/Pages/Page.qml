@@ -19,17 +19,30 @@ Item {
     property int  pageTotal:  1
     property bool coverPage:  false
 
+    property bool ctrlPressed: false
+
     readonly property int workPageWidth:  project ? project.info.paperSize.width  : 4200
     readonly property int workPageHeight: project ? project.info.paperSize.height : 2970
     readonly property int snap:           10 // 1mm grid
 
-    // ====== Editor State ======
-    readonly property string selectedInstanceUuid: ""
+    function snapped(value){
+        return Math.round(value / snap) * snap
+    }
 
-    signal blockSelected(string uuid)
+    /* top-left corner of an item whose header is under the pointer, kept on the paper */
+    function itemPosition(pointerPoint, itemWidth, itemHeight){
+        return Qt.point(Math.max(0, Math.min(workPageWidth  - itemWidth,  snapped(pointerPoint.x - itemWidth / 2))),
+                        Math.max(0, Math.min(workPageHeight - itemHeight, snapped(pointerPoint.y - 24))))
+    }
 
     function select(iUuid){
-        if(project) project.selectedIUuid = iUuid
+        if(project){
+            if(ctrlPressed){
+                project.addSelectedItem(iUuid)
+            }else{
+                project.setSelectedItem(iUuid)
+            }
+        }
         root.forceActiveFocus()
     }
 
@@ -39,6 +52,76 @@ Item {
         pageRef.viewY     = world.y
         pageRef.viewScale = world.scale
         pageRef.viewValid = true
+    }
+
+    function movePlacement(pagePoint){
+        pendingPlacement.pointer  = pagePoint
+        pendingPlacement.overPage = pagePoint.x >= 0 && pagePoint.y >= 0 && pagePoint.x <= workPageWidth && pagePoint.y <= workPageHeight
+    }
+
+    function beginBlockPlacement(uuid){
+        if(!project || coverPage)  return
+        const blockGhost = root.pageRef.getBlockGhost(uuid)
+        if(!blockGhost) return
+        pendingPlacement.kind      = blockGhost.tagName
+        pendingPlacement.reference = blockGhost
+        root.forceActiveFocus()
+    }
+
+    function cancelPlacement(){
+        pendingPlacement.kind      = ""
+        pendingPlacement.reference = null
+    }
+
+    function commitPlacement(pagePoint){
+        movePlacement(pagePoint)
+        const reference = pendingPlacement.reference
+        if(!reference || !pendingPlacement.overPage){
+            cancelPlacement()
+            return
+        }
+        if(reference.kind === "BlockInstance"){
+            const position = itemPosition(pagePoint, placementBlockGhost.width, placementBlockGhost.height)
+            root.project.cmdPlaceBlock(reference.uuid, position.x, position.y)
+        }else{
+            const position = itemPosition(pagePoint, 1, 1)
+        }
+        cancelPlacement()
+        root.forceActiveFocus()
+    }
+
+    // ====== Keboard Shortcuts ======
+    Keys.onPressed: (event) => {
+        if(event.key === Qt.Key_Escape){
+            cancelPlacement()
+            event.accepted = true
+        }else if(event.key === Qt.Key_Delete || event.key === Qt.Key_Backspace){
+            const SelectedItems = project.getSelectedItems();
+            SelectedItems.forEach(function (item) {
+                project.cmdRemove(item)
+                event.accepted = true
+            })
+        }else if(event.key === Qt.ControlModifier || event.key === Qt.Key_Control){
+            ctrlPressed = true;
+        }
+    }
+
+    Keys.onReleased: (event) => {
+        if(event.key === Qt.ControlModifier || event.key === Qt.Key_Control){
+            ctrlPressed = false;
+        }
+    }
+
+    // ====== Generic Placement Object ======
+    QtObject{
+        id: pendingPlacement
+        property var    reference:  null
+        property string kind:       ""
+        property point  pointer:    Qt.point(0, 0)
+        property bool   overPage:   false
+        property bool   fromDrag:   false
+
+        readonly property bool active: reference !== null
     }
 
     // ====== Background ======
@@ -95,7 +178,7 @@ Item {
         id: world
         width:  root.workPageWidth
         height: root.workPageHeight
-        scale:  0.2
+        scale:  root.pageRef ? root.pageRef.viewScale : 0.2
         transformOrigin: Item.TopLeft
 
         // ====== Handler for tarck pad ====
@@ -147,35 +230,89 @@ Item {
         Repeater {
             id: rep_Blocks
 
-            model: root.pageRef ? root.pageRef.blockList : ({})
+            model: root.pageRef ? root.pageRef.blocks : ({})
 
             delegate: Block {
-                id: blockDelegate
-                required property int index
-                required property var modelData
+                id: blockItem
+                worldScale: world.scale
+                snap:       root.snap
 
-                property real dragDx: 0
-                property real dragDy: 0
+                Connections {
+                    target: root.project
+                    /* deferred: never touch the TreeView layout from inside a model change / ongoing layout */
+                    function onSelectedItemsChanged(){
+                        b_Selected = root.project.isSelectedItem(modelData.iUuid);
+                    }
+                }
 
-                x: Math.max(0, Math.min(root.workPageWidth  - width,  modelData.position.x + dragDx))
-                y: Math.max(0, Math.min(root.workPageHeight - height, modelData.position.y + dragDy))
-                z: b_Selected ? 3 : 2
+                blockRef:   modelData
 
-                blockTypeUuid: modelData.uuid
-                blockInstUuid: modelData.iUuid
-                blockTitle:    modelData.title
-                blockType:     modelData.type
-                blockColor:    modelData.color
-                blockIcon:     modelData.icon
-                defaultWidth:  modelData.width
-                inputs:        modelData.inputs
-                outputs:       modelData.outputs
-                properties:    modelData.properties
-                worldScale:    world.scale
+                onBlockPressed: root.select(modelData.iUuid)
+                onBlockDragged: (wx, wy) => {
 
-                b_Selected:    root.selectedInstanceUuid === modelData.iUuid
+                }
+                onBlockReleased: (wx, wy) => {
+                    root.project.cmdMoveItem(modelData.iUuid, wx, wy);
+                }
 
+                onPortPressed: (index, output) => {
+
+                }
+                onPortDragged: (wx, wy) => {
+
+                }
+                onPortReleased: (wx, wy) => {
+
+                }
             }
+        }
+
+        Block{
+            id: placementBlockGhost
+
+            visible:  pendingPlacement.active && pendingPlacement.overPage
+            ghost:    true
+            blockRef: pendingPlacement.reference
+            z: 10
+            x: root.itemPosition(pendingPlacement.pointer, width, height).x
+            y: root.itemPosition(pendingPlacement.pointer, width, height).y
+        }
+    }
+
+    // ===== Placement of a block chosen in the menu: follows the pointer (mouse) or the finger (touch) =====
+    MouseArea {
+        anchors.fill: parent
+        enabled:      pendingPlacement.active && !pendingPlacement.fromDrag
+        hoverEnabled: true
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+
+
+        onPositionChanged: (mouse) => {
+            root.movePlacement(mapToItem(world, mouse.x, mouse.y))
+        }
+
+        onReleased: (mouse) => {
+            if(mouse.button === Qt.LeftButton)
+                root.commitPlacement(mapToItem(world, mouse.x, mouse.y))
+        }
+        onExited: pendingPlacement.overPage = false
+    }
+
+    // ===== Placement of a signal dragged from the tree =====
+    DropArea {
+        anchors.fill: parent
+        enabled:      !root.coverPage
+        keys:         [ root.mimeSignal ]
+
+        onEntered: (drag) => {
+            root.beginSignalPlacement(drag.getDataAsString(root.mimeSignal))
+            root.movePlacement(mapToItem(world, drag.x, drag.y))
+        }
+        onPositionChanged: (drag) => root.movePlacement(mapToItem(world, drag.x, drag.y))
+        onExited:          root.cancelPlacement()
+        onDropped: (drop) => {
+            root.commitPlacement(mapToItem(world, drop.x, drop.y))
+            drop.acceptProposedAction()
         }
     }
 }

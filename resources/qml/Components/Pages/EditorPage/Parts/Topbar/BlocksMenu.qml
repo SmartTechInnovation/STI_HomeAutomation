@@ -92,7 +92,7 @@ Rectangle {
                             font.bold:      true
                         }
                         Text{
-                            text: modelData.description
+                            text: modelData.docs
                             color: Theme.white
                             font.pixelSize: 9
                         }
@@ -108,10 +108,14 @@ Rectangle {
                     Drag.dragType: Drag.Automatic
                     Drag.supportedActions: Qt.CopyAction
                     Drag.mimeData:         ({ "application/x-sti-block": modelData.uuid })
+                    Drag.onDragStarted:    {
+                        root.blockPicked(modelData.uuid)
+                    }
+
                     Drag.onDragFinished:   {
                         x = 0;
                         y = 0;
-                        root.dragFinished()
+                        root.dragEnd()
                     }
                 }
 

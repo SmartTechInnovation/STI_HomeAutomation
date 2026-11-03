@@ -11,7 +11,8 @@
 #define BLOCKS_DIR_NAME    "/blocks"
 #define SCHEMA_DIR_NAME    "/schema"
 
-#define CONFIG_FILE_NAME   "Config.xml"
-#define RECENT_FILE_NAME   "Recent.xml"
+#define CONFIG_FILE_NAME     "Config.xml"
+#define RECENT_FILE_NAME     "Recent.xml"
+#define DESCRIPTOR_FILE_NAME "Descriptor.xml"
 
 #endif // SETUP_HPP

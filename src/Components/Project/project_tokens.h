@@ -39,7 +39,7 @@
 #define TOKEN_SIGNAL_OUT      "SignalOutRef"
 #define TOKEN_INPUT           "Input"
 #define TOKEN_OUTPUT          "Output"
-#define TOKEN_BLOCK           "BlockInstance"
+#define TOKEN_BLOCK_INST      "BlockInstance"
 
 #define ATTR_TITLE        "Title"
 #define ATTR_NAME         "Name"

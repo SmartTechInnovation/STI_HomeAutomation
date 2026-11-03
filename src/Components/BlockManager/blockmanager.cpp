@@ -5,305 +5,171 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QXmlStreamReader>
-
-#include <algorithm>
-
 #include <QDebug>
 
 #include "src/Setup/Setup.hpp"
+#include "../Logger/logger.h"
+#include "../Document/xmlnode.h"
+#include "../Document/document_tokens.h"
+#include "../Document/resourceurl.h"
 
 BlockManager_class S_BlockManager;
+
+#define BLOCK_MANAGER_NAME "Block Manager"
+
+static XmlNode_class *readDescriptor(const QString &descriptorPath){
+    QFile descriptorFile(descriptorPath);
+    if(!descriptorFile.open(QIODevice::ReadOnly | QIODevice::Text)){
+        S_Logger.write(Log::Warning, BLOCK_MANAGER_NAME, descriptorPath + ": " + descriptorFile.errorString());
+        return nullptr;
+    }
+    QXmlStreamReader xml(&descriptorFile);
+    XmlNode_class *root = XmlNode_class::readDoc(xml);
+    if(root == nullptr){
+        S_Logger.write(Log::Warning, BLOCK_MANAGER_NAME, descriptorPath + ": " + xml.errorString() + " line " + QString::number(xml.lineNumber()),
+                       "Block descriptor", "Fix the XML", true);
+    }
+    return root;
+}
+
 
 BlockManager_class::BlockManager_class(QObject *parent) : QObject(parent) {
 
 }
 
-/* ================= QML API ================= */
+BlockManager_class::~BlockManager_class(){
 
-
-QVariantList BlockManager_class::categories() const{
-    QVariantList Result;
-
-    QVector<const Category_s *> vec_Sorted;
-    for(auto it = m_map_LegacyCategories.cbegin(); it != m_map_LegacyCategories.cend(); ++it){
-        vec_Sorted.push_back(&it.value());
-    }
-    std::sort(vec_Sorted.begin(), vec_Sorted.end(),
-              [](const Category_s *a, const Category_s *b){ return a->order < b->order; });
-
-    for(const Category_s *category : vec_Sorted){
-        QVariantMap categoryMap;
-        categoryMap["name"]    = category->title;
-        categoryMap["icon"]    = category->iconPath;
-        categoryMap["visible"] = category->visible;
-        categoryMap["count"]   = category->blockList.size();
-
-        QVariantList blocksList;
-        for(auto &block : category->blockList){
-            QVariantMap blockMap;
-            blockMap["uuid"]     = block->Uuid.toString(QUuid::WithoutBraces);
-            blockMap["title"]    = block->Title;
-            blockMap["icon"]     = block->IconPath;
-            blockMap["description"] = block->Description;
-            blocksList.push_back(blockMap);
-        }
-        categoryMap["blocks"]  = blocksList;
-
-        Result.push_back(categoryMap);
-    }
-
-    return Result;
-}
-
-QVariantList BlockManager_class::shortcutCategories() const{
-    QVariantList Result;
-
-    QVector<const Category_s *> vec_Sorted;
-    for(auto it = m_map_LegacyCategories.cbegin(); it != m_map_LegacyCategories.cend(); ++it){
-        if(!it->visible) continue;
-        vec_Sorted.push_back(&it.value());
-    }
-    std::sort(vec_Sorted.begin(), vec_Sorted.end(),
-              [](const Category_s *a, const Category_s *b){ return a->order < b->order; });
-
-    for(const Category_s *category : vec_Sorted){
-        QVariantMap categoryMap;
-        categoryMap["name"]    = category->title;
-        categoryMap["icon"]    = category->iconPath;
-        categoryMap["visible"] = category->visible;
-        categoryMap["count"]   = category->blockList.size();
-
-        QVariantList blocksList;
-        for(auto &block : category->blockList){
-            QVariantMap blockMap;
-            blockMap["uuid"]     = block->Uuid.toString(QUuid::WithoutBraces);
-            blockMap["title"]    = block->Title;
-            blockMap["icon"]     = block->IconPath;
-            blockMap["description"] = block->Description;
-            blocksList.push_back(blockMap);
-        }
-        categoryMap["blocks"]  = blocksList;
-
-        Result.push_back(categoryMap);
-    }
-
-    return Result;
 }
 
 void BlockManager_class::begin(){
-    const QString pathBlocksDir = CACHE_APP_PATH + TEMPLATES_DIR_NAME + BLOCKS_DIR_NAME;
+    const QDir blocksDir(CACHE_APP_PATH + TEMPLATES_DIR_NAME + BLOCKS_DIR_NAME);
 
-    QDirIterator it(pathBlocksDir,
-                    QStringList{ "Descriptor.xml" },
-                    QDir::Files,
-                    QDirIterator::Subdirectories);
+    /* Categories first: they decide the order of the menus */
+    loadCategories(blocksDir.filePath(DESCRIPTOR_FILE_NAME));
+
+    QDirIterator it(blocksDir.path(), QStringList{ DESCRIPTOR_FILE_NAME }, QDir::Files, QDirIterator::Subdirectories);
     while (it.hasNext()) {
-        const QString path = it.next();
-
-        QFileInfo descInfo(path);
-        QString   dirName = descInfo.dir().dirName();
-
-        if(dirName == QDir(pathBlocksDir).dirName()){
-            loadCategories(path);
-        }else{
-            loadBlock(path);
-        }
+        const QString descriptorPath = it.next();
+        if(QFileInfo(descriptorPath).absoluteDir() != blocksDir)
+            loadBlockType(descriptorPath);
     }
 
     emit categoriesChanged();
 }
 
-bool BlockManager_class::loadCategories(const QString &descriptorPath){
-    bool Result = true;
-
-    QFile descriptorFile(descriptorPath);
-    QFileInfo descriptorFileInfo(descriptorPath);
-    if(!descriptorFile.open(QIODevice::ReadOnly | QIODevice::Text)){
-        qCritical() << descriptorFile.errorString();
-        Result = false;
-        return Result;
+void BlockManager_class::loadCategories(const QString &descriptorPath){
+    XmlNode_class *root = readDescriptor(descriptorPath);
+    if(root == nullptr)
+        return;
+    for(const XmlNode_class *node : root->children()){
+        if(node->TagName != TOKEN_CATEGORY)
+            continue;
+        Category_s *newCategory = new Category_s;
+        newCategory->Title   = node->value(ATTR_TITLE);
+        newCategory->Icon    = resolveResourceUrl(node->value(ATTR_ICON), descriptorPath);
+        newCategory->Visible = node->value(ATTR_VISIBLE) == "true";
+        m_map_Categories[newCategory->Title] = newCategory;
+        m_vec_Categories.append(newCategory);
     }
-
-    /* Working Temporary Members */
-    int m_int_NextOrder = 0;
-
-    QXmlStreamReader descriptorXml(&descriptorFile);
-    while(!descriptorXml.atEnd() && !descriptorXml.hasError()){
-        QXmlStreamReader::TokenType token = descriptorXml.readNext();
-        QStringView                 tokenName = descriptorXml.name();
-
-        if(token == QXmlStreamReader::StartElement){
-            if(tokenName == "Category"){
-                Category_s newCategory;
-                newCategory.title       = descriptorXml.attributes().value("Name").toString();
-                newCategory.iconPath    = descriptorXml.attributes().value("Icon").toString();
-                newCategory.visible     = descriptorXml.attributes().value("Visible").toString() == "true";
-                newCategory.order       = m_int_NextOrder++;
-
-                if(!newCategory.iconPath.isEmpty() && newCategory.iconPath.contains("qrc:") == false){
-                    newCategory.iconPath = "file:///" + descriptorFileInfo.dir().absolutePath() + "/" + newCategory.iconPath;
-                }
-
-                if(m_map_LegacyCategories.find(newCategory.title) == m_map_LegacyCategories.end()){
-                    m_map_LegacyCategories[newCategory.title] = newCategory;
-                }else{
-                    Category_s *existingCategory = &m_map_LegacyCategories[newCategory.title];
-                    existingCategory->title    = newCategory.title;
-                    existingCategory->iconPath = newCategory.iconPath;
-                    existingCategory->visible  = newCategory.visible;
-                    existingCategory->order    = newCategory.order;
-                }
-            }
-        }else if(token == QXmlStreamReader::EndElement){
-
-        }
-    }
-    if(descriptorXml.hasError()){
-        qWarning() << "Load Categories: " + descriptorXml.errorString() + " :" + QString::number(descriptorXml.lineNumber()) + ":" + QString::number(descriptorXml.columnNumber());
-    }
-    return Result;
+    delete root;
 }
 
-bool BlockManager_class::loadBlock(const QString &descriptorPath){
-    bool Result = true;
-
-    QFile     descriptorFile(descriptorPath);
-    QFileInfo descriptorFileInfo(descriptorPath);
-    if(!descriptorFile.open(QIODevice::ReadOnly | QIODevice::Text)){
-        qCritical() << descriptorFile.errorString();
-        Result = false;
-        return Result;
+void BlockManager_class::loadBlockType(const QString &descriptorPath){
+    XmlNode_class *root = readDescriptor(descriptorPath);
+    if(root == nullptr)
+        return;
+    if(root->TagName != TOKEN_BLOCK){
+        delete root;
+        return;
     }
-    /* Working Temporary Members */
-    BlockBase_class *m_ptr_BlockBase  = nullptr;
-    Port_class       m_temp_PortBase;
-    int              m_int_NextOrder = 0;
 
-    QXmlStreamReader descriptorXml(&descriptorFile);
-    while(!descriptorXml.atEnd() && !descriptorXml.hasError()){
-        QXmlStreamReader::TokenType token = descriptorXml.readNext();
-        QStringView                 tokenName = descriptorXml.name();
+    BlockType_s *newBlockType = new BlockType_s;
+    newBlockType->Uuid     = QUuid(root->value(ATTR_UUID));
+    newBlockType->Title    = root->value(ATTR_TITLE);
+    newBlockType->Type     = root->value(ATTR_TYPE);
+    newBlockType->Category = root->value(ATTR_CATEGORY);
+    newBlockType->Icon     = resolveResourceUrl(root->value(ATTR_ICON), descriptorPath);
+    newBlockType->Color    = QColor(root->value(ATTR_COLOR, QStringLiteral("#7D8491")));
+    newBlockType->Width    = root->value(ATTR_WIDTH, QStringLiteral("400")).toDouble();
 
-        if(token == QXmlStreamReader::StartElement){
-            if(tokenName == "Block"){
-                QString blockUUID     = descriptorXml.attributes().value("Uuid").toString();
-                QString blockTitle    = descriptorXml.attributes().value("Title").toString();
-                QString blockType     = descriptorXml.attributes().value("Name").toString();
-                QColor  blockColor    = descriptorXml.attributes().value("Color").toString();
-                qreal   blockWidth    = descriptorXml.attributes().value("Width").toFloat();
-                QString blockCategory = descriptorXml.attributes().value("Category").toString();
-                QString blockIcon     = descriptorXml.attributes().value("Icon").toString();
-
-                if(!blockIcon.isEmpty() && blockIcon.contains("qrc:") == false){
-                    blockIcon = "file:///" + descriptorFileInfo.dir().absolutePath() + "/" + blockIcon;
-                }
-
-                if(m_ptr_BlockBase == nullptr){
-                    if(blockUUID.isEmpty()) m_ptr_BlockBase = new BlockBase_class();
-                    else                    m_ptr_BlockBase = new BlockBase_class(QUuid(blockUUID));
-                    if(m_ptr_BlockBase != nullptr){
-                        m_ptr_BlockBase->Title = blockTitle;
-                        m_ptr_BlockBase->Type  = blockType;
-                        m_ptr_BlockBase->Color = blockColor;
-                        m_ptr_BlockBase->Width = blockWidth;
-                        m_ptr_BlockBase->Category = blockCategory;
-                        m_ptr_BlockBase->IconPath = blockIcon;
-
-                        auto findedCategory = m_map_LegacyCategories.find(m_ptr_BlockBase->Category);
-                        if(findedCategory != m_map_LegacyCategories.end()){
-                            findedCategory->blockList.push_back(m_ptr_BlockBase);
-                        }else{
-                            Category_s newCategory;
-                            newCategory.title      = m_ptr_BlockBase->Category;
-                            newCategory.visible   = false;
-                            newCategory.order     = 1000 + m_int_NextOrder++;
-                            newCategory.blockList.push_back(m_ptr_BlockBase);
-                            m_map_LegacyCategories[newCategory.title] = newCategory;
-                        }
-                    }else{
-                        qCritical() << "Load Block Descriptor: alloc new Block failed";
-                    }
-                }
-            }else if(tokenName == "Description"){
-                if(m_ptr_BlockBase != nullptr){
-                    QString blockDescription = descriptorXml.attributes().value("Text").toString();
-                    m_ptr_BlockBase->Description = blockDescription;
-                }
-            }else if(tokenName == "Input" || tokenName == "Output" || tokenName == "Property"){
-                if(m_ptr_BlockBase != nullptr){
-                    QString portShortName    = descriptorXml.attributes().value("ShortName").toString();
-                    QString portExtendedName = descriptorXml.attributes().value("ExtName").toString();
-                    QString portType         = descriptorXml.attributes().value("Type").toString();
-                    bool    portVisible      = descriptorXml.attributes().value("Visible").toString() == "true";
-                    QString portColor        = descriptorXml.attributes().value("Color").toString();
-                    QString portDefaultValue = descriptorXml.attributes().value("Default").toString();
-                    QString portUnit         = descriptorXml.attributes().value("Unit").toString();
-
-                    m_temp_PortBase = Port_class();
-                    m_temp_PortBase.setName(portShortName, portExtendedName);
-                    m_temp_PortBase.setPortType(Port_class::fromString(portType));
-                    if(!portColor.isEmpty())  m_temp_PortBase.setColor(portColor);
-                    m_temp_PortBase.setVisible(portVisible);
-                    m_temp_PortBase.setDefaultValue(portDefaultValue);
-                    m_temp_PortBase.setUnit(portUnit);
-                }
-            }else if(tokenName == "Docs"){
-                QString docsText = descriptorXml.attributes().value("Text").toString();
-                if(m_ptr_BlockBase != nullptr){
-                    m_temp_PortBase.setDocumentation(docsText);
-                }
-            }else if(tokenName == "Variant"){
-                QString propertyVariantData = descriptorXml.attributes().value("Data").toString();
-                QString propertyVariantText = descriptorXml.attributes().value("Text").toString();
-
-                Port_class::PortVariant_s newVariant;
-                newVariant.Data = propertyVariantData;
-                newVariant.Text = propertyVariantText;
-                if(m_ptr_BlockBase != nullptr){
-                    m_temp_PortBase.addVariant(newVariant);
-                }
-            }
-        }else if(token == QXmlStreamReader::EndElement){
-            if(tokenName == "Block"){
-                m_ptr_BlockBase = nullptr;
-            }else if(tokenName == "Input"){
-                if(m_ptr_BlockBase != nullptr){
-                    m_ptr_BlockBase->addInput(m_temp_PortBase);
-                }
-            }else if(tokenName == "Output"){
-                if(m_ptr_BlockBase != nullptr){
-                    m_ptr_BlockBase->addOutput(m_temp_PortBase);
-                }
-            }else if(tokenName == "Property"){
-                if(m_ptr_BlockBase != nullptr){
-                    m_ptr_BlockBase->addProperty(m_temp_PortBase);
-                }
+    auto portDefinition = [this](const XmlNode_class *portNode) -> PortDefinition_s {
+        PortDefinition_s newPort;
+        newPort.Title       = portNode->value(ATTR_TITLE);
+        newPort.ShortName   = portNode->value(ATTR_SHORT_NAME);
+        newPort.DataType    = portNode->value(ATTR_DATA_TYPE);
+        newPort.Default     = portNode->value(ATTR_DEFAULT);
+        newPort.Unit        = portNode->value(ATTR_UNIT);
+        newPort.Visible     = portNode->value(ATTR_VISIBLE) == "true";
+        for(auto &child : portNode->children()){
+            if(child->TagName == TAG_DOCS){
+                newPort.Docs = child->value(ATTR_TEXT);
+            }else if(child->TagName == TAG_VARIANT){
+                PortVariant_s newVariant;
+                newVariant.Data = child->value(ATTR_DATA);
+                newVariant.Text = child->value(ATTR_TEXT);
+                newPort.Variants.append(newVariant);
             }
         }
-    }
-    if(descriptorXml.hasError()){
-        qWarning() << "Load Blocks Description: " + descriptorFileInfo.dir().dirName() + ": " + descriptorXml.errorString() + " :" + QString::number(descriptorXml.lineNumber()) + ":" + QString::number(descriptorXml.columnNumber());
-    }
+        return newPort;
+    };
 
-    return Result;
+    for(const XmlNode_class *child : root->children()){
+        if(child->TagName == TAG_DESCRIPTION)
+            newBlockType->Docs = child->value(ATTR_TEXT);
+        else if(child->TagName == TOKEN_INPUT)
+            newBlockType->Inputs.append(portDefinition(child));
+        else if(child->TagName == TOKEN_OUTPUT)
+            newBlockType->Outputs.append(portDefinition(child));
+        else if(child->TagName == TOKEN_PROPERTY)
+            newBlockType->Properties.append(portDefinition(child));
+    }
+    delete root;
+
+    if(newBlockType->Uuid.isNull() || m_hash_BlockTypeByUuid.contains(newBlockType->Uuid)){
+        S_Logger.write(Log::Warning, BLOCK_MANAGER_NAME, descriptorPath + ": missing or duplicate Uuid, block ignored",
+                       "Block descriptor", "Every block needs a unique Uuid", true);
+        delete newBlockType;
+        return;
+    }
+    m_vec_BlockTypes.append(newBlockType);
+    m_hash_BlockTypeByUuid[newBlockType->Uuid] = newBlockType;
+    auto findCategory = m_map_Categories.find(newBlockType->Category);
+    if(findCategory != m_map_Categories.end()){
+        findCategory.value()->BlockTypes.append(newBlockType);
+    }else{
+        Category_s *newCategory = new Category_s;
+        newCategory->Title = newBlockType->Category;
+        newCategory->BlockTypes.append(newBlockType);
+        m_map_Categories[newCategory->Title] = newCategory;
+        m_vec_Categories.append(newCategory);
+    }
 }
 
-BlockBase_class *BlockManager_class::getInstance(QUuid &Uuid){
-    BlockBase_class *refBlockBase = nullptr;
-    for(auto &category : m_map_LegacyCategories){
-        for(auto &block : category.blockList){
-            if(block->Uuid == Uuid){
-                refBlockBase = block;
-                break;
-            }
+BlockManager_class::BlockType_s *BlockManager_class::getBlockTypeByUuid(QUuid Uuid){
+    BlockType_s * result = m_hash_BlockTypeByUuid.value(Uuid, nullptr);
+    return result;
+}
+
+/* ================= QML API ================= */
+QVariantList BlockManager_class::categories() const{
+    QVariantList Result;
+    for(auto &category : m_vec_Categories){
+        QVariantList blocksList;
+        for(auto &blockType : category->BlockTypes){
+            QVariantMap blockMap;
+            blockMap["uuid"]        = blockType->Uuid.toString(QUuid::WithoutBraces);
+            blockMap["title"]       = blockType->Title;
+            blockMap["icon"]        = blockType->Icon;
+            blockMap["docs"]        = blockType->Docs;
+            blocksList.append(blockMap);
         }
-        if(refBlockBase != nullptr)
-            break;
+        QVariantMap categoryMap;
+        categoryMap["title"]    = category->Title;
+        categoryMap["icon"]    = category->Icon;
+        categoryMap["visible"] = category->Visible;
+        categoryMap["count"]   = blocksList.size();
+        categoryMap["blocks"]  = blocksList;
+        Result.append(categoryMap);
     }
-    if(refBlockBase != nullptr){
-        BlockBase_class *newInstance = new BlockBase_class(refBlockBase->Uuid);
-        *newInstance = *refBlockBase;
-        return newInstance;
-    }
-    return nullptr;
+    return Result;
 }

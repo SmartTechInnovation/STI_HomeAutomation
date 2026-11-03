@@ -23,6 +23,7 @@ XmlNode_class *XmlNode_class::read (QXmlStreamReader &xml){
             XmlNode_class *child = read(xml);
             child->m_ptr_Parent = newNode;
             newNode->m_vec_Children.append(child);
+            newNode->m_hash_Children[child] = child;
         }else if(xml.isEndElement())
             break;
     }
@@ -88,11 +89,13 @@ void XmlNode_class::insertChild(XmlNode_class *node, int row){
         row = m_vec_Children.size();
     node->m_ptr_Parent = this;
     m_vec_Children.insert(row, node);
+    m_hash_Children[node] = node;
 }
 
 void XmlNode_class::appendChild(XmlNode_class *node){
     node->m_ptr_Parent = this;
     m_vec_Children.append(node);
+    m_hash_Children[node] = node;
 }
 
 XmlNode_class *XmlNode_class::takeChild(XmlNode_class *node){
@@ -101,6 +104,7 @@ XmlNode_class *XmlNode_class::takeChild(XmlNode_class *node){
     for(auto &child : m_vec_Children){
         if(child == node){
             findedNode = m_vec_Children.takeAt(index);
+            m_hash_Children.take(findedNode);
             break;
         }
         index++;
@@ -114,6 +118,10 @@ XmlNode_class *XmlNode_class::ancestor(const QString &parentTag){
     if(m_ptr_Parent->TagName == parentTag)
         return m_ptr_Parent;
     return m_ptr_Parent->ancestor(parentTag);
+}
+
+bool XmlNode_class::hasChild(XmlNode_class *child){
+    return m_hash_Children.contains(child);
 }
 
 /* Attributes */

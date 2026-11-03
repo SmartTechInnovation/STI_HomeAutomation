@@ -12,12 +12,11 @@ Item {
 
     property int currentTab: 0 // Blocks, 1 Monitor, 2 Diagnostics, 3 Context
     property var project:    null
-    property var selection:  project ? project.selection : null
+    property var properties:  project ? project.properties : null
 
     readonly property var list_Categories:         BlockManager.categories
-    readonly property var list_ShortcutCategories: BlockManager.shortcutCategories
 
-    onSelectionChanged: currentTab = (selection && selection.template !== undefined && selection.template.items.length > 0) ? 3 : (currentTab === 3 ? 0 : currentTab)
+    onPropertiesChanged: currentTab = (properties && properties.template !== undefined && properties.template.items.length > 0) ? 3 : (currentTab === 3 ? 0 : currentTab)
 
     signal blockPicked(string uuid)
     signal contextPicked(string uuid)
@@ -101,8 +100,8 @@ Item {
 
             TopTab {
                 id: topTab_Context
-                visible:   root.selection && root.selection.template !== undefined && root.selection.template.items.length > 0
-                title:    (root.selection && root.selection.template !== undefined) ? root.selection.template.title : ""
+                visible:   root.properties && root.properties.template !== undefined && root.properties.template.items.length > 0
+                title:    (root.properties && root.properties.template !== undefined) ? root.properties.template.title : ""
                 active:    root.currentTab === 3
                 onClicked: root.currentTab = 3
             }
@@ -164,7 +163,7 @@ Item {
                     orientation: ListView.Horizontal
                     clip:        true
                     spacing:     8
-                    model:       root.list_ShortcutCategories
+                    model:       root.list_Categories.filter(function(item) { return item.visible; })
                     boundsBehavior: Flickable.StopAtBounds
 
                     ScrollBar.horizontal: ScrollBar {
@@ -176,8 +175,9 @@ Item {
                         height: parent.height
                         width:  parent.height
 
-                        firstRowText: modelData.name
+                        firstRowText: modelData.title
                         iconSrc:      modelData.icon
+                        enabled:      modelData.visible
 
                         property bool wasOpen: false
 
@@ -189,7 +189,7 @@ Item {
                             }else{
                                 var pos = btn_ShortcutCategory.mapToItem(root, 0, btn_ShortcutCategory.height)
                                 popup_ShortcutCategory.category     = modelData
-                                popup_ShortcutCategory.categoryName = modelData.name
+                                popup_ShortcutCategory.categoryName = modelData.title
                                 popup_ShortcutCategory.x = pos.x
                                 popup_ShortcutCategory.y = pos.y + 4
                                 popup_ShortcutCategory.open()
@@ -232,9 +232,9 @@ Item {
                     Layout.fillHeight: true
                     Layout.preferredWidth: height
 
-                    visible:      (root.selection && root.selection.template !== undefined) ?  root.selection.template.menuVisible : false
-                    firstRowText: (root.selection && root.selection.template !== undefined) ?  root.selection.template.menuName : ""
-                    iconSrc:      (root.selection && root.selection.template !== undefined) ?  root.selection.template.icon     : ""
+                    visible:      (root.properties && root.properties.template !== undefined) ?  root.properties.template.menuVisible : false
+                    firstRowText: (root.properties && root.properties.template !== undefined) ?  root.properties.template.menuName : ""
+                    iconSrc:      (root.properties && root.properties.template !== undefined) ?  root.properties.template.icon     : ""
 
                     property bool wasOpen: false
 
@@ -268,7 +268,7 @@ Item {
                     orientation: ListView.Horizontal
                     clip:        true
                     spacing:     8
-                    model:       (root.selection && root.selection.template !== undefined) ? root.selection.template.items : ({})
+                    model:       (root.properties && root.properties.template !== undefined) ? root.properties.template.items : ({})
                     boundsBehavior: Flickable.StopAtBounds
 
                     ScrollBar.horizontal: ScrollBar {
@@ -347,7 +347,7 @@ Item {
 
                         width: categoriesPanel.width
                         height: popup_FunctionBlocks.rowHeight
-                        color:  (popup_FunctionBlocks.hoveredCategoryName === modelData.name ) ? Theme.bgHover : "transparent"
+                        color:  (popup_FunctionBlocks.hoveredCategoryName === modelData.title ) ? Theme.bgHover : "transparent"
 
                         RowLayout {
                             anchors.fill: parent
@@ -366,7 +366,7 @@ Item {
                             Text {
                                 Layout.fillWidth:  true
                                 Layout.fillHeight: true
-                                text: modelData.name
+                                text: modelData.title
                                 color: btn_FunctionBlocks.color
                                 font.pixelSize: 13
                                 verticalAlignment: Text.AlignVCenter
@@ -390,13 +390,13 @@ Item {
 
                             onEntered: {
                                 popup_FunctionBlocks.hoveredCategory     = modelData
-                                popup_FunctionBlocks.hoveredCategoryName = modelData.name
+                                popup_FunctionBlocks.hoveredCategoryName = modelData.title
                                 popup_FunctionBlocks.hoverY              = categoryRow.y - list_Categories.contentY
                             }
 
                             onClicked: {
                                 popup_FunctionBlocks.hoveredCategory     = modelData
-                                popup_FunctionBlocks.hoveredCategoryName = modelData.name
+                                popup_FunctionBlocks.hoveredCategoryName = modelData.title
                                 popup_FunctionBlocks.hoverY              = categoryRow.y - list_Categories.contentY
                             }
                         }
@@ -410,7 +410,7 @@ Item {
                                         categoriesPanel.height - height))
 
                 visible:      popup_FunctionBlocks.hoveredCategory !== null
-                categoryName: popup_FunctionBlocks.hoveredCategory ? popup_FunctionBlocks.hoveredCategory.name   : ""
+                categoryName: popup_FunctionBlocks.hoveredCategory ? popup_FunctionBlocks.hoveredCategory.title   : ""
                 blocks:       popup_FunctionBlocks.hoveredCategory ? popup_FunctionBlocks.hoveredCategory.blocks : []
 
                 onBlockPicked: (uuid) => {
@@ -436,8 +436,8 @@ Item {
         contentItem: ShortcutsMenu {
             id: submenuShortcutsContext
 
-            title: (root.selection && root.selection.template !== undefined) ? root.selection.template.title : ""
-            items: (root.selection && root.selection.template !== undefined) ? root.selection.template.items : []
+            title: (root.properties && root.properties.template !== undefined) ? root.properties.template.title : ""
+            items: (root.properties && root.properties.template !== undefined) ? root.properties.template.items : []
 
             onContextPicked: (uuid) => {
                 popup_ShortcutContext.close()
@@ -466,7 +466,7 @@ Item {
 
         contentItem: BlocksMenu {
             id: submenuShortcutsBlocks
-            categoryName: popup_ShortcutCategory.category ? popup_ShortcutCategory.category.name   : ""
+            categoryName: popup_ShortcutCategory.category ? popup_ShortcutCategory.category.title  : ""
             blocks:       popup_ShortcutCategory.category ? popup_ShortcutCategory.category.blocks : []
 
             onBlockPicked: (uuid) => {

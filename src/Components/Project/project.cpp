@@ -14,6 +14,7 @@
 #include "project_commands.h"
 #include "../Logger/logger.h"
 #include "src/Components/Document/document_tokens.h"
+#include "../BlockManager/blockmanager.h"
 
 #define PROJECT_NAME "Project"
 #define DATE_FORMAT  "yyyy-MM-dd HH:mm:ss"
@@ -53,7 +54,7 @@ void Project_class::insertNode(XmlNode_class *parent, XmlNode_class *node, int r
     touchPage(node);
 
     emit nodeInserted(parent, node);
-    emit selectionChanged();
+    emit propertiesChanged();
 }
 
 void Project_class::takeNode(XmlNode_class *node, bool moving){
@@ -65,7 +66,7 @@ void Project_class::takeNode(XmlNode_class *node, bool moving){
     parent->takeChild(node);
 
     emit nodeRemoved(parent, node);
-    emit selectionChanged();
+    emit propertiesChanged();
 }
 
 void Project_class::setAttribute(XmlNode_class *node,   const QString &tag, const QString &value){
@@ -75,18 +76,18 @@ void Project_class::setAttribute(XmlNode_class *node,   const QString &tag, cons
         touchPage(node);
     }
     emit attributeChanged(node, tag);
-    /* refresh the properties panel when it shows this node, or when the project changed
-       (other nodes link to project attributes, e.g. Unit="Project@UArea") */
-    if(node == m_ptr_Selected || node == m_ptr_Root)
-        emit selectionChanged();
+    if(m_hash_SelectedItems.contains(node)){
+        emit propertiesChanged();
+    }
 }
 
 void Project_class::rmAttribute(XmlNode_class *node,   const QString &tag){
     node->removeAttr(tag);
 
     emit attributeChanged(node, tag);
-    if(node == m_ptr_Selected)
-        emit selectionChanged();
+    if(m_hash_SelectedItems.contains(node)){
+        emit propertiesChanged();
+    }
 }
 
 void Project_class::indexNode(XmlNode_class *node){
@@ -147,9 +148,10 @@ void Project_class::setDocument(XmlNode_class *root){
     }
 
     m_ptr_Root       = root;
-    m_ptr_Selected   = nullptr;
     m_ptr_Program    = nullptr;
     m_ptr_ActivePage = nullptr;
+
+    m_hash_SelectedItems.clear();
 
     for(auto &child : m_ptr_Root->children()){
         if(child->TagName == TOKEN_PROGRAM){
@@ -168,9 +170,8 @@ void Project_class::setDocument(XmlNode_class *root){
     emit infoChanged();
     emit pagesChanged();
     emit pageActvChanged();
-    emit selectedUuidChanged();
-    emit selectedIUuidChanged();
-    emit selectionChanged();
+    emit selectedItemsChanged();
+    emit propertiesChanged();
     emit undoStateChanged();
     emit modifiedChanged();
 }
@@ -465,32 +466,23 @@ QObject *Project_class::tree() const{
     return m_ptr_Tree;
 }
 
-QString  Project_class::selectedUuid() const{
-    if(m_ptr_Selected){
-        const NodeType_s *nodeTemplate = S_SchemaManager.getNode(m_ptr_Selected->TagName);
-        if(nodeTemplate)
-            return nodeTemplate->Uuid.toString(QUuid::WithoutBraces);
-        else
-            return m_ptr_Selected->value(ATTR_UUID);
-    }
-    return QString();
-}
-
-QString  Project_class::selectedIUuid() const{
-    if(m_ptr_Selected)
-        return m_ptr_Selected->value(ATTR_IUUID);
-    return QString();
-}
-
-QVariantMap Project_class::selection() const{ // Needed for properties menu
+QVariantMap Project_class::properties() const{ // Needed for properties menu
     QVariantMap Result;
-    if(m_ptr_Selected == nullptr) return Result;
+    if(m_hash_SelectedItems.size() != 1)
+        return Result;
+    XmlNode_class *ptr_SelectedNode = nullptr;
+    for(auto &Item : m_hash_SelectedItems){
+        ptr_SelectedNode = Item;
+        break;
+    }
+    if(ptr_SelectedNode == nullptr)
+        return Result;
 
-    const NodeType_s *nodeTemplate = S_SchemaManager.getNode(m_ptr_Selected);
+    const NodeType_s *nodeTemplate = S_SchemaManager.getNode(ptr_SelectedNode);
 
     QVariantMap instanceNodeMap;
-    instanceNodeMap["iUuid"]     = m_ptr_Selected->value(ATTR_IUUID);
-    instanceNodeMap["title"]     = m_ptr_Selected->value(ATTR_TITLE);
+    instanceNodeMap["iUuid"]     = ptr_SelectedNode->value(ATTR_IUUID);
+    instanceNodeMap["title"]     = ptr_SelectedNode->value(ATTR_TITLE);
     instanceNodeMap["editable"]  = nodeTemplate ? nodeTemplate->Editable : true;
     Result["instance"] = instanceNodeMap;
 
@@ -521,7 +513,7 @@ QVariantMap Project_class::selection() const{ // Needed for properties menu
             childMap["visible"]     = childDef.Visible;
             if(childDef.Visible == false) //if we have invisible child
                 menuVisible = true;
-            childMap["enabled"]     = nodeTemplate->Max != -1 ? (m_ptr_Selected->children().size() < nodeTemplate->Max) : true;
+            childMap["enabled"]     = nodeTemplate->Max != -1 ? (ptr_SelectedNode->children().size() < nodeTemplate->Max) : true;
             childList.append(childMap);
         }
         templateNodeMap["menuVisible"] = menuVisible;
@@ -541,7 +533,7 @@ QVariantMap Project_class::selection() const{ // Needed for properties menu
      * Node lookup: the selected node, its ancestors, then the first node with that tag in the document.
      * Enum values are shown with their variant text; an empty value falls back to the property default.
      * Anything without '@' is returned as is. */
-    auto resolveLink = [this](const QString &text) -> QString {
+    auto resolveLink = [this, &ptr_SelectedNode](const QString &text) -> QString {
         const int at = text.indexOf(QLatin1Char('@'));
         if(at <= 0 || at == text.size() - 1)
             return text;
@@ -549,10 +541,10 @@ QVariantMap Project_class::selection() const{ // Needed for properties menu
         const QString attr = text.mid(at + 1);
 
         XmlNode_class *source = nullptr;
-        if(m_ptr_Selected->TagName == tag)
-            source = m_ptr_Selected;
+        if(ptr_SelectedNode->TagName == tag)
+            source = ptr_SelectedNode;
         else
-            source = m_ptr_Selected->ancestor(tag);
+            source = ptr_SelectedNode->ancestor(tag);
         if(source == nullptr && m_ptr_Root){
             m_ptr_Root->visit([&source, &tag](XmlNode_class *node){
                 if(source == nullptr && node->TagName == tag)
@@ -581,7 +573,7 @@ QVariantMap Project_class::selection() const{ // Needed for properties menu
         return value;
     };
 
-    auto getPropertyMap = [this, &resolveLink](Property_s property) -> QVariantMap {
+    auto getPropertyMap = [this, &resolveLink, &ptr_SelectedNode](Property_s property) -> QVariantMap {
         QVariantMap propertyMap;
         propertyMap["tagName"]   = property.TagName;
         propertyMap["title"]     = property.Title;
@@ -620,7 +612,7 @@ QVariantMap Project_class::selection() const{ // Needed for properties menu
             }
         }
         propertyMap["variants"]  = variantsList;
-        propertyMap["value"] = m_ptr_Selected->value(property.TagName);
+        propertyMap["value"] = ptr_SelectedNode->value(property.TagName);
         return propertyMap;
     };
 
@@ -640,7 +632,7 @@ QVariantMap Project_class::selection() const{ // Needed for properties menu
         QVariantMap propertyGroupMap;
         propertyGroupMap["title"] = QString();
         QVariantList propertyGroupList;
-        for(auto &attribute: m_ptr_Selected->attributes()){
+        for(auto &attribute: ptr_SelectedNode->attributes()){
             QVariantMap propertyMap;
             propertyMap["tagName"] = attribute->Name;
             propertyMap["title"]   = attribute->Name;
@@ -678,13 +670,44 @@ void Project_class::setPageActv(int index){
     emit pageActvChanged();
 }
 
-void Project_class::setSelectedIUuid(const QString &iUuid){
+QVariantList Project_class::getSelectedItems(){
+    QVariantList SelectedItemsList;
+    for(auto &item : m_hash_SelectedItems){
+        SelectedItemsList.append(item->value(ATTR_IUUID));
+    }
+    return SelectedItemsList;
+}
+
+void Project_class::addSelectedItem(const QString &iUuid){
     XmlNode_class *selected = getNode(iUuid);
-    if(selected == m_ptr_Selected) return;
-    m_ptr_Selected = selected;
-    emit selectionChanged();
-    emit selectedIUuidChanged();
-    emit selectedUuidChanged();
+
+    m_hash_SelectedItems[selected] = selected;
+
+    emit selectedItemsChanged();
+    emit propertiesChanged();
+}
+
+void Project_class::setSelectedItem(const QString &iUuid){
+    XmlNode_class *selected = getNode(iUuid);
+    if(m_hash_SelectedItems.contains(selected))
+        return;
+    m_hash_SelectedItems.clear();
+    m_hash_SelectedItems[selected] = selected;
+
+    emit selectedItemsChanged();
+    emit propertiesChanged();
+}
+
+bool Project_class::isSelectedItem(const QString &iUuid){
+    XmlNode_class *selected = getNode(iUuid);
+    return m_hash_SelectedItems.contains(selected);
+}
+
+void Project_class::clearSelectedItems(){
+    m_hash_SelectedItems.clear();
+
+    emit selectedItemsChanged();
+    emit propertiesChanged();
 }
 
 void Project_class::undo(){ m_UndoStack.undo(); }
@@ -748,16 +771,14 @@ void Project_class::cmdAddChild(const QString &targetIUuid, const QString &templ
     const NodeType_s *templateNode   = S_SchemaManager.getNode(QUuid(templateUuid));
     XmlNode_class    *parentNode   = getNode(targetIUuid);
     const NodeType_s *templateParent = S_SchemaManager.getNode(parentNode);
-    if(targetIUuid.isEmpty() && m_ptr_Selected){
-        parentNode = m_ptr_Selected;
-    }
+
     if(parentNode == nullptr || templateNode == nullptr)     return;
     if(parentNode->children().size() >= templateParent->Max && templateParent->Max != -1) return;
     XmlNode_class   *newNode = createNode(parentNode, templateNode);
 
     m_UndoStack.push(new InsertNodeCmd(this, parentNode, -1, newNode, tr("Add %1").arg(newNode->TagName)));
-    setSelectedIUuid(newNode->value(ATTR_IUUID));
-    emit selectedIUuidChanged();
+    setSelectedItem(newNode->value(ATTR_IUUID));
+    emit selectedItemsChanged();
 }
 
 bool Project_class::cmdRemove(const QString &targetIUuid){
@@ -765,6 +786,8 @@ bool Project_class::cmdRemove(const QString &targetIUuid){
     if(targetNode == nullptr) return false;
 
     m_UndoStack.push(new RemoveNodeCmd(this, targetNode, tr("Delete %1").arg(targetNode->value(ATTR_VALUE))));
+    setSelectedItem(QString());
+    emit clearSelectedItems();
     return true;
 }
 
@@ -786,4 +809,63 @@ void Project_class::cmdSetProperty(const QString &targetIUuid, const QString &na
         strValue = value.toString();
     }
     m_UndoStack.push(new SetAttributeCmd(this, targetNode, name, strValue));
+}
+
+QString Project_class::cmdPlaceBlock(const QString &TypeUuid, qreal x, qreal y){
+    QString BlockIUuid;
+    XmlNode_class *currentPage = m_ptr_ActivePage;
+    const BlockManager_class::BlockType_s *blockType = S_BlockManager.getBlockTypeByUuid(QUuid(TypeUuid));
+    if(currentPage == nullptr || blockType == nullptr){
+        return BlockIUuid;
+    }
+    XmlNode_class *newBlock = new XmlNode_class(TOKEN_BLOCK_INST);
+    newBlock->setValue(ATTR_UUID,   blockType->Uuid.toString(QUuid::WithoutBraces));
+    newBlock->setValue(ATTR_IUUID,  QUuid::createUuidV7().toString(QUuid::WithoutBraces));
+    newBlock->setValue(ATTR_TYPE,   blockType->Type);
+    newBlock->setValue(ATTR_TITLE,  blockType->Title);
+    newBlock->setValue(ATTR_PX,     QString::number(qRound(x)));
+    newBlock->setValue(ATTR_PY,     QString::number(qRound(y)));
+    newBlock->setValue(ATTR_COLOR,  blockType->Color.name());
+
+    for(auto &port : blockType->Inputs){
+        XmlNode_class *portNode = new XmlNode_class(TOKEN_INPUT);
+        portNode->setValue(ATTR_IUUID,      QUuid::createUuidV7().toString(QUuid::WithoutBraces));
+        portNode->setValue(ATTR_SHORT_NAME, port.ShortName);
+        portNode->setValue(ATTR_VISIBLE,    port.Visible ? QStringLiteral("true") : QStringLiteral("false"));
+        newBlock->appendChild(portNode);
+    }
+    for(auto &port : blockType->Properties){
+        XmlNode_class *portNode = new XmlNode_class(TOKEN_PROPERTY);
+        portNode->setValue(ATTR_IUUID,      QUuid::createUuidV7().toString(QUuid::WithoutBraces));
+        portNode->setValue(ATTR_SHORT_NAME, port.ShortName);
+        portNode->setValue(ATTR_VISIBLE,    port.Visible ? QStringLiteral("true") : QStringLiteral("false"));
+        newBlock->appendChild(portNode);
+    }
+    for(auto &port : blockType->Outputs){
+        XmlNode_class *portNode = new XmlNode_class(TOKEN_OUTPUT);
+        portNode->setValue(ATTR_IUUID,      QUuid::createUuidV7().toString(QUuid::WithoutBraces));
+        portNode->setValue(ATTR_SHORT_NAME, port.ShortName);
+        portNode->setValue(ATTR_VISIBLE,    port.Visible ? QStringLiteral("true") : QStringLiteral("false"));
+        newBlock->appendChild(portNode);
+    }
+    m_UndoStack.push(new InsertNodeCmd(this, currentPage, -1, newBlock, tr("Add %1").arg(blockType->Title)));
+    BlockIUuid = newBlock->value(ATTR_IUUID);
+    setSelectedItem(BlockIUuid);
+    emit selectedItemsChanged();
+
+    return BlockIUuid;
+}
+
+void Project_class::cmdMoveItem  (const QString &TargetIUuid, qreal x, qreal y){
+    XmlNode_class *targetItem = getNode(TargetIUuid);
+    if(targetItem == nullptr)
+        return;
+    const QString newX = QString::number(qRound(x));
+    const QString newY = QString::number(qRound(y));
+    if(targetItem->value(ATTR_PX) == newX && targetItem->value(ATTR_PY) == newY)
+        return;
+    m_UndoStack.beginMacro(tr("Move"));
+    m_UndoStack.push(new SetAttributeCmd(this, targetItem, ATTR_PX, newX));
+    m_UndoStack.push(new SetAttributeCmd(this, targetItem, ATTR_PY, newY));
+    m_UndoStack.endMacro();
 }

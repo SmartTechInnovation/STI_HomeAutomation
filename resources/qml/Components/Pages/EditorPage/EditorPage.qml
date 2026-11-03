@@ -56,10 +56,13 @@ Item {
                     Layout.fillHeight: true
                     project: root.project
 
-                    onBlockPicked:       (uuid) => projectView.addBlockAtCenter(uuid)
+                    onBlockPicked:       (uuid) => {
+                        projectView.beginBlockPlacement(uuid)
+                    }
+
                     onContextPicked:     (uuid) => {
-                        if(root.project && root.project.selection){
-                            var iUuid = root.project.selection.instance.iUuid
+                        if(root.project && root.project.properties){
+                            var iUuid = root.project.properties.instance.iUuid
                             root.project.cmdAddChild(iUuid, uuid)
                         }
                     }

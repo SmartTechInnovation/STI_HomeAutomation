@@ -33,19 +33,17 @@ class Project_class : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(bool         canUndo       READ canUndo       NOTIFY undoStateChanged)
-    Q_PROPERTY(bool         canRedo       READ canRedo       NOTIFY undoStateChanged)
-    Q_PROPERTY(QString      undoText      READ undoText      NOTIFY undoStateChanged)
-    Q_PROPERTY(QString      redoText      READ redoText      NOTIFY undoStateChanged)
-    Q_PROPERTY(bool         modified      READ isModified    NOTIFY modifiedChanged )
-    Q_PROPERTY(QVariantMap  info          READ info          NOTIFY infoChanged     )
-    Q_PROPERTY(QVariantList pageList      READ pageList      NOTIFY pagesChanged    )
-    Q_PROPERTY(int          pageCount     READ pageCount     NOTIFY pagesChanged    )
-    Q_PROPERTY(int          pageActv      READ pageActv      NOTIFY pageActvChanged WRITE setPageActv)
-    Q_PROPERTY(QObject      *tree         READ tree          NOTIFY treeChanged     )
-    Q_PROPERTY(QString      selectedUuid  READ selectedUuid  NOTIFY selectedUuidChanged)
-    Q_PROPERTY(QString      selectedIUuid READ selectedIUuid NOTIFY selectedIUuidChanged WRITE setSelectedIUuid)
-    Q_PROPERTY(QVariantMap  selection     READ selection     NOTIFY selectionChanged)
+    Q_PROPERTY(bool         canUndo        READ canUndo        NOTIFY undoStateChanged)
+    Q_PROPERTY(bool         canRedo        READ canRedo        NOTIFY undoStateChanged)
+    Q_PROPERTY(QString      undoText       READ undoText       NOTIFY undoStateChanged)
+    Q_PROPERTY(QString      redoText       READ redoText       NOTIFY undoStateChanged)
+    Q_PROPERTY(bool         modified       READ isModified     NOTIFY modifiedChanged )
+    Q_PROPERTY(QVariantMap  info           READ info           NOTIFY infoChanged     )
+    Q_PROPERTY(QVariantList pageList       READ pageList       NOTIFY pagesChanged    )
+    Q_PROPERTY(int          pageCount      READ pageCount      NOTIFY pagesChanged    )
+    Q_PROPERTY(int          pageActv       READ pageActv       NOTIFY pageActvChanged WRITE setPageActv)
+    Q_PROPERTY(QObject      *tree          READ tree           NOTIFY treeChanged     )
+    Q_PROPERTY(QVariantMap  properties     READ properties     NOTIFY propertiesChanged)
 
 
 private: /* Typedefs and enums */
@@ -59,7 +57,8 @@ private: /* Members */
     XmlNode_class                 *m_ptr_Root       = nullptr;
     XmlNode_class                 *m_ptr_ActivePage = nullptr;
     XmlNode_class                 *m_ptr_Program    = nullptr;
-    XmlNode_class                 *m_ptr_Selected   = nullptr;
+
+    QHash<XmlNode_class*, XmlNode_class*> m_hash_SelectedItems;
     ProjectTree_class             *m_ptr_Tree       = nullptr;
     QHash<QUuid, XmlNode_class *>  m_hash_NodeByIUuid;
     QHash<QUuid, Page_class    *>  m_hash_PageByIUuid;
@@ -115,16 +114,20 @@ public:
     QVariantMap  info()             const;
 
     QObject     *tree()             const;
-    QString      selectedUuid()     const;
-    QString      selectedIUuid()    const;
-    QVariantMap  selection()        const;
+    QVariantMap  properties()       const;
 
     QString      getPath()          const;
     QString      getDir()           const;
     QString      getTitle()         const;
 
     void         setPageActv(int index);
-    void         setSelectedIUuid(const QString &uuid);
+
+    Q_INVOKABLE QVariantList getSelectedItems();
+    Q_INVOKABLE void         addSelectedItem(const QString &iUuid);
+    Q_INVOKABLE void         setSelectedItem(const QString &iUuid);
+    Q_INVOKABLE bool         isSelectedItem(const QString &iUuid);
+    Q_INVOKABLE void         clearSelectedItems();
+
 
     /* ===== QML API - every change goes through the undo stack ===== */
     Q_INVOKABLE void undo();
@@ -142,6 +145,11 @@ public:
     Q_INVOKABLE void cmdRename     (const QString &targetIUuid, const QString &newTitle);
     Q_INVOKABLE void cmdSetProperty(const QString &targetIUuid, const QString &name, const QVariant &value); // iUuid , name of property and value
 
+    /* Items On Page */
+    Q_INVOKABLE QString cmdPlaceBlock(const QString &TypeUuid,    qreal x, qreal y);
+    Q_INVOKABLE void    cmdMoveItem  (const QString &TargetIUuid, qreal x, qreal y);
+
+
 signals:
     /* ==== QML ==== */
     void titleChanged();
@@ -152,9 +160,8 @@ signals:
     void pagesChanged();
     void pageActvChanged();
     void treeChanged();
-    void selectedUuidChanged();
-    void selectedIUuidChanged();
-    void selectionChanged();
+    void selectedItemsChanged();
+    void propertiesChanged();
     void saveAsRequested();
 
     /* ==== C++ Views ==== */

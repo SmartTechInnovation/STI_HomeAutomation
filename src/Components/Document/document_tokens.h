@@ -12,13 +12,15 @@
 #define TOKEN_ROOT_DEV    "RootDevice"
 #define TOKEN_PROGRAM     "Program"
 #define TOKEN_PAGE        "Page"
-#define TOKEN_BLOCK       "BlockInstance"
+#define TOKEN_BLOCK       "Block"
+#define TOKEN_BLOCK_INST  "BlockInstance"
 #define TOKEN_SIGNAL_IN   "SignalInRef"     // reads a channel / variable  -> 1 output
 #define TOKEN_SIGNAL_OUT  "SignalOutRef"    // writes a channel / variable -> 1 input
 #define TOKEN_INPUT       "Input"
 #define TOKEN_OUTPUT      "Output"
 #define TOKEN_PROPERTY    "Property"
 #define TOKEN_SOURCE      "Source"
+#define TOKEN_CATEGORY    "Category"
 
 /* ===== Attributes used by the program ===== */
 #define ATTR_UUID         "Uuid"            // model / type id
@@ -36,6 +38,7 @@
 #define ATTR_VISIBLE      "Visible"
 #define ATTR_VALUE        "Value"
 #define ATTR_FIXED        "Fixed"
+#define ATTR_COMPACT      "Compact"
 #define ATTR_DATA_TYPE    "DataType"
 #define ATTR_CREATION_DATE "CDate"
 #define ATTR_MODIFIED_DATE "MDate"

@@ -266,7 +266,7 @@ QVariant ProjectTree_class::data(const QModelIndex &index, int role) const {
         case RoleColor:         return nodeRef->value(ATTR_COLOR);
         case RoleKind:          return nodeTemplate ? "node" : "unknown";
         case RoleIoType:        return nodeTemplate ? nodeTemplate->IoType           : QString();
-        case RoleDragEnabled:   return nodeTemplate ? nodeTemplate->IoType.isEmpty() : false;
+        case RoleDragEnabled:   return nodeTemplate ? !nodeTemplate->IoType.isEmpty() : false;
         case RoleDescription:   return nodeTemplate ? nodeTemplate->Description      : QString();
         case RoleEditable:      return nodeTemplate ? nodeTemplate->Editable         : false;
         }

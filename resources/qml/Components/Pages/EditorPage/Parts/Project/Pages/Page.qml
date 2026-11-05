@@ -25,6 +25,10 @@ Item {
     readonly property int workPageHeight: project ? project.info.paperSize.height : 2970
     readonly property int snap:           10 // 1mm grid
     readonly property string mimeBlock:   "application/x-sti-block"
+    readonly property string mimeSignal:  "application/x-sti-signal"
+
+    readonly property bool placingBlock:  pendingPlacement.kind === "BlockInstance"
+    readonly property bool placingSignal: pendingPlacement.kind === "SignalInRef" || pendingPlacement.kind === "SignalOutRef"
 
     function snapped(value){
         return Math.round(value / snap) * snap
@@ -83,7 +87,7 @@ Item {
             cancelPlacement()
             return
         }
-        if(pendingPlacement.kind === "BlockInstance"){
+        if(root.placingBlock){
             const position = itemPosition(pagePoint, placementBlockGhost.width, placementBlockGhost.height)
             root.project.cmdPlaceBlock(reference.uuid, position.x, position.y)
         }else{
@@ -244,38 +248,63 @@ Item {
                     target: root.project
                     /* deferred: never touch the TreeView layout from inside a model change / ongoing layout */
                     function onSelectedItemsChanged(){
-                        b_Selected = root.project.isSelectedItem(modelData.iUuid);
+                        selected = root.project.isSelectedItem(modelData.iUuid);
                     }
                 }
 
                 blockRef:   modelData
 
                 onBlockPressed: root.select(modelData.iUuid)
-                onBlockDragged: (wx, wy) => {
-
-                }
+                onBlockDragged:  (wx, wy) => { }
                 onBlockReleased: (wx, wy) => {
                     root.project.cmdMoveItem(modelData.iUuid, wx, wy);
                 }
 
-                onPortPressed: (index, output) => {
+                onPortPressed:  (index, output) => { }
+                onPortDragged:  (wx, wy) => { }
+                onPortReleased: (wx, wy) => { }
+            }
+        }
 
-                }
-                onPortDragged: (wx, wy) => {
+        Repeater {
+            id: rep_Signals
 
-                }
-                onPortReleased: (wx, wy) => {
+            model: root.pageRef ? root.pageRef.signalRefs : ({})
 
+            delegate: Signal {
+                id: signalItem
+
+                worldScale: world.scale
+                snap:       root.snap
+
+                Connections {
+                    target: root.project
+                    /* deferred: never touch the TreeView layout from inside a model change / ongoing layout */
+                    function onSelectedItemsChanged(){
+                        selected = root.project.isSelectedItem(modelData.iUuid);
+                    }
                 }
+
+                signalRef: modelData
+
+                onSignalPressed: root.select(modelData.refUuid)
+                onSignalDragged:  (wx, wy) => { }
+                onSignalReleased: (wx, wy) => {
+                    root.project.cmdMoveItem(modelData.iUuid, wx, wy);
+                }
+
+                onPortPressed:  (index, output) => { }
+                onPortDragged:  (wx, wy) => { }
+                onPortReleased: (wx, wy) => { }
             }
         }
 
         Block{
             id: placementBlockGhost
 
-            visible:  pendingPlacement.active && pendingPlacement.overPage
+            visible:  root.placingBlock && pendingPlacement.overPage
             ghost:    true
-            blockRef: pendingPlacement.reference
+            blockRef: root.placingBlock ? pendingPlacement.reference : null
             z: 10
             x: root.itemPosition(pendingPlacement.pointer, width, height).x
             y: root.itemPosition(pendingPlacement.pointer, width, height).y
@@ -301,32 +330,22 @@ Item {
         onExited: pendingPlacement.overPage = false
     }
 
-    // ===== Placement of a signal dragged from the tree =====
+    // ===== Placement by drag & drop: blocks from the top toolbar, signals from the tree =====
     DropArea {
         anchors.fill: parent
         enabled:      !root.coverPage
-        keys:         [ root.mimeSignal ]
+        keys:         [ root.mimeBlock, root.mimeSignal ]
 
         onEntered: (drag) => {
-            root.beginSignalPlacement(drag.getDataAsString(root.mimeSignal))
-            root.movePlacement(mapToItem(world, drag.x, drag.y))
-        }
-        onPositionChanged: (drag) => root.movePlacement(mapToItem(world, drag.x, drag.y))
-        onExited:          root.cancelPlacement()
-        onDropped: (drop) => {
-            root.commitPlacement(mapToItem(world, drop.x, drop.y))
-            drop.acceptProposedAction()
-        }
-    }
+            if(drag.formats.indexOf(root.mimeBlock) >= 0)
+                root.beginBlockPlacement(drag.getDataAsString(root.mimeBlock))
+            else
+                root.beginSignalPlacement(drag.getDataAsString(root.mimeSignal))
 
-    // ===== Placement of a block dragged from the top toolbar =====
-    DropArea {
-        anchors.fill: parent
-        enabled:      !root.coverPage
-        keys:         [ root.mimeBlock ]
-
-        onEntered: (drag) => {
-            root.beginBlockPlacement(drag.getDataAsString(root.mimeBlock))
+            if(!pendingPlacement.active){
+                drag.accepted = false      // e.g. an Out signal that is already written
+                return
+            }
             pendingPlacement.fromDrag = true
             root.movePlacement(mapToItem(world, drag.x, drag.y))
         }

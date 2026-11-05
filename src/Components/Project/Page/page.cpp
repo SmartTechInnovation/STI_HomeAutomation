@@ -34,7 +34,7 @@ Page_class::~Page_class(){
 }
 
 void Page_class::onInserted(XmlNode_class *parent, XmlNode_class *node){
-    if(!m_ptr_PageRef->hasChild(node))
+    if(parent != m_ptr_PageRef)
         return;
     if(node->TagName == TOKEN_BLOCK_INST){
         m_vec_Blocks.append(node);
@@ -47,7 +47,7 @@ void Page_class::onInserted(XmlNode_class *parent, XmlNode_class *node){
 }
 
 void Page_class::onRemoved(XmlNode_class *parent, XmlNode_class *node){
-    if(m_ptr_PageRef->hasChild(node))
+    if(parent != m_ptr_PageRef)
         return;
     if(node->TagName == TOKEN_BLOCK_INST){
         m_vec_Blocks.removeOne(node);
@@ -155,6 +155,42 @@ QVariantList Page_class::getBlocks() const{
         BlockList.append(BlockMap);
     }
     return BlockList;
+}
+
+QVariantList Page_class::getSignalRefs() const{
+    QVariantList SignalsList;
+
+    auto sumOfVector = m_vec_Signals_In + m_vec_Signals_Out;
+
+    for(auto &signal : sumOfVector){
+        QVariantMap SignalMap;
+
+        XmlNode_class* refSignal = m_ptr_Project->getNode(signal->value(ATTR_IO));
+
+        
+
+        SignalMap["tagName"] = signal->TagName;
+        SignalMap["iUuid"]   = signal->value(ATTR_IUUID);
+        SignalMap["refUuid"] = signal->value(ATTR_IO);
+        SignalMap["pX"]      = signal->value(ATTR_PX,    QStringLiteral("0")).toDouble();
+        SignalMap["pY"]      = signal->value(ATTR_PY,    QStringLiteral("0")).toDouble();
+        SignalMap["title"]   = refSignal ? refSignal->value(ATTR_TITLE, "Missing")                        : "Missing";
+        SignalMap["color"]   = refSignal ? refSignal->value(ATTR_COLOR, QStringLiteral("#7D8491"))      : "#7D8491";
+        SignalMap["width"]   = refSignal ? refSignal->value(ATTR_WIDTH, QStringLiteral("200")).toDouble() : 200.0 ;
+        SignalMap["icon"]    = refSignal ? refSignal->value(ATTR_ICON, "qrc:/icons/misc/unknown.svg")     : "qrc:/icons/misc/unknown.svg";
+
+        QVariantList PortInputList;
+        QVariantList PortOutputList;
+        QVariantList PortProperties;
+
+        SignalMap["inputs"]     = PortInputList;
+        SignalMap["outputs"]    = PortOutputList;
+        SignalMap["properties"] = PortProperties;
+
+        SignalsList.append(SignalMap);
+    }
+
+    return SignalsList;
 }
 
 QVariantMap Page_class::getBlockGhost(const QString &uuid) const{

@@ -42,11 +42,10 @@ qt_add_qml_module(appSTIx_Config
         resources/qml/Components/Pages/EditorPage/Parts/Project/Tree/ProjectTree.qml
         resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/Page.qml
         resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/Parts/Block.qml
+        resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/Parts/Signal.qml
         resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/Parts/Port.qml
         resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/Parts/DisplayConnections.qml
         resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/Parts/CheckBoxCustom.qml
-
-
         resources/qml/Components/Pages/EditorPage/Parts/Topbar/TopToolBar.qml
         resources/qml/Components/Pages/EditorPage/Parts/Topbar/ToolBtn.qml
         resources/qml/Components/Pages/EditorPage/Parts/Topbar/BlocksMenu.qml
@@ -75,14 +74,14 @@ qt_add_qml_module(appSTIx_Config
         src/Components/Document/document_tokens.h
         src/Components/Document/xmlnode.h
         src/Components/Document/xmlnode.cpp
+        src/Components/Document/resourceurl.h
         src/Components/Logger/logger.h
         src/Components/Logger/logger.cpp
+        src/Components/DataTypes/datatypes.h
+        src/Components/DataTypes/datatypes.cpp
 
     RESOURCES
         resources/qml/Components/Theme/qmldir
-        QML_FILES
-        SOURCES src/Components/Document/resourceurl.h
-        SOURCES src/Components/DataTypes/datatypes.h src/Components/DataTypes/datatypes.cpp
 )
 
 # Theme.qml e singleton — calea trebuie sa fie EXACT ca in QML_FILES de mai sus

@@ -7,8 +7,6 @@ Item {
     id: root
 
     property var    blockRef:      null
-    property string blockInstUuid: blockRef ? blockRef.iUuid : ""
-    property string blockTypeUuid: blockRef ? blockRef.uuid  : ""
     property string blockType:     blockRef ? blockRef.type  : ""
     property string blockTitle:    blockRef ? blockRef.title : ""
     property string blockIcon:     blockRef ? blockRef.icon  : ""
@@ -21,8 +19,8 @@ Item {
     property var    inputs:     blockRef ? blockRef.inputs    : []
     property var    outputs:    blockRef ? blockRef.outputs   : []
 
-    property bool   b_Selected: false
-    property bool   b_Compact:  blockRef ? blockRef.compact : false
+    property bool   selected:  false
+    property bool   b_Compact: blockRef ? blockRef.compact : false
 
     readonly property real rowSpacing: 30
 
@@ -36,7 +34,7 @@ Item {
 
     x: blockRef ? blockRef.pX : 0
     y: blockRef ? blockRef.pY : 0
-    z: b_Selected ? 3 : 2
+    z: selected ? 3 : 2
 
     signal blockPressed(real wx, real wy)
     signal blockDragged(real wx, real wy)
@@ -107,8 +105,8 @@ Item {
         anchors.fill: parent
         radius:       10
         color:        root.blockColor
-        border.width: 2
-        border.color: root.b_Selected ? Qt.darker(root.blockColor) : root.blockColor
+        border.width: root.selected ? 3 : 2
+        border.color: root.selected ? Qt.darker(root.blockColor) : root.blockColor
 
         implicitWidth:  Math.max(root.defaultWidth, mainColumn.implicitWidth  + 2 * mainColumn.anchors.margins)
         implicitHeight: mainColumn.implicitHeight + 2 * mainColumn.anchors.margins

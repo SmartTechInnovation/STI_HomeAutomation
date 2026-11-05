@@ -107,7 +107,7 @@ Item {
             required property string   icon
             required property color    color
             required property string   kind
-            required property bool     ioType
+            required property string   ioType
             required property bool     dragEnabled
             required property string   description
             required property bool     editable
@@ -238,8 +238,8 @@ Item {
                 id: ma_Row
                 anchors.fill: parent
                 acceptedButtons: Qt.LeftButton | Qt.RightButton
-                cursorShape: node.draggable ? Qt.OpenHandCursor : Qt.ArrowCursor
-                drag.target: node.draggable ? dragProxy : null
+                cursorShape: node.dragEnabled ? Qt.OpenHandCursor : Qt.ArrowCursor
+                drag.target: node.dragEnabled ? dragProxy : null
                 drag.threshold: 6
 
                 /* was the row already selected before the first click of a double-click?

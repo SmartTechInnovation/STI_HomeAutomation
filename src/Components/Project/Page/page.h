@@ -17,6 +17,7 @@ class Page_class : public QObject
     Q_PROPERTY(QString      title        READ title         NOTIFY titleChanged)
     Q_PROPERTY(QString      modifiedDate READ modifiedDate  NOTIFY modifiedDateChanged)
     Q_PROPERTY(QVariantList blocks       READ getBlocks     NOTIFY blocksChanged)
+    Q_PROPERTY(QVariantList signalRefs   READ getSignalRefs NOTIFY signalRefsChanged)
     Q_PROPERTY(QVariantList connections  READ connections   NOTIFY connectionsChanged)
 
     /* View state - kept while the app runs, not saved */
@@ -57,6 +58,7 @@ public:
 
     /* Qml API */
     QVariantList   getBlocks()     const;
+    QVariantList   getSignalRefs() const;
     QVariantList   connections()   const;
 
     Q_INVOKABLE QVariantMap getBlockGhost(const QString &uuid) const;
@@ -66,6 +68,7 @@ signals:
     void modifiedDateChanged();
     void blocksChanged();
     void blockGhostChanged();
+    void signalRefsChanged();
     void connectionsChanged();
     void viewChanged();
 };

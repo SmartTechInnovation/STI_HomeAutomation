@@ -5,9 +5,15 @@ project(STIx_Config VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Quick Qml QuickControls2 Svg Xml)
+option(STIX_BUILD_TESTS "Build the unit and integration tests" ON)
 
-# Ajusteaza la versiunea de Qt chiar instalata (proiectul e compilat pe 6.4)
+set(STIX_QT_COMPONENTS Core Gui Quick Qml QuickControls2 Svg Xml)
+if(STIX_BUILD_TESTS)
+    list(APPEND STIX_QT_COMPONENTS Test)
+endif()
+find_package(Qt6 REQUIRED COMPONENTS ${STIX_QT_COMPONENTS})
+
+# Adjust to the Qt version actually installed
 qt_standard_project_setup(REQUIRES 6.11)
 
 # Content of downloaded design from Figma to Qt or similar
@@ -15,79 +21,58 @@ if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/importedcontent/CMakeLists.txt")
     add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/importedcontent)
 endif()
 
-qt_add_executable(appSTIx_Config)
+# =============================================================================
+# Auto-discovery (story 1.1): new sources, QML files and tests are picked up
+# automatically, so later stories never have to edit this file.
+# Re-run CMake configure after adding a file (CONFIGURE_DEPENDS does it for you).
+# =============================================================================
 
-target_compile_definitions(appSTIx_Config PRIVATE
-    PROJECT_VERSION_STR="${PROJECT_VERSION}"
+# ---- stix_core: layers L1-L3 (no QtQuick), shared by the app and the tests ----
+file(GLOB_RECURSE STIX_CORE_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/Components/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/Components/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/Components/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/Setup/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/sdk/*.h"
+)
+add_library(stix_core STATIC
+    ${STIX_CORE_SOURCES}
+    src/App/application.h
+    src/App/application.cpp
+)
+target_include_directories(stix_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_definitions(stix_core PUBLIC PROJECT_VERSION_STR="${PROJECT_VERSION}")
+target_link_libraries(stix_core PUBLIC
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Qml
+    Qt6::Svg
+    Qt6::Xml
 )
 
-target_include_directories(appSTIx_Config PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
+# ---- The application: entry point + QML module (layer L4) ----
+qt_add_executable(appSTIx_Config
+    src/App/main.cpp
+)
+
+file(GLOB_RECURSE STIX_QML_FILES CONFIGURE_DEPENDS
+    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/resources/qml/*.qml"
+)
+list(SORT STIX_QML_FILES)
+
+# Theme.qml is a singleton - the path must be EXACTLY as in QML_FILES below
+set_source_files_properties(
+    resources/qml/Components/Theme/Theme.qml
+    PROPERTIES QT_QML_SINGLETON_TYPE TRUE
 )
 
 qt_add_qml_module(appSTIx_Config
     URI STI_HomeAutomation
     QML_FILES
-        resources/qml/Main.qml
-        resources/qml/Components/Theme/Theme.qml
-        resources/qml/Components/Tab/Tab.qml
-        resources/qml/Components/Tab/TabStrip.qml
-        resources/qml/Components/Logger/LogTab.qml
-        resources/qml/Components/Pages/HomePage/HomePage.qml
-        resources/qml/Components/Pages/HomePage/Parts/SearchBox.qml
-        resources/qml/Components/Pages/EditorPage/EditorPage.qml
-        resources/qml/Components/Pages/EditorPage/Parts/Controller/ControllerConnection.qml
-        resources/qml/Components/Pages/EditorPage/Parts/Project/Project.qml
-        resources/qml/Components/Pages/EditorPage/Parts/Project/Properties/Properties.qml
-        resources/qml/Components/Pages/EditorPage/Parts/Project/Tree/ProjectTree.qml
-        resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/Page.qml
-        resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/Parts/Block.qml
-        resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/Parts/Signal.qml
-        resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/Parts/Port.qml
-        resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/Parts/DisplayConnections.qml
-        resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/Parts/CheckBoxCustom.qml
-        resources/qml/Components/Pages/EditorPage/Parts/Topbar/TopToolBar.qml
-        resources/qml/Components/Pages/EditorPage/Parts/Topbar/ToolBtn.qml
-        resources/qml/Components/Pages/EditorPage/Parts/Topbar/BlocksMenu.qml
-        resources/qml/Components/Pages/EditorPage/Parts/Topbar/ShortcutsMenu.qml
-        resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/PageFrame.qml
-        resources/qml/Components/Pages/EditorPage/Parts/Project/Pages/PageCover.qml
-    SOURCES
-        src/App/main.cpp
-        src/Setup/Setup.hpp
-        src/App/application.h
-        src/App/application.cpp
-        src/Components/Project/project.h
-        src/Components/Project/project.cpp
-        src/Components/Project/project_tokens.h
-        src/Components/Project/project_commands.h
-        src/Components/Project/Tree/projecttree.h
-        src/Components/Project/Tree/projecttree.cpp
-        src/Components/Project/Page/page.h
-        src/Components/Project/Page/page.cpp
-        src/Components/ProjectManager/projectmanager.h
-        src/Components/ProjectManager/projectmanager.cpp
-        src/Components/BlockManager/blockmanager.h
-        src/Components/BlockManager/blockmanager.cpp
-        src/Components/SchemaManager/schemamanager.h
-        src/Components/SchemaManager/schemamanager.cpp
-        src/Components/Document/document_tokens.h
-        src/Components/Document/xmlnode.h
-        src/Components/Document/xmlnode.cpp
-        src/Components/Document/resourceurl.h
-        src/Components/Logger/logger.h
-        src/Components/Logger/logger.cpp
-        src/Components/DataTypes/datatypes.h
-        src/Components/DataTypes/datatypes.cpp
-
+        ${STIX_QML_FILES}
     RESOURCES
         resources/qml/Components/Theme/qmldir
-)
-
-# Theme.qml e singleton — calea trebuie sa fie EXACT ca in QML_FILES de mai sus
-set_source_files_properties(
-    resources/qml/Components/Theme/Theme.qml
-    PROPERTIES QT_QML_SINGLETON_TYPE TRUE
 )
 
 qt_add_resources(appSTIx_Config_res
@@ -110,14 +95,35 @@ set_target_properties(appSTIx_Config PROPERTIES
     QT_QML_CONTROLS_STYLE Basic
 )
 
-target_link_libraries(appSTIx_Config
-    PRIVATE Qt6::Core
-    PRIVATE Qt6::Quick
-    PRIVATE Qt6::QuickControls2
-    PRIVATE Qt6::Qml
-    PRIVATE Qt6::Svg
-    PRIVATE Qt6::Xml
+target_link_libraries(appSTIx_Config PRIVATE
+    stix_core
+    Qt6::Quick
+    Qt6::QuickControls2
 )
+
+# ---- Optional build modules: one file per concern (warnings, translations, zip, crypto…) ----
+file(GLOB STIX_CMAKE_MODULES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/*.cmake")
+list(SORT STIX_CMAKE_MODULES)
+foreach(stix_module IN LISTS STIX_CMAKE_MODULES)
+    include(${stix_module})
+endforeach()
+
+# ---- Tools (e.g. tools/stix-mock-controller) and the SDK tests, when present ----
+file(GLOB STIX_TOOL_DIRS CONFIGURE_DEPENDS LIST_DIRECTORIES true "${CMAKE_CURRENT_SOURCE_DIR}/tools/*")
+foreach(stix_tool_dir IN LISTS STIX_TOOL_DIRS)
+    if(IS_DIRECTORY ${stix_tool_dir} AND EXISTS ${stix_tool_dir}/CMakeLists.txt)
+        add_subdirectory(${stix_tool_dir})
+    endif()
+endforeach()
+
+# ---- Tests ----
+if(STIX_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/sdk/tests/CMakeLists.txt)
+        add_subdirectory(sdk/tests)
+    endif()
+endif()
 
 install(TARGETS appSTIx_Config
     BUNDLE DESTINATION .

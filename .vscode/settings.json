@@ -1,0 +1,4 @@
+{
+    "cmake.ctest.parallelJobs": 0,
+    "cmake.parallelJobs": 0
+}

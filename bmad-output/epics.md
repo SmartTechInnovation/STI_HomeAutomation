@@ -28,7 +28,7 @@
 
 | ID | Slug | Intent | Status |
 |------|------|--------|--------|
-| 1.1 | test-harness | Add a Qt Test target, a `tests/` tree and CTest, so every later story can add tests | ready-for-dev |
+| 1.1 | test-harness | Add a Qt Test target, a `tests/` tree and CTest, so every later story can add tests | review |
 | 1.2 | tokens-consolidation | Merge the duplicated tokens into `sdk/stix_tokens.h` (program contract) and `project_tokens.h` (editor-only) | ready-for-dev |
 | 1.3 | descriptor-attribute-fix | Fix `Garage_Gate` (`ShortTitle`/`Type` → `ShortName`/`DataType`, stray `T`); make all template `Vers` SemVer; warn on unknown port attributes | ready-for-dev |
 | 1.4 | header-and-global-fixes | Make `resolveResourceUrl` inline; rename `Application` → `S_Application` | ready-for-dev |

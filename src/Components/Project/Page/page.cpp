@@ -40,9 +40,11 @@ void Page_class::onInserted(XmlNode_class *parent, XmlNode_class *node){
         m_vec_Blocks.append(node);
         emit blocksChanged();
     }else if(node->TagName == TOKEN_SIGNAL_IN){
-
+        m_vec_Signals_In.append(node);
+        emit signalRefsChanged();
     }else if(node->TagName == TOKEN_SIGNAL_OUT){
-
+        m_vec_Signals_Out.append(node);
+        emit signalRefsChanged();
     }
 }
 
@@ -53,9 +55,11 @@ void Page_class::onRemoved(XmlNode_class *parent, XmlNode_class *node){
         m_vec_Blocks.removeOne(node);
         emit blocksChanged();
     }else if(node->TagName == TOKEN_SIGNAL_IN){
-
+        m_vec_Signals_In.removeOne(node);
+        emit signalRefsChanged();
     }else if(node->TagName == TOKEN_SIGNAL_OUT){
-
+        m_vec_Signals_Out.removeOne(node);
+        emit signalRefsChanged();
     }
 }
 
@@ -65,9 +69,9 @@ void Page_class::onAttributeChanged(XmlNode_class *node,   const QString &tag){
     if(node->TagName == TOKEN_BLOCK_INST){
         emit blocksChanged();
     }else if(node->TagName == TOKEN_SIGNAL_IN){
-
+        emit signalRefsChanged();
     }else if(node->TagName == TOKEN_SIGNAL_OUT){
-
+        emit signalRefsChanged();
     }
 }
 
@@ -167,21 +171,35 @@ QVariantList Page_class::getSignalRefs() const{
 
         XmlNode_class* refSignal = m_ptr_Project->getNode(signal->value(ATTR_IO));
 
-        
-
         SignalMap["tagName"] = signal->TagName;
         SignalMap["iUuid"]   = signal->value(ATTR_IUUID);
         SignalMap["refUuid"] = signal->value(ATTR_IO);
         SignalMap["pX"]      = signal->value(ATTR_PX,    QStringLiteral("0")).toDouble();
         SignalMap["pY"]      = signal->value(ATTR_PY,    QStringLiteral("0")).toDouble();
         SignalMap["title"]   = refSignal ? refSignal->value(ATTR_TITLE, "Missing")                        : "Missing";
-        SignalMap["color"]   = refSignal ? refSignal->value(ATTR_COLOR, QStringLiteral("#7D8491"))      : "#7D8491";
+        SignalMap["color"]   = refSignal ? refSignal->value(ATTR_COLOR, QStringLiteral("#7D8491"))        : "#7D8491";
         SignalMap["width"]   = refSignal ? refSignal->value(ATTR_WIDTH, QStringLiteral("200")).toDouble() : 200.0 ;
         SignalMap["icon"]    = refSignal ? refSignal->value(ATTR_ICON, "qrc:/icons/misc/unknown.svg")     : "qrc:/icons/misc/unknown.svg";
 
         QVariantList PortInputList;
         QVariantList PortOutputList;
         QVariantList PortProperties;
+
+        for(auto &child : signal->children()){
+            if(child->TagName == TOKEN_INPUT){
+                QVariantMap PortMap;
+                PortMap["iUuid"]     = child->value(ATTR_IUUID);
+                PortMap["shortName"] = child->value(ATTR_SHORT_NAME);
+                PortMap["color"]     = S_DataTypes.color(refSignal ? refSignal->value(ATTR_DATA_TYPE, "Custom") : "Custom");
+                PortInputList.append(PortMap);
+            }else if(child->TagName == TOKEN_OUTPUT){
+                QVariantMap PortMap;
+                PortMap["iUuid"]     = child->value(ATTR_IUUID);
+                PortMap["shortName"] = child->value(ATTR_SHORT_NAME);
+                PortMap["color"]     = S_DataTypes.color(refSignal ? refSignal->value(ATTR_DATA_TYPE, "Custom") : "Custom");
+                PortOutputList.append(PortMap);
+            }
+        }
 
         SignalMap["inputs"]     = PortInputList;
         SignalMap["outputs"]    = PortOutputList;

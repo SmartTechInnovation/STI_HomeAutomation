@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Shapes
 
 import "../../../../../Theme"
 import "Parts"
@@ -19,7 +20,22 @@ Item {
     property int  pageTotal:  1
     property bool coverPage:  false
 
-    property bool ctrlPressed: false
+    property bool multipleSelection: false
+
+    // ===== Rubber-band selection (root coordinates) =====
+    property bool selectionActive: false
+    property real selectionStartX: 0
+    property real selectionStartY: 0
+    property real selectionEndX:   0
+    property real selectionEndY:   0
+
+
+
+    // normalized rectangle -> works in every drag direction
+    readonly property real selectionX: Math.min(selectionStartX, selectionEndX)
+    readonly property real selectionY: Math.min(selectionStartY, selectionEndY)
+    readonly property real selectionW: Math.abs(selectionEndX - selectionStartX)
+    readonly property real selectionH: Math.abs(selectionEndY - selectionStartY)
 
     readonly property int workPageWidth:  project ? project.info.paperSize.width  : 4200
     readonly property int workPageHeight: project ? project.info.paperSize.height : 2970
@@ -40,15 +56,83 @@ Item {
                         Math.max(0, Math.min(workPageHeight - itemHeight, snapped(pointerPoint.y - 24))))
     }
 
-    function select(iUuid){
-        if(project){
-            if(ctrlPressed){
-                project.addSelectedItem(iUuid)
-            }else{
-                project.setSelectedItem(iUuid)
+    function selectItem(iUuid, propsIUuid){
+        if(!root.project) return
+        if(root.multipleSelection)
+            root.project.addSelectedItem(iUuid)
+        else{
+            root.project.setSelectedItem(iUuid)
+        }
+        root.project.setPropertiesItem(propsIUuid)
+
+        root.forceActiveFocus()
+    }
+
+    property var  selectedItemRefs: []
+
+    function dragGroup(leader, dX, dY){
+        if(selectedItemRefs.length === 0){
+            const selectedIUuids = root.project.getSelectedItems()
+            for(let j = 0; j < rep_Blocks.count; j++){
+                const blockIt = rep_Blocks.itemAt(j)
+                if(selectedIUuids.some(object => object === blockIt.ref.iUuid)){
+                    selectedItemRefs.push(blockIt);
+                }
+            }
+            for(let k = 0; k < rep_Signals.count; k++){
+                const signalIt = rep_Signals.itemAt(k)
+                if(selectedIUuids.some(object => object === signalIt.ref.iUuid)){
+                    selectedItemRefs.push(signalIt);
+                }
             }
         }
-        root.forceActiveFocus()
+
+        const refs = selectedItemRefs
+        for(let i = 0; i < refs.length; i++){
+            const member = refs[i]
+            if(member !== leader){
+                member.move(dX, dY)
+            }
+        }
+    }
+
+    function releaseGroup(){
+        const refs = selectedItemRefs
+
+        for(let i = 0; i < refs.length; i++){
+            const member = refs[i]
+            root.project.cmdMoveItem(member.ref.iUuid, member.x, member.y);
+        }
+        selectedItemRefs = []
+    }
+
+    function rectIntersects(item, l, t, r, b){
+        return item.x < r && item.x + item.width  > l &&
+               item.y < b && item.y + item.height > t
+    }
+
+    function applySelection(){
+        if(!root.project) return
+        if(root.selectionW < 3 && root.selectionH < 3) return   // simple click, not a drag
+
+        const tl = root.mapToItem(world, root.selectionX, root.selectionY)
+        const br = root.mapToItem(world, root.selectionX + root.selectionW,
+                                         root.selectionY + root.selectionH)
+        const mSelectionPrev = root.multipleSelection
+        root.multipleSelection = true
+        for(let i = 0; i < rep_Blocks.count; ++i){
+            const blockIt = rep_Blocks.itemAt(i)
+            if(blockIt && blockIt.visible && blockIt.ref && rectIntersects(blockIt, tl.x, tl.y, br.x, br.y)){
+                root.selectItem(blockIt.ref.iUuid, blockIt.ref.iUuid)
+            }
+        }
+        for(let j = 0; j < rep_Signals.count; ++j){
+            const signalIt = rep_Signals.itemAt(j)
+            if(signalIt && signalIt.visible && signalIt.ref && rectIntersects(signalIt, tl.x, tl.y, br.x, br.y)){
+                root.selectItem(signalIt.ref.iUuid, signalIt.ref.refUuid)
+            }
+        }
+        root.multipleSelection = mSelectionPrev
     }
 
     function saveView(){
@@ -97,10 +181,13 @@ Item {
         root.forceActiveFocus()
     }
 
-    // ====== Keboard Shortcuts ======
+    // ====== Keyboard Shortcuts ======
     Keys.onPressed: (event) => {
         if(event.key === Qt.Key_Escape){
             cancelPlacement()
+            if(root.project){
+                root.project.clearSelectedItems()
+            }
             event.accepted = true
         }else if(event.key === Qt.Key_Delete || event.key === Qt.Key_Backspace){
             const SelectedItems = project.getSelectedItems();
@@ -109,13 +196,13 @@ Item {
                 event.accepted = true
             })
         }else if(event.key === Qt.ControlModifier || event.key === Qt.Key_Control){
-            ctrlPressed = true;
+            multipleSelection = true;
         }
     }
 
     Keys.onReleased: (event) => {
         if(event.key === Qt.ControlModifier || event.key === Qt.Key_Control){
-            ctrlPressed = false;
+            multipleSelection = false;
         }
     }
 
@@ -124,10 +211,10 @@ Item {
         id: pendingPlacement
         property var    reference:  null
         property string kind:       ""
+
         property point  pointer:    Qt.point(0, 0)
         property bool   overPage:   false
         property bool   fromDrag:   false
-
         readonly property bool active: reference !== null
     }
 
@@ -137,21 +224,38 @@ Item {
         color:        Theme.bgCanvas
     }
 
-    // ===== Pan / wheel / deselect =====
+    // ===== Pan / wheel / deselect / rubber-band =====
     MouseArea {
         anchors.fill: parent
 
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
         property real lastX: 0
         property real lastY: 0
-        onPressed: (pos) => {
-            lastX = pos.x
-            lastY = pos.y
-            if(pos.button === Qt.LeftButton)
-                root.select("")
+
+        onPressed: (mouse) => {
+            lastX = mouse.x
+            lastY = mouse.y
+            if(mouse.button === Qt.LeftButton){
+                // Ctrl = add to current selection, otherwise start fresh
+                if(root.project && !root.multipleSelection){
+                    root.project.clearSelectedItems()
+                }
+
+                root.selectionStartX = mouse.x
+                root.selectionStartY = mouse.y
+                root.selectionEndX   = mouse.x
+                root.selectionEndY   = mouse.y
+                root.selectionActive = true
+            }
             root.forceActiveFocus()
         }
-        onReleased: root.saveView()
+        onReleased: (mouse) => {
+            if(mouse.button === Qt.LeftButton && root.selectionActive){
+                root.applySelection()
+                root.selectionActive = false
+            }
+            root.saveView()
+        }
         onPositionChanged: (mouse) => {
             // ===== Pan =====
             if(mouse.buttons & Qt.MiddleButton){
@@ -160,7 +264,14 @@ Item {
                 lastX = mouse.x
                 lastY = mouse.y
             }
+
+            // ===== Rubber-band =====
+            if(root.selectionActive && (mouse.buttons & Qt.LeftButton)){
+                root.selectionEndX = mouse.x
+                root.selectionEndY = mouse.y
+            }
         }
+
         onWheel: (wheel) => {
             if((wheel.modifiers & Qt.MetaModifier && (Qt.platform.os === "osx" || Qt.platform.os === "macos")) || wheel.modifiers & Qt.ControlModifier){
                 // ==== Zoom ====
@@ -188,7 +299,7 @@ Item {
         scale:  root.pageRef ? root.pageRef.viewScale : 0.2
         transformOrigin: Item.TopLeft
 
-        // ====== Handler for tarck pad ====
+        // ====== Handler for track pad ====
         PinchHandler {
             target: world
             rotationAxis.enabled: false
@@ -252,12 +363,16 @@ Item {
                     }
                 }
 
-                blockRef:   modelData
-
-                onBlockPressed: root.select(modelData.iUuid)
-                onBlockDragged:  (wx, wy) => { }
-                onBlockReleased: (wx, wy) => {
-                    root.project.cmdMoveItem(modelData.iUuid, wx, wy);
+                ref:   modelData
+                selected: root.project.isSelectedItem(modelData.iUuid)
+                onPressed: {
+                    root.selectItem(modelData.iUuid, modelData.iUuid)
+                }
+                onDragged:  (dX, dY) => {
+                    root.dragGroup(blockItem, dX, dY)
+                }
+                onReleased: (wx, wy) => {
+                    root.releaseGroup()
                 }
 
                 onPortPressed:  (index, output) => { }
@@ -285,12 +400,18 @@ Item {
                     }
                 }
 
-                signalRef: modelData
+                ref: modelData
 
-                onSignalPressed: root.select(modelData.refUuid)
-                onSignalDragged:  (wx, wy) => { }
-                onSignalReleased: (wx, wy) => {
-                    root.project.cmdMoveItem(modelData.iUuid, wx, wy);
+                selected: root.project.isSelectedItem(modelData.iUuid)
+                onPressed: {
+                    root.selectItem(modelData.iUuid, modelData.refUuid)
+                }
+
+                onDragged:  (dX, dY) => {
+                    root.dragGroup(signalItem, dX, dY)
+                }
+                onReleased: (wx, wy) => {
+                    root.releaseGroup()
                 }
 
                 onPortPressed:  (index, output) => { }
@@ -302,12 +423,38 @@ Item {
         Block{
             id: placementBlockGhost
 
+            ref:      root.placingBlock ? pendingPlacement.reference : null
             visible:  root.placingBlock && pendingPlacement.overPage
             ghost:    true
-            blockRef: root.placingBlock ? pendingPlacement.reference : null
+
             z: 10
             x: root.itemPosition(pendingPlacement.pointer, width, height).x
             y: root.itemPosition(pendingPlacement.pointer, width, height).y
+        }
+    }
+
+    // ===== Rubber-band rectangle (dashed border) =====
+    Shape {
+        id: selectionRectangle
+        visible: root.selectionActive && root.selectionW > 1 && root.selectionH > 1
+        x:       root.selectionX
+        y:       root.selectionY
+        width:   root.selectionW
+        height:  root.selectionH
+        z:       100
+
+        ShapePath {
+            strokeColor: Theme.gray
+            strokeWidth: 1
+            strokeStyle: ShapePath.DashLine
+            dashPattern: [ 4, 3 ]
+            fillColor:   "transparent"
+
+            startX: 0; startY: 0
+            PathLine { x: selectionRectangle.width; y: 0 }
+            PathLine { x: selectionRectangle.width; y: selectionRectangle.height }
+            PathLine { x: 0;                        y: selectionRectangle.height }
+            PathLine { x: 0;                        y: 0 }
         }
     }
 
@@ -317,7 +464,6 @@ Item {
         enabled:      pendingPlacement.active && !pendingPlacement.fromDrag
         hoverEnabled: true
         acceptedButtons: Qt.LeftButton | Qt.RightButton
-
 
         onPositionChanged: (mouse) => {
             root.movePlacement(mapToItem(world, mouse.x, mouse.y))

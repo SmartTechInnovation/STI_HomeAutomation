@@ -470,12 +470,9 @@ QVariantMap Project_class::properties() const{ // Needed for properties menu
     QVariantMap Result;
     if(m_hash_SelectedItems.size() != 1)
         return Result;
-    XmlNode_class *ptr_SelectedNode = nullptr;
-    for(auto &Item : m_hash_SelectedItems){
-        ptr_SelectedNode = Item;
-        break;
-    }
-    if(ptr_SelectedNode == nullptr)
+    XmlNode_class *ptr_SelectedNode = m_ptr_Properties;
+
+    if(m_ptr_Properties == nullptr)
         return Result;
 
     const NodeType_s *nodeTemplate = S_SchemaManager.getNode(ptr_SelectedNode);
@@ -684,7 +681,6 @@ void Project_class::addSelectedItem(const QString &iUuid){
     m_hash_SelectedItems[selected] = selected;
 
     emit selectedItemsChanged();
-    emit propertiesChanged();
 }
 
 void Project_class::setSelectedItem(const QString &iUuid){
@@ -695,7 +691,6 @@ void Project_class::setSelectedItem(const QString &iUuid){
     m_hash_SelectedItems[selected] = selected;
 
     emit selectedItemsChanged();
-    emit propertiesChanged();
 }
 
 bool Project_class::isSelectedItem(const QString &iUuid){
@@ -703,8 +698,17 @@ bool Project_class::isSelectedItem(const QString &iUuid){
     return m_hash_SelectedItems.contains(selected);
 }
 
+void Project_class::setPropertiesItem(const QString &iUuid){
+    XmlNode_class *selected = getNode(iUuid);
+    m_ptr_Properties = selected;
+
+    emit propertiesChanged();
+}
+
 void Project_class::clearSelectedItems(){
     m_hash_SelectedItems.clear();
+
+    m_ptr_Properties = nullptr;
 
     emit selectedItemsChanged();
     emit propertiesChanged();
@@ -778,7 +782,6 @@ void Project_class::cmdAddChild(const QString &targetIUuid, const QString &templ
 
     m_UndoStack.push(new InsertNodeCmd(this, parentNode, -1, newNode, tr("Add %1").arg(newNode->TagName)));
     setSelectedItem(newNode->value(ATTR_IUUID));
-    emit selectedItemsChanged();
 }
 
 bool Project_class::cmdRemove(const QString &targetIUuid){
@@ -786,8 +789,9 @@ bool Project_class::cmdRemove(const QString &targetIUuid){
     if(targetNode == nullptr) return false;
 
     m_UndoStack.push(new RemoveNodeCmd(this, targetNode, tr("Delete %1").arg(targetNode->value(ATTR_VALUE))));
-    setSelectedItem(QString());
-    emit clearSelectedItems();
+
+    clearSelectedItems();
+
     return true;
 }
 
@@ -851,7 +855,6 @@ QString Project_class::cmdPlaceBlock(const QString &TypeUuid, qreal x, qreal y){
     m_UndoStack.push(new InsertNodeCmd(this, currentPage, -1, newBlock, tr("Add %1").arg(blockType->Title)));
     BlockIUuid = newBlock->value(ATTR_IUUID);
     setSelectedItem(BlockIUuid);
-    emit selectedItemsChanged();
 
     return BlockIUuid;
 }

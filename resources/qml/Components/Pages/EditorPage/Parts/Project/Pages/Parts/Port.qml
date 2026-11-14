@@ -8,7 +8,7 @@ Item {
     id: root
 
     property var   portModel: null
-    property Item  blockRef:  null
+    property Item  parentRef:  null
     property bool  connected: false//portModel.connected
     property real  worldScale: 1
 
@@ -93,13 +93,13 @@ Item {
 
         onPressed: (mouse) => root.pressedAt()
         onPositionChanged: (mouse) => {
-            if(!pressed || !root.blockRef) return
-            var p = mapToItem(blockRef, mouse.x, mouse.y)
+            if(!pressed || !root.parentRef) return
+            var p = mapToItem(parentRef, mouse.x, mouse.y)
             root.draggedTo(p.x, p.y)
         }
         onReleased: (mouse) => {
-            if(!root.blockRef) return
-            var p = mapToItem(blockRef, mouse.x, mouse.y)
+            if(!root.parentRef) return
+            var p = mapToItem(parentRef, mouse.x, mouse.y)
             root.releasedAt(p.x, p.y)
         }
     }

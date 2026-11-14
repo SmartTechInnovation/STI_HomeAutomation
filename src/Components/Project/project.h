@@ -59,6 +59,7 @@ private: /* Members */
     XmlNode_class                 *m_ptr_Program    = nullptr;
 
     QHash<XmlNode_class*, XmlNode_class*> m_hash_SelectedItems;
+    XmlNode_class                 *m_ptr_Properties = nullptr;
     ProjectTree_class             *m_ptr_Tree       = nullptr;
     QHash<QUuid, XmlNode_class *>  m_hash_NodeByIUuid;
     QHash<QUuid, Page_class    *>  m_hash_PageByIUuid;
@@ -123,9 +124,10 @@ public:
     void         setPageActv(int index);
 
     Q_INVOKABLE QVariantList getSelectedItems();
-    Q_INVOKABLE void         addSelectedItem(const QString &iUuid);
-    Q_INVOKABLE void         setSelectedItem(const QString &iUuid);
-    Q_INVOKABLE bool         isSelectedItem(const QString &iUuid);
+    Q_INVOKABLE void         addSelectedItem  (const QString &iUuid);
+    Q_INVOKABLE void         setSelectedItem  (const QString &iUuid);
+    Q_INVOKABLE bool         isSelectedItem   (const QString &iUuid);
+    Q_INVOKABLE void         setPropertiesItem(const QString &iUuid);
     Q_INVOKABLE void         clearSelectedItems();
 
 

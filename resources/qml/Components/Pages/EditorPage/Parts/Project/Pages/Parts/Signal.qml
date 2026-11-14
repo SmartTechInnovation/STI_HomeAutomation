@@ -8,20 +8,23 @@ import "../../../../../../Theme"
 Item {
     id: root
 
-    property var    signalRef:    null
-    property string title:        signalRef ? signalRef.title : ""
-    property string icon:         signalRef ? signalRef.icon  : ""
-    property color  signalColor:  signalRef ? signalRef.color : Theme.gray
-    property real   defaultWidth: signalRef ? signalRef.width : 200
+    property var    ref:          null
+    property string title:        ref ? ref.title : ""
+    property string icon:         ref ? ref.icon  : ""
+    property color  color:        ref ? ref.color : Theme.gray
+    property real   defaultWidth: ref ? ref.width : 200
 
     property real   worldScale:    1
     property int    snap:          10
     property bool   ghost:         false
 
+    property real   lastX: 0
+    property real   lastY: 0
+
     property bool   selected: false
 
-    property var    inputs:     signalRef ? signalRef.inputs    : []
-    property var    outputs:    signalRef ? signalRef.outputs   : []
+    property var    inputs:     ref ? ref.inputs    : []
+    property var    outputs:    ref ? ref.outputs   : []
 
     readonly property real rowSpacing: 30
 
@@ -33,46 +36,58 @@ Item {
     opacity: ghost ? 0.6 : 1
     layer.enabled: ghost
 
-    x: signalRef ? signalRef.pX : 0
-    y: signalRef ? signalRef.pY : 0
+    x: ref ? ref.pX : 0
+    y: ref ? ref.pY : 0
     z: selected ? 3 : 2
 
-    signal signalPressed(real wx, real wy)
-    signal signalDragged(real wx, real wy)
-    signal signalReleased(real wx, real wy)
-    signal portPressed(int index, bool isOutput)
-    signal portDragged(real wx,  real wy)
-    signal portReleased(real wx, real wy)
+    signal clicked ()
+    signal pressed (real wx, real wy)
+    signal dragged (real wx, real wy)
+    signal released(real wx, real wy)
+    signal portPressed (int index, bool isOutput)
+    signal portDragged (real wx,   real wy)
+    signal portReleased(real wx,   real wy)
+
+    function move(dX, dY){
+        root.x = Math.max(0, Math.min(root.parent.width  - root.width,  root.x + dX))
+        root.y = Math.max(0, Math.min(root.parent.height - root.height, root.y + dY))
+    }
 
     //===== Drag Area ======
     MouseArea {
         anchors.fill: parent
 
-        property real lastX: 0
-        property real lastY: 0
+        onClicked: (mouse) => {
+            root.clicked()
+        }
 
         onPressed: (mouse) => {
-            lastX = mouse.x
-            lastY = mouse.y
-            root.signalPressed(root.x, root.y)
+            root.lastX = mouse.x
+            root.lastY = mouse.y
+            root.pressed(root.x, root.y)
         }
         onPositionChanged: (mouse) => {
             if(pressed){
-                var nX = root.x + (mouse.x - lastX)
-                var nY = root.y + (mouse.y - lastY)
+                var nX = root.x + (mouse.x - root.lastX)
+                var nY = root.y + (mouse.y - root.lastY)
                 if(nX < 0) nX = 0
                 if(nY < 0) nY = 0
                 if(nX > (root.parent.width - root.width))   nX = root.parent.width - root.width
                 if(nY > (root.parent.height - root.height)) nY = root.parent.height - root.height
                 nX     = Math.round(nX / snap) * snap
                 nY     = Math.round(nY / snap) * snap
+
+                var dX = nX - root.x
+                var dY = nY - root.y
+                if(dX === 0 && dY === 0) return
+
                 root.x = nX
                 root.y = nY
-                root.signalDragged(root.x, root.y)
+                root.dragged(dX, dY)
             }
         }
         onReleased: (mouse) => {
-            root.signalReleased(root.x, root.y)
+            root.released(root.x, root.y)
         }
     }
 
@@ -81,10 +96,10 @@ Item {
 
         anchors.fill: parent
         radius: 10
-        color: root.signalColor
+        color: root.color
 
         border.width: root.selected ? 3 : 2
-        border.color: root.selected ? Qt.darker(root.signalColor) : root.signalColor
+        border.color: root.selected ? Qt.darker(root.color) : root.color
 
         implicitWidth:  Math.max(root.defaultWidth, mainRow.implicitWidth  + 2 * mainRow.anchors.margins)
         implicitHeight: mainRow.implicitHeight + 2 * mainRow.anchors.margins
@@ -98,12 +113,12 @@ Item {
             // ---- Inputs ---
             Column {
                 id: inputsColumn
-                Layout.fillWidth: true
+                Layout.preferredWidth: 30
                 Layout.alignment: Qt.AlignTop
                 spacing: 2
 
                 Repeater{
-                    model: root.inputs.filter (function(e) { return e.visible || e.connected })
+                    model: root.inputs
                     delegate: Item {
                         required property int index
                         required property var modelData
@@ -121,7 +136,7 @@ Item {
                             x: 6
                             anchors.verticalCenter: parent.verticalCenter
                             portModel: modelData
-                            blockRef: root.parent
+                            parentRef: root.parent
                             onPressedAt:  root.portPressed(index, false)
                             onDraggedTo:  (wx, wy) => root.portDragged(wx, wy)
                             onReleasedAt: (wx, wy) => root.portReleased(wx, wy)
@@ -151,12 +166,12 @@ Item {
             // ---- Outputs (mirror, cand vei avea date) ----
             Column {
                 id: outputsColumn
-                Layout.fillWidth: true
+                Layout.preferredWidth: 30
                 Layout.alignment: Qt.AlignTop
                 spacing: 2
 
                 Repeater{
-                    model: root.outputs.filter(function(e) { return e.visible || e.connected })
+                    model: root.outputs
                     delegate: Item {
                         required property int index
                         required property var modelData
@@ -176,7 +191,7 @@ Item {
                             anchors.rightMargin: 6
                             anchors.verticalCenter: parent.verticalCenter
                             portModel: modelData
-                            blockRef: root.parent
+                            parentRef: root.parent
                             onPressedAt:  root.portPressed(index, true)
                             onDraggedTo:  (wx, wy) => root.portDragged(wx, wy)
                             onReleasedAt: (wx, wy) => root.portReleased(wx, wy)
